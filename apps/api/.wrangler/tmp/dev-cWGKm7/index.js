@@ -26258,9 +26258,27 @@ function shouldShowDeprecationWarning() {
 __name(shouldShowDeprecationWarning, "shouldShowDeprecationWarning");
 if (shouldShowDeprecationWarning()) console.warn("\u26A0\uFE0F  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
 
+// ../../packages/supabase-client/src/enums.ts
+var OrgRole = {
+  OWNER: "OWNER",
+  ADMIN: "ADMIN",
+  MEMBER: "MEMBER"
+};
+
+// ../../packages/supabase-client/src/server.ts
+function createAdminClient(url2, serviceRoleKey) {
+  return createClient(url2, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
+__name(createAdminClient, "createAdminClient");
+
 // src/middleware/supabase.ts
 async function supabaseMiddleware(c, next) {
-  const supabase = createClient(
+  const supabase = createAdminClient(
     c.env.SUPABASE_URL,
     c.env.SUPABASE_SERVICE_ROLE_KEY
   );
@@ -40821,13 +40839,6 @@ __name(date4, "date");
 
 // ../../node_modules/.pnpm/zod@4.3.5/node_modules/zod/v4/classic/external.js
 config2(en_default());
-
-// ../../packages/supabase-client/src/enums.ts
-var OrgRole = {
-  OWNER: "OWNER",
-  ADMIN: "ADMIN",
-  MEMBER: "MEMBER"
-};
 
 // src/trpc/routers/organization.ts
 var UPDATE_ROLES = [OrgRole.OWNER, OrgRole.ADMIN];

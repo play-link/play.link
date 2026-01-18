@@ -1,6 +1,6 @@
-import react from '@vitejs/plugin-react';
-import path from 'node:path';
-import {defineConfig} from 'vite';
+import react from '@vitejs/plugin-react'
+import path from 'node:path'
+import {defineConfig} from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,10 +8,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@play/api-types': path.resolve(
-        __dirname,
-        '../../packages/api-types/src',
-      ),
       '@play/pylon': path.resolve(__dirname, '../../packages/pylon/src'),
       '@play/supabase-client': path.resolve(
         __dirname,
@@ -30,4 +26,4 @@ export default defineConfig({
       },
     },
   },
-});
+})
