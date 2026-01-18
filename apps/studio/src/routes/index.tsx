@@ -1,10 +1,26 @@
-import { createBrowserRouter } from "react-router";
-
-import { HomePage } from "@/pages/HomePage";
+import {createBrowserRouter, Navigate} from 'react-router';
+import {AuthCallbackPage, HomePage, LoginPage} from '@/pages';
+import {ProtectedRoute} from './ProtectedRoute';
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <HomePage />,
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/auth/callback',
+    element: <AuthCallbackPage />,
+  },
+  {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <HomePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
   },
 ]);
