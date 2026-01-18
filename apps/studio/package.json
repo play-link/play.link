@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@play/api": "workspace:*",
-    "@play/api-types": "workspace:*",
     "@play/pylon": "workspace:*",
     "@play/supabase-client": "workspace:*",
     "@tanstack/react-query": "^5.90.19",
