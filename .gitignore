@@ -10,7 +10,7 @@ pnpm-debug.log*
 .cache/
 .tmp/
 temp/
-
+.dev.vars
 # Dependency directories: ignore all node_modules directories, regardless of location.
 **/node_modules/
 

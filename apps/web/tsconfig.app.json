@@ -25,7 +25,9 @@
     /* Path aliases */
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@play/supabase": ["../../packages/supabase/src"],
+      "@play/pylon": ["../../packages/pylon/src"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
