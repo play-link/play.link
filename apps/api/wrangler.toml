@@ -1,0 +1,15 @@
+name = "play-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[dev]
+port = 8787
+local_protocol = "http"
+
+[vars]
+ENVIRONMENT = "development"
+
+# Secrets (set via `wrangler secret put`)
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY
+# DATABASE_URL

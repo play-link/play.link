@@ -1,0 +1,23 @@
+{
+  "name": "@play/monorepo",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "build": "pnpm run build:studio && pnpm run build:web",
+    "build:studio": "pnpm --filter @play/studio run build",
+    "build:web": "pnpm --filter @play/web run build",
+    "dev": "concurrently -n api,studio,web -c blue,magenta,cyan \"pnpm run dev:api\" \"pnpm run dev:studio\" \"pnpm run dev:web\"",
+    "dev:api": "pnpm --filter @play/api run dev",
+    "dev:studio": "pnpm --filter @play/studio run dev",
+    "dev:web": "pnpm --filter @play/web run dev",
+    "lint": "pnpm -r run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.28.0"
+}

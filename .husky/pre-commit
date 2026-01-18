@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Lint monorepo packages with autofix
+FORCE_COLOR=1 pnpm run lint --fix

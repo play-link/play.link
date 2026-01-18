@@ -1,0 +1,23 @@
+{
+  "name": "@play/mails",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "email dev --dir ./emails --port 3030",
+    "build": "email export --dir ./emails --outDir ./out",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.36",
+    "react": "^19.2.3",
+    "react-email": "^4.0.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.0.1",
+    "@eslint-react/eslint-plugin": "^2.7.1",
+    "@types/react": "^19.2.8",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3"
+  }
+}
