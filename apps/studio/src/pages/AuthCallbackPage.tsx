@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {useNavigate} from 'react-router';
-import {getSupabaseClient} from '@play/supabase';
+import {getSupabaseClient} from '@play/supabase-client';
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();

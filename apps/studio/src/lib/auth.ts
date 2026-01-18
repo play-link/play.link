@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {getSupabaseClient} from '@play/supabase';
+import {getSupabaseClient} from '@play/supabase-client';
 import type {User} from '@supabase/supabase-js';
 
 interface AuthState {
