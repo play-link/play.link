@@ -9,7 +9,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@play/pylon': path.resolve(__dirname, '../../packages/pylon/src'),
-      '@play/supabase': path.resolve(__dirname, '../../packages/supabase/src'),
+      '@play/supabase-client': path.resolve(
+        __dirname,
+        '../../packages/supabase-client/src',
+      ),
     },
   },
   server: {

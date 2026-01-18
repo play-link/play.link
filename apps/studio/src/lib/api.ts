@@ -1,4 +1,4 @@
-import {getSupabaseClient} from '@play/supabase';
+import {getSupabaseClient} from '@play/supabase-client';
 
 type FetchOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;

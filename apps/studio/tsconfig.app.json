@@ -26,7 +26,7 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
-      "@play/supabase": ["../../packages/supabase/src"],
+      "@play/supabase-client": ["../../packages/supabase-client/src"],
       "@play/pylon": ["../../packages/pylon/src"]
     }
   },
@@ -36,7 +36,7 @@
     "src/**/*.d.ts",
     "../../packages/pylon/src/**/*.ts",
     "../../packages/pylon/src/**/*.tsx",
-    "../../packages/supabase/src/**/*.ts"
+    "../../packages/supabase-client/src/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", "build"]
 }
