@@ -2,4 +2,10 @@
 export { createAdminClient, getSupabaseClient } from "./client";
 
 // Type exports
-export type { Database } from "./types";
+export type {
+  Database,
+  Enums,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "./types";
