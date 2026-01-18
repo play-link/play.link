@@ -1,6 +1,6 @@
-import { getSupabaseClient } from "@play/supabase";
+import {getSupabaseClient} from '@play/supabase';
 
-type FetchOptions = Omit<RequestInit, "headers"> & {
+type FetchOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
 };
 
@@ -14,11 +14,11 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   const supabase = getSupabaseClient();
   const {
-    data: { session },
+    data: {session},
   } = await supabase.auth.getSession();
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...options.headers,
   };
 
@@ -26,7 +26,7 @@ export async function apiFetch<T = unknown>(
     headers.Authorization = `Bearer ${session.access_token}`;
   }
 
-  const url = endpoint.startsWith("/") ? `/api${endpoint}` : `/api/${endpoint}`;
+  const url = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
 
   const response = await fetch(url, {
     ...options,
@@ -34,9 +34,7 @@ export async function apiFetch<T = unknown>(
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ error: "Unknown error" }));
+    const error = await response.json().catch(() => ({error: 'Unknown error'}));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
 
@@ -48,20 +46,20 @@ export async function apiFetch<T = unknown>(
  */
 export const api = {
   get: <T = unknown>(endpoint: string) =>
-    apiFetch<T>(endpoint, { method: "GET" }),
+    apiFetch<T>(endpoint, {method: 'GET'}),
 
   post: <T = unknown>(endpoint: string, body?: unknown) =>
     apiFetch<T>(endpoint, {
-      method: "POST",
+      method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
     }),
 
   put: <T = unknown>(endpoint: string, body?: unknown) =>
     apiFetch<T>(endpoint, {
-      method: "PUT",
+      method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
     }),
 
   delete: <T = unknown>(endpoint: string) =>
-    apiFetch<T>(endpoint, { method: "DELETE" }),
+    apiFetch<T>(endpoint, {method: 'DELETE'}),
 };

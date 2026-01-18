@@ -1,4 +1,4 @@
-import { Button } from "@play/pylon";
+import {Button} from '@play/pylon';
 
 function App() {
   return (

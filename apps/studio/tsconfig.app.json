@@ -30,6 +30,13 @@
       "@play/pylon": ["../../packages/pylon/src"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "../../packages/pylon/src/**/*.ts",
+    "../../packages/pylon/src/**/*.tsx",
+    "../../packages/supabase/src/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist", "build"]
 }

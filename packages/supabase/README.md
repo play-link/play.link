@@ -1,19 +1,20 @@
-# Supabase Backend
+# @play/supabase
 
-This directory contains the Supabase backend configuration.
+Shared TypeScript client for Supabase. This package provides the configured client and types for use across the monorepo apps.
 
-## Setup
+## Usage
 
-```bash
-supabase init
-supabase start
+```typescript
+import { supabase } from "@play/supabase";
+
+// Auth
+const { data, error } = await supabase.auth.signInWithOtp({ email });
+
+// Database
+const { data } = await supabase.from("profiles").select("*");
 ```
 
-## Structure
+## Exports
 
-```
-supabase/
-├── migrations/     # Database migrations
-├── functions/      # Edge functions
-└── config.toml     # Supabase config
-```
+- `supabase` - Configured Supabase client
+- `Database` - Generated TypeScript types for the database schema

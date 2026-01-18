@@ -1,12 +1,12 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md" | "lg";
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
 }
 
-const StyledButton = styled.button<{ $variant: string; $size: string }>`
+const StyledButton = styled.button<{$variant: string; $size: string}>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -18,14 +18,14 @@ const StyledButton = styled.button<{ $variant: string; $size: string }>`
   transition: all 0.2s ease;
 
   /* Size variants */
-  ${({ $size }) => {
+  ${({$size}) => {
     switch ($size) {
-      case "sm":
+      case 'sm':
         return `
           padding: 0.5rem 1rem;
           font-size: 0.875rem;
         `;
-      case "lg":
+      case 'lg':
         return `
           padding: 1rem 2rem;
           font-size: 1.125rem;
@@ -39,9 +39,9 @@ const StyledButton = styled.button<{ $variant: string; $size: string }>`
   }}
 
   /* Style variants */
-  ${({ $variant }) => {
+  ${({$variant}) => {
     switch ($variant) {
-      case "secondary":
+      case 'secondary':
         return `
           background: rgba(255, 255, 255, 0.1);
           color: white;
@@ -52,7 +52,7 @@ const StyledButton = styled.button<{ $variant: string; $size: string }>`
             background: rgba(255, 255, 255, 0.2);
           }
         `;
-      case "ghost":
+      case 'ghost':
         return `
           background: transparent;
           color: white;
@@ -87,8 +87,8 @@ const StyledButton = styled.button<{ $variant: string; $size: string }>`
 `;
 
 export function Button({
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   children,
   ...props
 }: ButtonProps) {
