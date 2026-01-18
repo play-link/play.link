@@ -174,7 +174,7 @@ move-to-branch name:
     fi
 
 # Push current branch directly to main
-# Auto-adds, commits (with AI-generated message), creates MR, and merges it
+# Auto-adds, commits (with AI-generated message), creates PR, and merges it
 # Usage: just yolo (auto-generates message) or just yolo "custom message"
 [group('git')]
 yolo message="":
@@ -189,16 +189,16 @@ yolo message="":
         exit 1
     fi
     
-    # Install glab if not installed
-    if ! command -v glab &> /dev/null; then
-        echo "📦 Installing glab..."
-        brew install glab
+    # Install gh if not installed
+    if ! command -v gh &> /dev/null; then
+        echo "📦 Installing gh..."
+        brew install gh
     fi
     
     # Check if logged in, if not, login
-    if ! glab auth status &> /dev/null; then
-        echo "🔐 Not logged in to GitLab. Logging in..."
-        glab auth login
+    if ! gh auth status &> /dev/null; then
+        echo "🔐 Not logged in to GitHub. Logging in..."
+        gh auth login
     fi
     
     # Stage all changes
@@ -246,26 +246,33 @@ yolo message="":
     
     # Ensure we're synced with main
     echo "🔄 Syncing with main..."
-    git rebase origin/main || { echo "❌ Rebase failed. Resolve conflicts and try again."; exit 1; }
+    git fetch origin main --quiet 2>/dev/null || true
+    if git rev-parse origin/main &>/dev/null; then
+        git rebase origin/main || { echo "❌ Rebase failed. Resolve conflicts and try again."; exit 1; }
+    fi
     
     # Create temp branch
     BRANCH="yolo-$(date +%s)"
     git checkout -b $BRANCH
     
-    # Push and create MR using glab's push option
-    echo "🚀 Creating MR and merging..."
-    glab mr create --push --target-branch main --title "$(git log -1 --pretty=%s)" --yes --remove-source-branch --fill
+    # Push branch
+    echo "🚀 Pushing to GitHub..."
+    git push -u origin $BRANCH
     
-    # Merge the MR (retry up to 3 times with delay)
+    # Create PR and merge
+    echo "📥 Creating PR and merging..."
+    gh pr create --base main --title "$(git log -1 --pretty=%s)" --body "Auto-merged via yolo" --fill
+    
+    # Merge the PR (retry up to 3 times with delay)
     for i in 1 2 3; do
-        if glab mr merge --yes --remove-source-branch 2>/dev/null; then
+        if gh pr merge --merge --delete-branch 2>/dev/null; then
             break
         fi
         if [ $i -lt 3 ]; then
-            echo "   Waiting for GitLab... (attempt $i/3)"
+            echo "   Waiting for GitHub... (attempt $i/3)"
             sleep 3
         else
-            echo "❌ Merge failed after 3 attempts. Check GitLab manually."
+            echo "❌ Merge failed after 3 attempts. Check GitHub manually."
             exit 1
         fi
     done
