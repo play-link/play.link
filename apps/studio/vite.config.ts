@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@play/api-types': path.resolve(
+        __dirname,
+        '../../packages/api-types/src',
+      ),
       '@play/pylon': path.resolve(__dirname, '../../packages/pylon/src'),
       '@play/supabase-client': path.resolve(
         __dirname,

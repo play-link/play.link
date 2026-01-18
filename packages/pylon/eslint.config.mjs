@@ -1,4 +1,4 @@
-import antfu from '@antfu/eslint-config';
+import antfu from '@antfu/eslint-config'
 
 export default antfu({
   react: true,
@@ -11,4 +11,4 @@ export default antfu({
     'ts/consistent-type-definitions': 'off',
     'ts/no-use-before-define': 'off',
   },
-});
+})

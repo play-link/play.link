@@ -1,9 +1,9 @@
-import styled from 'styled-components';
+import styled from 'styled-components'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  children: React.ReactNode
 }
 
 const StyledButton = styled.button<{$variant: string; $size: string}>`
@@ -24,17 +24,17 @@ const StyledButton = styled.button<{$variant: string; $size: string}>`
         return `
           padding: 0.5rem 1rem;
           font-size: 0.875rem;
-        `;
+        `
       case 'lg':
         return `
           padding: 1rem 2rem;
           font-size: 1.125rem;
-        `;
+        `
       default:
         return `
           padding: 0.75rem 1.5rem;
           font-size: 1rem;
-        `;
+        `
     }
   }}
 
@@ -51,7 +51,7 @@ const StyledButton = styled.button<{$variant: string; $size: string}>`
           &:hover {
             background: rgba(255, 255, 255, 0.2);
           }
-        `;
+        `
       case 'ghost':
         return `
           background: transparent;
@@ -60,7 +60,7 @@ const StyledButton = styled.button<{$variant: string; $size: string}>`
           &:hover {
             background: rgba(255, 255, 255, 0.1);
           }
-        `;
+        `
       default:
         return `
           background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
@@ -75,7 +75,7 @@ const StyledButton = styled.button<{$variant: string; $size: string}>`
           &:active {
             transform: translateY(0);
           }
-        `;
+        `
     }
   }}
 
@@ -84,7 +84,7 @@ const StyledButton = styled.button<{$variant: string; $size: string}>`
     cursor: not-allowed;
     transform: none;
   }
-`;
+`
 
 export function Button({
   variant = 'primary',
@@ -96,5 +96,5 @@ export function Button({
     <StyledButton $variant={variant} $size={size} {...props}>
       {children}
     </StyledButton>
-  );
+  )
 }
