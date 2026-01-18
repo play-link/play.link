@@ -3,19 +3,11 @@ module.exports = {
   arrowParens: 'always',
   bracketSpacing: false,
   printWidth: 80,
-  semi: true,
+  semi: false,
   singleQuote: true,
   tabWidth: 2,
   trailingComma: 'all',
   importOrderSeparation: false,
-  importOrderCaseInsensitive: true,
   importOrderSortSpecifiers: true,
-  importOrderGroupNamespaceSpecifiers: true,
-  importOrder: [
-    'react',
-    '<THIRD_PARTY_MODULES>',
-    '@play/pylon',
-    '.storybook',
-    '^[./]',
-  ],
-};
+  importOrder: ['<THIRD_PARTY_MODULES>', '^@play/(.*)$', '^[./]'],
+}

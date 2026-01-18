@@ -40,6 +40,33 @@ dev-mails:
 dev-api:
     pnpm --filter @play/api run dev
 
+# Start Supabase local (DB, Auth, Storage)
+[group('dev')]
+dev-supabase:
+    cd supabase && npx supabase start
+
+# Stop Supabase local
+[group('dev')]
+stop-supabase:
+    cd supabase && npx supabase stop
+
+# Start full dev environment (API + Studio) - requires Supabase running
+[group('dev')]
+dev-full:
+    #!/usr/bin/env bash
+    # Check if Supabase is running
+    if ! cd supabase && npx supabase status &>/dev/null; then
+        echo "❌ Supabase is not running! Start it first with: just dev-supabase"
+        exit 1
+    fi
+    cd ..
+    echo "🚀 Starting API + Studio..."
+    echo "   API:    http://localhost:8787"
+    echo "   Studio: http://localhost:3000"
+    echo ""
+    # Run both in parallel
+    pnpm --filter @play/api run dev & pnpm --filter @play/studio run dev
+
 # =====================================================================
 # BUILD
 # =====================================================================

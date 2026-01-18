@@ -1,25 +1,24 @@
-import type { Database } from "./types";
-
-import { createClient } from "@supabase/supabase-js";
+import {createClient} from '@supabase/supabase-js'
+import type {Database} from './types'
 
 // Singleton client for browser (auth only)
-let browserClient: ReturnType<typeof createClient<Database>> | null = null;
+let browserClient: ReturnType<typeof createClient<Database>> | null = null
 
 /**
  * Get Supabase client for browser (auth only).
  * Uses VITE_SUPABASE_* env vars.
  */
 export function getSupabaseClient() {
-  if (typeof window === "undefined") {
-    throw new TypeError("getSupabaseClient() should only be used in browser");
+  if (typeof window === 'undefined') {
+    throw new TypeError('getSupabaseClient() should only be used in browser')
   }
 
   if (!browserClient) {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
+      throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
     }
 
     browserClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -28,10 +27,10 @@ export function getSupabaseClient() {
         autoRefreshToken: true,
         detectSessionInUrl: true,
       },
-    });
+    })
   }
 
-  return browserClient;
+  return browserClient
 }
 
 /**
@@ -44,5 +43,5 @@ export function createAdminClient(url: string, serviceRoleKey: string) {
       autoRefreshToken: false,
       persistSession: false,
     },
-  });
+  })
 }

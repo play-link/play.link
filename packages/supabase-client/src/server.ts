@@ -1,12 +1,12 @@
-// Client exports
-export {createAdminClient, getSupabaseClient} from './client'
+/**
+ * Server-side exports (no browser-specific code)
+ * Use this in API/backend projects
+ */
 
-// Enum constants for runtime use
+// Enum constants
 export {CreditRole, GameStatus, OrgRole} from './enums'
 
 export type {CreditRoleType, GameStatusType, OrgRoleType} from './enums'
 
 // Type exports
 export type {Database, Enums, Tables, TablesInsert, TablesUpdate} from './types'
-// Runtime constants (enums as arrays)
-export {Constants} from './types'

@@ -2,18 +2,12 @@
   "compilerOptions": {
     "target": "ES2021",
     "lib": ["ES2021"],
-    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "paths": {
-      "@play/supabase-client": ["../../packages/supabase-client/src/server.ts"]
-    },
-    "resolveJsonModule": true,
-    "types": ["@cloudflare/workers-types"],
     "strict": true,
+    "declaration": true,
+    "declarationMap": true,
     "noEmit": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
