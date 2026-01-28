@@ -1,16 +1,5 @@
 import {css} from 'styled-components';
 
-export const centeredOverlayCss = css`
-  background: var(--bg-overlay);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-lg);
-  max-height: 100%;
-  max-width: 43.75rem;
-  overflow-y: auto;
-  padding: var(--spacing-6);
-  width: 100%;
-`;
-
 export const dropdownOverlayCss = css`
   background: var(--bg-soft);
   border-radius: var(--radius-xl);
@@ -20,6 +9,9 @@ export const dropdownOverlayCss = css`
   padding: var(--spacing-1);
 `;
 
+/**
+ * @deprecated Will be replaced by `<FullscreenOverlay>` component in the future.
+ */
 export const fullSizeOverlayCss = css`
   background: var(--bg-overlay);
   border-radius: 0;
@@ -63,9 +55,9 @@ export const gradientActiveBorder = css`
       linear-gradient(var(--bg-overlay), var(--bg-overlay)) padding-box,
       conic-gradient(
           from var(--angle),
-          var(--color-green-700),
+          var(--primary-active),
           var(--color-yellow-100),
-          var(--color-green-700)
+          var(--primary-active)
         )
         border-box;
     animation: rotate 5s linear infinite;

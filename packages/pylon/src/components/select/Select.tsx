@@ -509,7 +509,7 @@ const SelectButton = styled.button<{
   gap: var(--spacing-1);
   height: var(--input-height-${(p) => p.$size});
   overflow: hidden;
-  padding: var(--input-padding-${(p) => p.$size});
+  padding: var(--button-padding-${(p) => p.$size});
   text-align: center;
   transition-duration: 0.3s;
   transition-property: background-color, color;
@@ -575,6 +575,7 @@ const OptionButton = styled(Button)`
     grid-area: 2 / 1 / 3 / 3;
     line-height: var(--leading-normal);
     white-space: normal;
+    margin-top: var(--spacing-1);
   }
 
   &.has-description {
@@ -587,7 +588,7 @@ const OptionButton = styled(Button)`
 const CategoryTitle = styled.div`
   color: var(--fg-muted);
   font-size: var(--text-xs);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   padding: var(--spacing-2) 0 var(--spacing-0-5) 36px;
 `;
 

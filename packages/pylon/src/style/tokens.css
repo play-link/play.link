@@ -93,11 +93,23 @@
   --border-soft: color-mix(in hsl, var(--color-gray-900), var(--color-gray-1000) 35%);
   --border-subtle: var(--color-gray-900);
   --border-deep: var(--color-gray-900);
-  --border-outline: var(--color-green-450);
+  --border-outline: var(--primary);
 
   /* ----- SCROLLBAR ----- */
   --scroll-track-color: rgba(0, 0, 0, 0.3);
   --scroll-thumb-color: rgba(255, 255, 255, 0.2);
+
+  /* ----- PRIMARY (Accent) COLOR ----- */
+  --primary: var(--color-red-500);
+  --primary-hover: var(--color-red-600);
+  --primary-active: var(--color-red-700);
+  --primary-muted: var(--color-red-400);
+  --primary-subtle: var(--color-red-300);
+  --primary-bg: var(--color-red-600);
+  --primary-bg-hover: var(--color-red-700);
+  --primary-bg-soft: var(--color-red-50);
+  --primary-bg-soft-hover: var(--color-red-100);
+  --primary-contrast-text: var(--white);
 
   /* ----- INPUT OVERRIDES ----- */
   --input-bg: var(--bg-body);

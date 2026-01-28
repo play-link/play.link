@@ -142,11 +142,11 @@ const outlineMuted: VariantStyleFn = (params) => css`
 const primary: VariantStyleFn = (params) => css`
   ${baseStyles(params)}
   ${centeredContent}
-  background: var(--color-green-600);
-  color: var(--white);
+  background: var(--primary-bg);
+  color: var(--primary-contrast-text);
 
   &:hover {
-    background: var(--color-green-700);
+    background: var(--primary-bg-hover);
   }
 `;
 
@@ -242,10 +242,10 @@ const nav: VariantStyleFn = (params) => css`
 const link: VariantStyleFn = (params) => css`
   ${baseStyles(params)}
   ${centeredContent}
-  color: var(--color-green-500);
+  color: var(--primary);
 
   &:hover {
-    background: var(--color-green-50);
+    background: var(--primary-bg-soft);
   }
 `;
 

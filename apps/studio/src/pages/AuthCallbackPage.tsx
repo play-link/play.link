@@ -17,9 +17,9 @@ export function AuthCallbackPage() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[var(--primary-active)] to-gray-950 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto" />
+        <div className="animate-spin w-8 h-8 border-4 border-[var(--primary)] border-t-transparent rounded-full mx-auto" />
         <p className="text-white">Signing you in...</p>
       </div>
     </div>

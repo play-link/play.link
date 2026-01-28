@@ -30,7 +30,8 @@ dist/
 .DS_Store
 Thumbs.db
 
-# PWA
 dev-dist/
 playwright-report/
 test-results/
+
+.wrangler/

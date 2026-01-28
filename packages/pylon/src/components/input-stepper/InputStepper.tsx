@@ -43,7 +43,7 @@ export function InputStepper({
   value,
   onChange,
   min = 0,
-  max = Infinity,
+  max = 20,
   step = 1,
   size = 'md',
   disabled = false,
@@ -85,6 +85,7 @@ export function InputStepper({
     <Container
       $disabled={disabled}
       $fullWidth={fullWidth}
+      $size={size}
       aria-label={ariaLabel}
       className={className}
     >
@@ -121,15 +122,13 @@ export function InputStepper({
 }
 
 // Styled components
-const Container = styled.div<{
-  $disabled: boolean;
-  $fullWidth: boolean;
-}>`
+const Container = styled.div<{$disabled: boolean; $fullWidth: boolean; $size: InputStepperSize}>`
   align-items: center;
   display: ${({$fullWidth}) => ($fullWidth ? 'flex' : 'inline-flex')};
   gap: var(--spacing-1);
   opacity: ${({$disabled}) => ($disabled ? 0.5 : 1)};
   width: ${({$fullWidth}) => ($fullWidth ? '100%' : 'auto')};
+  height: var(--input-height-${(p) => p.$size});
 `;
 
 const IconButton = styled.button`
@@ -149,7 +148,7 @@ const IconButton = styled.button`
   }
 
   &:disabled {
-    color: var(--fg-placeholder);
+    color: var(--fg-disabled);
     cursor: not-allowed;
   }
 

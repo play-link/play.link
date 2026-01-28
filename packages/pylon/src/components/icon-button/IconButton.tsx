@@ -1,3 +1,4 @@
+import {ChevronDownIcon} from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import type {ButtonHTMLAttributes, ReactNode, RefObject} from 'react';
 import styled from 'styled-components';
@@ -6,6 +7,8 @@ import type {IconButtonVariant} from './variants';
 import {getVariant} from './variants';
 
 export type IconButtonSize = 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+
+const ARROW_ICON_SIZE = 14;
 
 // Auto-size icon based on button size
 const ICON_SIZES: Record<IconButtonSize, number> = {
@@ -26,6 +29,7 @@ interface IconButtonOwnProps {
   ref?: RefObject<HTMLButtonElement | HTMLAnchorElement | null>;
   size?: IconButtonSize;
   variant?: IconButtonVariant;
+  withArrow?: boolean;
 }
 
 export type IconButtonProps = IconButtonOwnProps & ButtonHTMLAttributes<HTMLButtonElement>;
@@ -37,23 +41,34 @@ export function IconButton({
   ref,
   size = 'md',
   variant = 'default',
+  withArrow = false,
   ...restProps
 }: IconButtonProps) {
   // Render icon with auto-sized dimensions if icon prop is provided
-  const content = icon ? renderIcon(icon, ICON_SIZES[size]) : children;
+  const iconContent = icon ? renderIcon(icon, ICON_SIZES[size]) : children;
 
   return (
-    <StyledIconButton ref={ref} as={as} size={size} variant={variant} {...restProps}>
-      {content}
+    <StyledIconButton
+      ref={ref}
+      as={as}
+      type="button"
+      size={size}
+      variant={variant}
+      withArrow={withArrow}
+      {...restProps}
+    >
+      {iconContent}
+      {withArrow && <ChevronDownIcon size={ARROW_ICON_SIZE} className="ml-1" />}
     </StyledIconButton>
   );
 }
 
 const StyledIconButton = styled.button.withConfig({
-  shouldForwardProp: (prop) => !['size', 'variant'].includes(prop),
+  shouldForwardProp: (prop) => !['size', 'variant', 'withArrow'].includes(prop),
 })<{
   size: IconButtonSize;
   variant: IconButtonVariant;
+  withArrow: boolean;
 }>`
   align-items: center;
   cursor: var(--button-cursor, pointer);
@@ -73,5 +88,6 @@ const StyledIconButton = styled.button.withConfig({
     getVariant({
       size: p.size,
       variant: p.variant,
+      withArrow: p.withArrow,
     })}
 `;
