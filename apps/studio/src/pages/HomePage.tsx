@@ -1,10 +1,7 @@
 import {useState} from 'react';
-import {Button} from '@play/pylon';
-import {useAuth} from '@/lib/auth';
 import {trpc} from '@/lib/trpc';
 
 export function HomePage() {
-  const {user, signOut} = useAuth();
   const [slug, setSlug] = useState('');
   const [name, setName] = useState('');
 
@@ -34,20 +31,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-white">
-          Play.link <span className="text-purple-400">Studio</span>
-        </h1>
-        <div className="flex items-center gap-4">
-          <span className="text-slate-400 text-sm">{user?.email}</span>
-          <Button variant="secondary" onClick={signOut}>
-            Sign Out
-          </Button>
-        </div>
-      </div>
-
+    <div className="p-8">
       {/* Create Org Form */}
       <div className="bg-slate-800 rounded-lg p-6 max-w-md mb-8">
         <h2 className="text-lg font-semibold text-white mb-4">

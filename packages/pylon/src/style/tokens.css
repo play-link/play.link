@@ -1,0 +1,145 @@
+/**
+ * SEMANTIC DESIGN TOKENS
+ * ======================
+ *
+ * WHY THIS FILE EXISTS:
+ * Tailwind CSS provides a comprehensive low-level color palette (gray-50, blue-500, etc.)
+ * but does NOT provide semantic tokens out of the box. Semantic tokens abstract colors
+ * into meaningful roles (foreground, background, borders, states) enabling:
+ *
+ * 1. THEME SWITCHING - Light/dark mode support by redefining semantic values
+ * 2. CONSISTENCY - Components use roles, not raw colors (e.g., --fg-muted vs --gray-500)
+ * 3. MAINTAINABILITY - Change a semantic token once, update everywhere
+ * 4. ACCESSIBILITY - Ensure proper contrast by theming at the semantic level
+ *
+ * STRUCTURE:
+ * - Component tokens: Size/spacing for specific components (buttons, inputs, icons)
+ * - Light theme (default): Semantic colors for light mode
+ * - Dark theme: Overrides for dark mode via [data-theme='dark']
+ *
+ * NAMING CONVENTION:
+ * - --fg-*    : Foreground (text) colors
+ * - --bg-*    : Background colors
+ * - --border-*: Border colors
+ * - --{state} : State colors (info, error, warning, success)
+ */
+
+:root {
+  /* ========================================
+   * COMPONENT TOKENS
+   * Sizing and spacing for UI components
+   * ======================================== */
+
+  /* Button sizes */
+  --button-height-xxs: 1.25rem;
+  --button-height-xs: 1.5rem;
+  --button-height-sm: 1.75rem;
+  --button-height-md: 2rem;
+  --button-height-lg: 2.25rem;
+  --button-padding-xs: 0 var(--spacing-2-5) 1px;
+  --button-padding-sm: 0 var(--spacing-3);
+  --button-padding-md: 0 var(--spacing-3);
+  --button-padding-lg: 0 var(--spacing-4);
+  --button-radius-xs: var(--radius-sm);
+  --button-radius-sm: var(--radius-md);
+  --button-radius-md: var(--radius-lg);
+  --button-radius-lg: var(--radius-full);
+
+  /* Icon and IconButton sizes */
+  --icon-button-height-xxs: 1rem;
+  --icon-button-height-xs: 1.5rem;
+  --icon-button-height-sm: 1.75rem;
+  --icon-button-height-md: 2rem;
+  --icon-button-height-lg: 2.25rem;
+
+  /* Input sizes */
+  --input-height-xs: 1.5rem;
+  --input-height-sm: 1.75rem;
+  --input-height-md: 2rem;
+  --input-height-lg: 2.25rem;
+  --input-padding-xs: var(--spacing-2);
+  --input-padding-sm: var(--spacing-2-5);
+  --input-padding-md: var(--spacing-3);
+  --input-padding-lg: var(--spacing-2);
+  --input-radius-xs: var(--radius-sm);
+  --input-radius-sm: var(--radius-sm);
+  --input-radius-md: var(--radius-md);
+  --input-radius-lg: var(--radius-lg);
+
+  /* ========================================
+   * LIGHT THEME (Default)
+   * ======================================== */
+  /* ----- FOREGROUND (Text) ----- */
+  --fg-body: var(--color-gray-100);
+  --fg-subtle: var(--color-gray-200);
+  --fg-muted: var(--color-gray-500);
+  --fg-placeholder: var(--color-gray-600);
+  --fg-disabled: var(--color-gray-700);
+  --fg-warning: var(--color-amber-500);
+  --fg-success: var(--color-green-600);
+  --fg-error: var(--color-red-500);
+
+  /* ----- BACKGROUND ----- */
+  --bg-minimal: var(--color-gray-950);
+  --bg-body: var(--color-gray-1000);
+  --bg-soft: var(--color-gray-950);
+  --bg-subtle: var(--color-gray-900);
+  --bg-deep: color-mix(in hsl, var(--color-gray-1000), var(--color-gray-800) 50%);
+  --bg-deepest: var(--color-gray-900);
+  --bg-surface: var(--color-gray-950);
+  --bg-overlay: var(--color-gray-950);
+
+  /* ----- BORDERS ----- */
+  --border-soft: color-mix(in hsl, var(--color-gray-900), var(--color-gray-1000) 35%);
+  --border-subtle: var(--color-gray-900);
+  --border-deep: var(--color-gray-900);
+  --border-outline: var(--color-green-450);
+
+  /* ----- SCROLLBAR ----- */
+  --scroll-track-color: rgba(0, 0, 0, 0.3);
+  --scroll-thumb-color: rgba(255, 255, 255, 0.2);
+
+  /* ----- INPUT OVERRIDES ----- */
+  --input-bg: var(--bg-body);
+  --input-border-color: var(--border-deep);
+  --input-outline-color: var(--color-gray-100);
+  --input-outline-error-color: var(--error-dark);
+
+  /* ----- COMPONENT-SPECIFIC ----- */
+  --segmented-selected-bg: var(--color-gray-300);
+  --segmented-selected-text: var(--color-gray-1000);
+
+  /* ----- STATE COLORS ----- 
+   * Used for badges, toasts, alerts, and status indicators.
+   * Each state has: base, contrast-text, dark variant, dark-contrast-text
+   */
+
+  /* Info (neutral/informational) */
+  --info: var(--bg-subtle);
+  --info-contrast-text: var(--fg-subtle);
+  --info-outline: var(--border-subtle);
+  --info-dark: var(--color-gray-500);
+  --info-dark-contrast-text: var(--white);
+
+  /* Error (destructive/danger) */
+  --error: var(--color-red-100);
+  --error-contrast-text: var(--color-red-900);
+  --error-dark: var(--color-red-600);
+  --error-dark-contrast-text: var(--white);
+
+  /* Warning (caution/attention) */
+  --warning: var(--color-amber-100);
+  --warning-contrast-text: var(--color-amber-800);
+  --warning-dark: var(--color-amber-700);
+  --warning-dark-contrast-text: var(--white);
+
+  /* Success (positive/confirmation) */
+  --success: var(--color-green-100);
+  --success-contrast-text: var(--color-green-700);
+  --success-dark: var(--color-green-600);
+  --success-dark-contrast-text: var(--white);
+
+  /* ----- COMPONENT-SPECIFIC ----- */
+  --segmented-selected-bg: var(--bg-body);
+  --segmented-selected-text: var(--fg-body);
+}

@@ -4,3 +4,6 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Database (Supabase pooler - Session mode)
 DATABASE_URL=postgres://postgres:postgres@127.0.0.1:54322/postgres
+
+# Super Admin
+SUPER_ADMIN_EMAIL=your-super-admin-email

@@ -1,11 +1,21 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../sortie-client"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "@",
+      "path": ".",
+    },
+    {
+      "name": "👾 apps",
+      "path": "apps",
+    },
+    {
+      "name": "💎 packages",
+      "path": "packages",
+    },
+    {
+      "name": "🧬 supabase",
+      "path": "supabase",
+    },
+  ],
+  "settings": {},
 }

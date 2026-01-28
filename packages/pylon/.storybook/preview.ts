@@ -1,5 +1,4 @@
-import type {Preview} from '@storybook/react'
-import '../src/styles.css'
+import type {Preview} from '@storybook/react-vite';
 
 const preview: Preview = {
   parameters: {
@@ -9,14 +8,22 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-    backgrounds: {
-      default: 'dark',
-      values: [
-        {name: 'dark', value: '#0f172a'},
-        {name: 'light', value: '#ffffff'},
-      ],
+    globalTypes: {
+      theme: {
+        description: 'Global theme for components',
+        defaultValue: 'light',
+        toolbar: {
+          // The label to show for this toolbar item
+          title: 'Theme',
+          icon: 'circlehollow',
+          // Array of plain string values or MenuItem shape (see below)
+          items: ['light', 'dark'],
+          // Change title based on selected value
+          dynamicTitle: true,
+        },
+      },
     },
   },
-}
+};
 
-export default preview
+export default preview;

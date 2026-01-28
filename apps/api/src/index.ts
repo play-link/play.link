@@ -22,7 +22,11 @@ app.use('*', logger())
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3005'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3005',
+    ],
     credentials: true,
   }),
 )
@@ -43,9 +47,10 @@ app.all('/trpc/*', async (c) => {
     createContext: (): TRPCContext => ({
       user: c.get('user'),
       supabase: c.get('supabase'),
+      env: c.env,
     }),
-  })
-})
+  });
+});
 
 // =============================================================================
 // Export

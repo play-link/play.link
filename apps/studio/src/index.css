@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import url('@play/pylon/style/global.css');
 
 /* Custom theme variables */
 :root {

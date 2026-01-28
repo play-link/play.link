@@ -1,8 +1,0 @@
-@import 'tailwindcss';
-
-/* Pylon Design System */
-:root {
-  --pylon-primary: #8b5cf6;
-  --pylon-primary-hover: #7c3aed;
-  --pylon-secondary: #6366f1;
-}

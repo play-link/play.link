@@ -1,3 +1,10 @@
-declare module 'styled-components' {
-  export interface DefaultTheme {}
+declare global {
+  interface Window {
+    __IS_NATIVE_APP__?: boolean;
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
+  }
 }
+
+export {};

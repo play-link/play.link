@@ -15,12 +15,12 @@ _list:
 dev:
     pnpm run dev
 
-# Start only studio app on port 3000
+# Start only studio app on port 3010
 [group('dev')]
 dev-studio:
     pnpm --filter @play/studio run dev
 
-# Start only web app on port 3005
+# Start only web app on port 3015
 [group('dev')]
 dev-web:
     pnpm --filter @play/web run dev
@@ -50,6 +50,11 @@ dev-supabase:
 stop-supabase:
     cd supabase && npx supabase stop
 
+# Reset Supabase DB and apply all migrations
+[group('dev')]
+reset-db:
+    cd supabase && npx supabase db reset
+
 # Start full dev environment (API + Studio) - requires Supabase running
 [group('dev')]
 dev-full:
@@ -62,7 +67,7 @@ dev-full:
     cd ..
     echo "🚀 Starting API + Studio..."
     echo "   API:    http://localhost:8787"
-    echo "   Studio: http://localhost:3000"
+    echo "   Studio: http://localhost:3010"
     echo ""
     # Run both in parallel
     pnpm --filter @play/api run dev & pnpm --filter @play/studio run dev

@@ -1,0 +1,140 @@
+/* ========================================
+* TAILWIND THEME OVERRIDES
+* ======================================== */
+
+:root {
+  /* Spacing Scale - Based on Tailwind's var(--spacing) = 0.25rem */
+  --spacing-0-5: calc(var(--spacing) * 0.5);
+  --spacing-1: var(--spacing);
+  --spacing-1-5: calc(var(--spacing) * 1.5);
+  --spacing-2: calc(var(--spacing) * 2);
+  --spacing-2-5: calc(var(--spacing) * 2.5);
+  --spacing-3: calc(var(--spacing) * 3);
+  --spacing-4: calc(var(--spacing) * 4);
+  --spacing-5: calc(var(--spacing) * 5);
+  --spacing-6: calc(var(--spacing) * 6);
+  --spacing-7: calc(var(--spacing) * 7);
+  --spacing-8: calc(var(--spacing) * 8);
+  --spacing-9: calc(var(--spacing) * 9);
+  --spacing-10: calc(var(--spacing) * 10);
+  --spacing-11: calc(var(--spacing) * 11);
+  --spacing-12: calc(var(--spacing) * 12);
+  --spacing-13: calc(var(--spacing) * 13);
+  --spacing-14: calc(var(--spacing) * 14);
+  --spacing-15: calc(var(--spacing) * 15);
+  --spacing-16: calc(var(--spacing) * 16);
+  --spacing-17: calc(var(--spacing) * 17);
+  --spacing-18: calc(var(--spacing) * 18);
+  --spacing-19: calc(var(--spacing) * 19);
+  --spacing-20: calc(var(--spacing) * 20);
+  --spacing-21: calc(var(--spacing) * 21);
+  --spacing-22: calc(var(--spacing) * 22);
+  --spacing-23: calc(var(--spacing) * 23);
+  --spacing-24: calc(var(--spacing) * 24);
+  --spacing-25: calc(var(--spacing) * 25);
+
+  /* Border Radius */
+  --radius-full: calc(infinity * 1px);
+
+  /* Typography */
+  --text-xxs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: calc(1 / 0.75);
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: calc(1.25 / 0.875);
+  --text-base: 0.875rem;
+  --text-base--line-height: calc(1.5 / 1);
+  --text-lg: 1rem;
+  --text-lg--line-height: calc(1.75 / 1.125);
+  --text-xl: 1.125rem;
+  --text-xl--line-height: calc(1.75 / 1.25);
+  --text-2xl: 1.25rem;
+  --text-2xl--line-height: calc(2 / 1.5);
+  --text-3xl: 1.375rem;
+  --text-3xl--line-height: calc(2.25 / 1.875);
+  --text-4xl: 1.625rem;
+  --text-4xl--line-height: calc(2.5 / 2.25);
+  --text-5xl: 1.875rem;
+  --text-5xl--line-height: 1;
+  --text-6xl: 2.25rem;
+  --text-6xl--line-height: 1;
+  --text-7xl: 2.5rem;
+  --text-7xl--line-height: 1;
+  --text-8xl: 2.75rem;
+  --text-8xl--line-height: 1;
+  --text-9xl: 3rem;
+  --text-9xl--line-height: 1;
+
+  /* Leading */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.35;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.5;
+  --leading-loose: 1.65;
+
+  /* Shadow */
+  --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --family-primary:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --family-secondary: 'DM Serif Text', serif;
+
+  /* ========================================
+   * COLOR PALETTE
+   * ======================================== */
+
+  /* Base Colors */
+  --black: #000;
+  --white: #fff;
+
+  /* Gray Scale */
+  --color-gray-50: oklch(97.363% 0.00161 66.248);
+  --color-gray-100: oklch(93.803% 0.00336 67.066);
+  --color-gray-200: oklch(87.346% 0.00578 84.462);
+  --color-gray-300: oklch(79.016% 0.01067 81.721);
+  --color-gray-400: oklch(72.168% 0.0121 71.731);
+  --color-gray-500: oklch(62.893% 0.01599 64.097);
+  --color-gray-600: oklch(58.328% 0.01527 53.043);
+  --color-gray-700: oklch(51.357% 0.01385 50.986);
+  --color-gray-800: oklch(45.163% 0.01039 44.558);
+  --color-gray-900: oklch(39.808% 0.00838 53.073);
+  --color-gray-950: oklch(26.322% 0.00486 39.126);
+
+  --color-gray-25: color-mix(in hsl, var(--color-gray-50), var(--white) 40%);
+  --color-gray-75: color-mix(in hsl, var(--color-gray-50), var(--color-gray-100) 50%);
+  --color-gray-150: color-mix(in hsl, var(--color-gray-100), var(--color-gray-200) 50%);
+  --color-gray-250: color-mix(in hsl, var(--color-gray-200), var(--color-gray-300) 50%);
+  --color-gray-1000: color-mix(in hsl, black, var(--color-gray-950) 75%);
+
+  /* Color Palettes */
+  --color-green-50: oklch(97.622% 0.01721 159.47);
+  --color-green-100: oklch(94.372% 0.04432 157.658);
+  --color-green-200: oklch(88.809% 0.0809 158.134);
+  --color-green-300: oklch(81.648% 0.11546 159.196);
+  --color-green-400: oklch(73.21% 0.1433 157.993);
+  --color-green-500: oklch(63.952% 0.14234 157.062);
+  --color-green-600: oklch(55.995% 0.12747 156.953);
+  --color-green-700: oklch(46.499% 0.10014 159.613);
+  --color-green-800: oklch(40.611% 0.08495 160.037);
+  --color-green-900: oklch(34.496% 0.06918 160.758);
+  --color-green-950: oklch(24.815% 0.0464 163.816);
+
+  --color-yellow-50: oklch(98.7% 0.026 102.212);
+  --color-yellow-100: oklch(97.3% 0.071 103.193);
+  --color-yellow-200: oklch(94.5% 0.129 101.54);
+  --color-yellow-300: oklch(90.5% 0.182 98.111);
+  --color-yellow-400: oklch(85.2% 0.199 91.936);
+  --color-yellow-500: oklch(79.5% 0.184 86.047);
+  --color-yellow-600: oklch(68.1% 0.162 75.834);
+  --color-yellow-700: oklch(55.4% 0.135 66.442);
+  --color-yellow-800: oklch(47.6% 0.114 61.907);
+  --color-yellow-900: oklch(42.1% 0.095 57.708);
+  --color-yellow-950: oklch(28.6% 0.066 53.813);
+}

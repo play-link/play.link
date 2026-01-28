@@ -1,0 +1,90 @@
+/**
+ * Tailwind CSS v4
+ *
+ * Uses CSS-based configuration. All design tokens are mapped from css-variables.css.
+ * Use Tailwind classes directly (e.g., `flex`, `items-center`, `gap-2`)
+ * or the legacy class names (e.g., `fg-muted`, `bg-soft`) for backward compatibility.
+ */
+
+/* Import Tailwind v4 - includes preflight, components, and utilities */
+@import 'tailwindcss';
+
+/* Import CSS variables for theming */
+@import './tailwind.css';
+@import './tokens.css';
+
+@source "../components/**/*.tsx";
+@source "../lib/**/*.tsx";
+@source "../lib/**/*.ts";
+
+/**
+ * Legacy class names for backward compatibility
+ * These use CSS variables directly
+ */
+@layer utilities {
+  .fg-body {
+    color: var(--fg-body);
+  }
+  .fg-subtle {
+    color: var(--fg-subtle);
+  }
+  .fg-muted {
+    color: var(--fg-muted);
+  }
+  .fg-disabled {
+    color: var(--fg-disabled);
+  }
+  .fg-error {
+    color: var(--fg-error);
+  }
+  .fg-success {
+    color: var(--fg-success);
+  }
+  .fg-warning {
+    color: var(--fg-warning);
+  }
+
+  /* Background colors */
+  .bg-soft {
+    background-color: var(--bg-soft);
+  }
+  .bg-body {
+    background-color: var(--bg-body);
+  }
+  .bg-subtle {
+    background-color: var(--bg-subtle);
+  }
+  .bg-deep {
+    background-color: var(--bg-deep);
+  }
+
+  .ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Link styles */
+  .unstyled-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .primary-link {
+    color: var(--color-green-700);
+    text-decoration: none;
+  }
+
+  .primary-link:hover {
+    text-decoration: underline;
+  }
+
+  .muted-link {
+    color: var(--fg-muted);
+    text-decoration: none;
+  }
+
+  .muted-link:hover {
+    color: var(--fg-body);
+  }
+}
