@@ -20,6 +20,19 @@ import {getOverlayPosition} from './position';
  * Types
  * ------------------------------------------------------------------ */
 
+/** Predefined overlay sizes for consistent width across the app */
+export type OverlaySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+
+/** Size to max-width mapping */
+const overlaySizeMap: Record<OverlaySize, string> = {
+  xs: '20rem', // 320px - confirmations, simple alerts
+  sm: '24rem', // 384px - small dialogs
+  md: '30rem', // 480px - default forms
+  lg: '40rem', // 640px - larger forms
+  xl: '50rem', // 800px - complex content
+  full: '100%', // fullscreen
+};
+
 export interface OverlayPosition {
   fitToScreen?: boolean;
   flip?: boolean;
@@ -56,6 +69,8 @@ export interface OverlayCustomProps {
   pushHistoryState?: boolean;
   setOpened?: (opened: boolean) => void;
   shakeOnBlockedClose?: boolean;
+  /** Predefined size preset. If not specified, no max-width is applied. */
+  size?: OverlaySize;
   transparentBackdrop?: boolean;
   triggerRef?: React.RefObject<HTMLElement | null>;
   withBackdrop?: boolean;
@@ -84,6 +99,7 @@ export function Overlay({
   ref,
   setOpened,
   shakeOnBlockedClose = false,
+  size,
   transparentBackdrop = false,
   triggerRef,
   withBackdrop = false,
@@ -400,6 +416,7 @@ export function Overlay({
         $mode={position?.mode}
         $modalCss={modalCss}
         $shakeCss={isShaking ? getShakeCss() : null}
+        $size={size}
         onTransitionEnd={() => {
           setTransitioningIn(false);
           setVisible(opened);
@@ -484,6 +501,7 @@ const Modal = styled.div<{
   $modalCss?: RuleSet<object>;
   $animation?: OverlayAnimation;
   $shakeCss?: ReturnType<typeof css> | null;
+  $size?: OverlaySize;
 }>`
   max-height: 100%;
   opacity: 0;
@@ -495,6 +513,8 @@ const Modal = styled.div<{
   &.opened {
     opacity: 1;
   }
+
+  ${(p) => p.$size && `max-width: ${overlaySizeMap[p.$size]}; width: 100%;`}
 
   ${(p) => getAnimationCss(p.$animation)}
 

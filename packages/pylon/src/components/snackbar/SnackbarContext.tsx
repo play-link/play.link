@@ -125,6 +125,7 @@ function SnackbarItemWrapper({snackbar, onDismiss}: SnackbarItemWrapperProps) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSnackbar() {
   const context = use(SnackbarContext);
   if (!context) {

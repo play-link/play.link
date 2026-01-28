@@ -59,8 +59,8 @@ export function CheckboxGroup({
 }
 
 const StyledButton = styled(Button)`
-  color: var(--color-blue-300);
+  color: var(--primary-subtle);
   &:hover {
-    color: var(--color-blue-900);
+    color: var(--primary);
   }
 `;

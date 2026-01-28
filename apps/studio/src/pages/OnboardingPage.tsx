@@ -45,24 +45,24 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[var(--primary-active)] to-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🎮</div>
           <h1 className="text-3xl font-bold text-white mb-2">
             Welcome to Play.link!
           </h1>
-          <p className="text-slate-300">
+          <p className="text-gray-200">
             Let's create your first organization to get started.
           </p>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+        <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="org-name"
-                className="block text-sm font-medium text-slate-300 mb-2"
+                className="block text-sm font-medium text-gray-200 mb-2"
               >
                 Organization Name
               </label>
@@ -73,9 +73,9 @@ export function OnboardingPage() {
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="My Game Studio"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-gray-500">
                 This is the name that will be displayed to your team.
               </p>
             </div>
@@ -83,12 +83,12 @@ export function OnboardingPage() {
             <div>
               <label
                 htmlFor="org-slug"
-                className="block text-sm font-medium text-slate-300 mb-2"
+                className="block text-sm font-medium text-gray-200 mb-2"
               >
                 URL Slug
               </label>
               <div className="flex items-center">
-                <span className="text-slate-400 mr-2">play.link/</span>
+                <span className="text-gray-500 mr-2">play.link/</span>
                 <input
                   id="org-slug"
                   type="text"
@@ -105,16 +105,16 @@ export function OnboardingPage() {
                   placeholder="my-studio"
                   required
                   pattern="[a-z0-9-]+"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 />
               </div>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-gray-500">
                 Only lowercase letters, numbers, and hyphens.
               </p>
             </div>
 
             {createOrg.error && (
-              <p className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">
+              <p className="text-[var(--fg-error)] text-sm bg-[var(--error)]/10 p-3 rounded-lg">
                 {createOrg.error.message}
               </p>
             )}
@@ -129,7 +129,7 @@ export function OnboardingPage() {
           </form>
         </div>
 
-        <p className="text-center text-slate-500 text-sm mt-6">
+        <p className="text-center text-gray-600 text-sm mt-6">
           You can always create more organizations later.
         </p>
       </div>

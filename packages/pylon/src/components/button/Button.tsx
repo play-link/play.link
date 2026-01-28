@@ -114,11 +114,11 @@ export function Button({
   );
 }
 
-// Shared styles
 const sharedButtonStyles = css<StyledButtonProps>`
   align-items: center;
   cursor: var(--button-cursor, pointer);
   display: inline-flex;
+  line-height: ${({$autoHeight}) => ($autoHeight ? 'normal' : '1')};
   text-align: center;
   text-decoration: none;
   user-select: none;
@@ -137,16 +137,14 @@ const sharedButtonStyles = css<StyledButtonProps>`
     pointer-events: none;
   }
 
-  ${({$size, $variant, $autoHeight, $elevated, $emphasis, $fullRounded}) => {
-    const variantFn = variantsStyles[$variant] ?? variantsStyles.default;
-    return variantFn({
+  ${({$size, $variant, $autoHeight, $elevated, $emphasis, $fullRounded}) =>
+    variantsStyles[$variant]({
       size: $size,
       autoHeight: $autoHeight,
       elevated: $elevated,
       emphasis: $emphasis,
       fullRounded: $fullRounded,
-    });
-  }}
+    })}
 `;
 
 // Styled components

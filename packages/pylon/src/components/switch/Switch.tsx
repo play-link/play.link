@@ -95,7 +95,7 @@ const Background = styled.div<{
   z-index: -1;
 
   &.checked:not(.disabled) {
-    background: var(--color-green-600);
+    background: var(--primary-bg);
   }
 
   &.disabled:not(.checked) {
@@ -103,7 +103,7 @@ const Background = styled.div<{
   }
 
   &.checked.disabled {
-    background: var(--color-green-300);
+    background: var(--primary-subtle);
   }
 `;
 

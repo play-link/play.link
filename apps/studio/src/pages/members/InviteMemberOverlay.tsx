@@ -149,7 +149,7 @@ export function InviteMemberOverlay({
       <div className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-white">Invite Member</h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             Search for a user by email or username
           </p>
         </div>
@@ -179,13 +179,13 @@ export function InviteMemberOverlay({
 
                   {/* Search Results Dropdown */}
                   {searchQuery.length >= 2 && !selectedUser && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-800 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                       {isSearching ? (
                         <div className="flex items-center justify-center p-4">
                           <Loading size="sm" />
                         </div>
                       ) : filteredResults.length === 0 ? (
-                        <div className="p-3 text-sm text-slate-400">
+                        <div className="p-3 text-sm text-gray-500">
                           {searchResults.length > 0
                             ? 'All matching users are already members'
                             : 'No users found'}
@@ -196,7 +196,7 @@ export function InviteMemberOverlay({
                             key={user.user_id}
                             type="button"
                             onClick={() => handleSelectUser(user)}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-slate-700 transition-colors text-left"
+                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors text-left"
                           >
                             <Avatar
                               text={user.display_name || user.email}
@@ -209,7 +209,7 @@ export function InviteMemberOverlay({
                                   user.username ||
                                   'Unknown'}
                               </p>
-                              <p className="text-xs text-slate-400 truncate">
+                              <p className="text-xs text-gray-500 truncate">
                                 {user.email}
                               </p>
                             </div>
@@ -224,7 +224,7 @@ export function InviteMemberOverlay({
 
             {/* Selected User Display */}
             {selectedUser && (
-              <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-gray-900 rounded-lg">
                 <Avatar
                   text={selectedUser.display_name || selectedUser.email}
                   src={selectedUser.avatar_url ?? undefined}
@@ -236,7 +236,7 @@ export function InviteMemberOverlay({
                       selectedUser.username ||
                       'Unknown'}
                   </p>
-                  <p className="text-sm text-slate-400 truncate">
+                  <p className="text-sm text-gray-500 truncate">
                     {selectedUser.email}
                   </p>
                 </div>

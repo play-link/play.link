@@ -155,6 +155,7 @@ const ControlButton = styled.button`
   height: 100%;
   justify-content: center;
   padding: 0 var(--spacing-4);
+  line-height: 1;
   position: relative;
   text-align: center;
   white-space: nowrap;

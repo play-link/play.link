@@ -103,3 +103,46 @@ const StyledOverlay = styled(Overlay)`
 `;
 
 export const Default = Template.bind({});
+
+function SizesTemplate() {
+  const [openedSize, setOpenedSize] = useState<string | null>(null);
+
+  const sizes = ['xs', 'sm', 'md', 'lg', 'xl', 'full'] as const;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {sizes.map((size) => (
+        <Button key={size} onClick={() => setOpenedSize(size)}>
+          size="{size}"
+        </Button>
+      ))}
+      {sizes.map((size) => (
+        <Overlay
+          key={size}
+          opened={openedSize === size}
+          setOpened={() => setOpenedSize(null)}
+          cancelOnEscKey
+          cancelOnOutsideClick
+          withBackdrop
+          size={size}
+          position={{mode: 'centered'}}
+          animation="scale-in"
+          style={{
+            background: 'var(--bg-overlay)',
+            borderRadius: 'var(--radius-xl)',
+            boxShadow: 'var(--shadow-lg)',
+            padding: 'var(--spacing-6)',
+          }}
+        >
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-bold">Size: {size}</h2>
+            <p>This overlay uses the "{size}" size preset.</p>
+            <Button onClick={() => setOpenedSize(null)}>Close</Button>
+          </div>
+        </Overlay>
+      ))}
+    </div>
+  );
+}
+
+export const Sizes = SizesTemplate.bind({});

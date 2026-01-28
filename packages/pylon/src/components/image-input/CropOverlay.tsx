@@ -3,11 +3,10 @@ import Cropper from 'react-easy-crop';
 import type {Area, Point} from 'react-easy-crop';
 import styled from 'styled-components';
 import {afterNextRender} from '../../lib';
-import {centeredOverlayCss} from '../../style';
+import {DialogOverlay} from '../dialog-overlay';
 import {FormSubmit} from '../form';
 import {IconButton} from '../icon-button';
 import {NativeInputRange} from '../input-range';
-import {Overlay} from '../overlay';
 import {cropImage} from './crop-image';
 import type {ImageAspectRatio, ImageInputProps} from './ImageInput';
 
@@ -57,13 +56,11 @@ export function CropOverlay({
   }, [opened]);
 
   return (
-    <StyledOverlay
+    <StyledDialogOverlay
       opened={opened}
       setOpened={setOpened}
-      cancelOnEscKey
-      position={{
-        mode: 'centered',
-      }}
+      maxWidth="300px"
+      padding="var(--spacing-3)"
     >
       <StyledCloseIconButton
         name="close"
@@ -71,60 +68,56 @@ export function CropOverlay({
         onClick={() => setOpened(false)}
         variant="muted"
       />
-      <div className="p-4 height-100">
-        <StyledCropperContainer $roundedCropArea={roundedCropArea}>
-          <Cropper
-            image={ready ? imageSrc : ''} // NOTE: Quick fix for the image not being loaded on first render
-            crop={crop}
-            zoom={zoom}
-            maxZoom={3}
-            aspect={aspectFn ? aspectFn(aspectRatio) : 19 / 9}
-            onCropChange={setCrop}
-            onCropComplete={onCropComplete}
-            onZoomChange={setZoom}
-            showGrid={false}
-            onMediaLoaded={(mediaSize) => {
-              if (mediaSize.naturalHeight > mediaSize.naturalWidth) {
-                setAspectRatio('portrait');
-              }
-            }}
-          />
-        </StyledCropperContainer>
-      </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <div className="fg-muted text-md font-medium">-</div>
-          <NativeInputRange
-            value={zoom}
-            min={1}
-            max={3}
-            step={0.01}
-            aria-labelledby="Zoom"
-            onChange={(evt: any) => {
-              setZoom(Number(evt.currentTarget.value));
-            }}
-            className="width-full"
-          />
-          <div className="fg-muted text-md font-medium">+</div>
+      <div className="flex flex-col gap-4 height-100 overflow-hidden">
+        <div className="p-4 height-100 flex-1">
+          <StyledCropperContainer $roundedCropArea={roundedCropArea}>
+            <Cropper
+              image={ready ? imageSrc : ''} // NOTE: Quick fix for the image not being loaded on first render
+              crop={crop}
+              zoom={zoom}
+              maxZoom={3}
+              aspect={aspectFn ? aspectFn(aspectRatio) : 19 / 9}
+              onCropChange={setCrop}
+              onCropComplete={onCropComplete}
+              onZoomChange={setZoom}
+              showGrid={false}
+              onMediaLoaded={(mediaSize) => {
+                if (mediaSize.naturalHeight > mediaSize.naturalWidth) {
+                  setAspectRatio('portrait');
+                }
+              }}
+            />
+          </StyledCropperContainer>
         </div>
-        <FormSubmit submitting={loading} variant="primary" onClick={handleSubmit}>
-          Save
-        </FormSubmit>
+        <div className="flex flex-col gap-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="fg-muted text-md font-medium">-</div>
+            <NativeInputRange
+              value={zoom}
+              min={1}
+              max={3}
+              step={0.01}
+              aria-labelledby="Zoom"
+              onChange={(evt: any) => {
+                setZoom(Number(evt.currentTarget.value));
+              }}
+              className="width-full"
+            />
+            <div className="fg-muted text-md font-medium">+</div>
+          </div>
+          <FormSubmit submitting={loading} variant="primary" onClick={handleSubmit}>
+            Save
+          </FormSubmit>
+        </div>
       </div>
-    </StyledOverlay>
+    </StyledDialogOverlay>
   );
 }
 
-const StyledOverlay = styled(Overlay)`
-  ${centeredOverlayCss}
-  display: grid;
-  grid-template-rows: 1fr max-content;
+const StyledDialogOverlay = styled(DialogOverlay)`
   height: 100%;
   max-height: 350px;
-  max-width: 300px;
   overflow: hidden;
-  padding: var(--spacing-3);
-  width: 100%;
 `;
 
 const StyledCropperContainer = styled.div<{$roundedCropArea: boolean}>`

@@ -1,9 +1,11 @@
 import type {LucideIcon, LucideProps} from 'lucide-react';
 
 /** Default icon size in pixels. */
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_ICON_SIZE = 20;
 
 /** Default stroke width for icons. */
+// eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_STROKE_WIDTH = 1.5;
 
 /**
@@ -34,7 +36,7 @@ export interface IconProps extends Omit<LucideProps, 'ref'> {
  *
  * @example
  * import {XIcon} from 'lucide-react';
- * import {Icon} from '@play/pylon';
+ * import {Icon} from '@sortie/hangar';
  *
  * <Icon icon={XIcon} size={20} />
  * <Icon icon={XIcon} size={16} strokeWidth={2} /> // override default

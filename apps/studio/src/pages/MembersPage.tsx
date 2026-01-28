@@ -106,7 +106,7 @@ export function MembersPage() {
               <p className="font-medium text-white">
                 {d.profiles.display_name || d.profiles.username || 'Unknown'}
               </p>
-              <p className="text-sm text-slate-400">{d.profiles.email}</p>
+              <p className="text-sm text-gray-500">{d.profiles.email}</p>
             </div>
           </div>
         ),
@@ -147,7 +147,7 @@ export function MembersPage() {
         width: 120,
         type: 'date',
         renderContent: ({d}) => (
-          <span className="text-slate-400">
+          <span className="text-gray-500">
             {new Date(d.created_at).toLocaleDateString()}
           </span>
         ),
@@ -203,7 +203,7 @@ export function MembersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Members</h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-gray-500 mt-1">
             Manage members of {activeOrganization.name}
           </p>
         </div>
@@ -214,7 +214,7 @@ export function MembersPage() {
         )}
       </div>
 
-      <div className="bg-slate-800 rounded-lg overflow-hidden">
+      <div className="bg-gray-900 rounded-lg overflow-hidden">
         <Table
           data={members as Member[]}
           columns={columns}

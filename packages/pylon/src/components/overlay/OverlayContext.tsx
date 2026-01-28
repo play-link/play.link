@@ -22,6 +22,7 @@ export interface OverlayContextProps {
   ) => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const OverlayContext = createContext<OverlayContextProps | undefined>(undefined);
 
 interface Overlay {
