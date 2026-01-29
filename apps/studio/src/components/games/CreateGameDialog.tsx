@@ -181,18 +181,98 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
   );
 }
 
+const gradientPulse = keyframes`
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1) rotate(0deg);
+    filter: blur(80px);
+  }
+  33% {
+    opacity: 0.6;
+    transform: scale(1.1) rotate(120deg);
+    filter: blur(90px);
+  }
+  66% {
+    opacity: 0.5;
+    transform: scale(0.95) rotate(240deg);
+    filter: blur(70px);
+  }
+`;
+
+const gradientDrift = keyframes`
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  25% {
+    transform: translate(5%, -8%) scale(1.05);
+  }
+  50% {
+    transform: translate(-3%, 5%) scale(0.97);
+  }
+  75% {
+    transform: translate(-6%, -3%) scale(1.03);
+  }
+`;
+
+const gradientDrift2 = keyframes`
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  25% {
+    transform: translate(-8%, 5%) scale(1.08);
+  }
+  50% {
+    transform: translate(6%, -4%) scale(0.94);
+  }
+  75% {
+    transform: translate(3%, 7%) scale(1.02);
+  }
+`;
+
 const Backdrop = styled.div`
   position: fixed;
   inset: 0;
-  background: var(--bg);
+  background: #000;
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+  }
+
+  &::before {
+    width: 120%;
+    height: 120%;
+    top: -30%;
+    right: -30%;
+    background:
+      radial-gradient(ellipse 60% 50% at 40% 45%, rgba(120, 80, 255, 0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 65% 55%, rgba(0, 180, 255, 0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200, 60, 255, 0.2) 0%, transparent 60%);
+    animation: ${gradientPulse} 8s ease-in-out infinite, ${gradientDrift} 12s ease-in-out infinite;
+  }
+
+  &::after {
+    width: 100%;
+    height: 100%;
+    top: -20%;
+    right: -20%;
+    background:
+      radial-gradient(ellipse 45% 55% at 55% 40%, rgba(255, 60, 180, 0.25) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 45% at 40% 60%, rgba(60, 200, 255, 0.2) 0%, transparent 65%);
+    animation: ${gradientPulse} 10s ease-in-out infinite 2s, ${gradientDrift2} 14s ease-in-out infinite;
+  }
 `;
 
 const Dialog = styled.div`
   position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: flex;
