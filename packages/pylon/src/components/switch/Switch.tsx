@@ -55,9 +55,9 @@ export function Switch({
 }
 
 const SIZES = {
-  sm: 8,
-  md: 10,
-  lg: 12,
+  sm: 12,
+  md: 14,
+  lg: 16,
 };
 
 const PADDINGS = {
@@ -87,7 +87,7 @@ const Root = styled.div<{
 const Background = styled.div<{
   $size: SwitchSize;
 }>`
-  background: var(--color-gray-300);
+  background: var(--border-subtle);
   border-radius: ${(p) => SIZES[p.$size]}px;
   height: 100%;
   transition: background 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
@@ -95,7 +95,7 @@ const Background = styled.div<{
   z-index: -1;
 
   &.checked:not(.disabled) {
-    background: var(--primary-bg);
+    background: var(--color-primary-600);
   }
 
   &.disabled:not(.checked) {
@@ -103,7 +103,7 @@ const Background = styled.div<{
   }
 
   &.checked.disabled {
-    background: var(--primary-subtle);
+    background: var(--color-primary-300);
   }
 `;
 

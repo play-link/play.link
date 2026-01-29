@@ -1,9 +1,9 @@
 import {css} from 'styled-components';
 
 export const dropdownOverlayCss = css`
-  background: var(--bg-soft);
+  background: var(--bg-muted);
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border-deep);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
   min-width: 12rem;
   padding: var(--spacing-1);
@@ -55,9 +55,9 @@ export const gradientActiveBorder = css`
       linear-gradient(var(--bg-overlay), var(--bg-overlay)) padding-box,
       conic-gradient(
           from var(--angle),
-          var(--primary-active),
+          var(--color-primary-700),
           var(--color-yellow-100),
-          var(--primary-active)
+          var(--color-primary-700)
         )
         border-box;
     animation: rotate 5s linear infinite;

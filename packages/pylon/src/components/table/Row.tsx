@@ -56,7 +56,7 @@ const Row = styled.tr<{
   $rowCssFn?: TableProps['rowCssFn'];
   $isContextMenuActive?: boolean;
 }>`
-  border-bottom: 0.0625rem solid var(--border-soft);
+  border-bottom: 0.0625rem solid var(--border-muted);
 
   &:last-child {
     border-bottom: none;
@@ -67,9 +67,9 @@ const Row = styled.tr<{
     css`
       cursor: pointer;
       &:hover {
-        background: var(--bg-soft);
+        background: var(--bg-muted);
         td:first-child {
-          background: var(--bg-soft);
+          background: var(--bg-muted);
         }
       }
     `}
@@ -77,9 +77,9 @@ const Row = styled.tr<{
   ${(p) =>
     p.$isContextMenuActive &&
     css`
-      background: var(--bg-soft);
+      background: var(--bg-muted);
       td {
-        background: var(--bg-soft);
+        background: var(--bg-muted);
       }
     `}
 

@@ -1,16 +1,27 @@
 import type {LucideIcon} from 'lucide-react';
 import {
+  BuildingIcon,
+  ChartBarIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  CircleIcon,
+  CreditCardIcon,
+  FileTextIcon,
   GamepadIcon,
-  HomeIcon,
+  GlobeIcon,
   LogOutIcon,
+  MegaphoneIcon,
+  PlusIcon,
   SettingsIcon,
+  UserIcon,
   UsersIcon,
 } from 'lucide-react';
 import type {ReactNode} from 'react';
-import {useMemo} from 'react';
-import {NavLink, useNavigate} from 'react-router';
+import {useState} from 'react';
+import {useNavigate} from 'react-router';
 import styled from 'styled-components';
-import {Avatar, Icon, Select} from '@play/pylon';
+import {Avatar, Button, Divider, DropdownMenu, Icon} from '@play/pylon';
+import {CreateOrgDialog} from '@/components/layout/CreateOrgDialog';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {useAuth} from '@/lib/auth';
 
@@ -22,10 +33,16 @@ export interface NavItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  {label: 'Home', path: '', icon: HomeIcon},
-  {label: 'Games', path: 'games', icon: GamepadIcon},
-  {label: 'Members', path: 'members', icon: UsersIcon},
-  {label: 'Settings', path: 'settings', icon: SettingsIcon},
+  {label: 'Games', path: '', icon: GamepadIcon},
+  {label: 'Campaigns', path: 'campaigns', icon: MegaphoneIcon},
+  {label: 'Analytics', path: 'analytics', icon: ChartBarIcon},
+];
+
+const settingsItems: NavItem[] = [
+  {label: 'Studio', path: 'settings/studio', icon: BuildingIcon},
+  {label: 'Team', path: 'settings/team', icon: UsersIcon},
+  {label: 'Domains', path: 'settings/domains', icon: GlobeIcon},
+  {label: 'Billing', path: 'settings/billing', icon: CreditCardIcon},
 ];
 
 interface DashboardLayoutProps {
@@ -37,25 +54,19 @@ export function DashboardLayout({
   children,
   navItems = defaultNavItems,
 }: DashboardLayoutProps) {
-  const {me, activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {me, activeOrganization} = useAppContext(
+    ContextLevel.AuthenticatedWithOrg,
+  );
   const {signOut} = useAuth();
   const navigate = useNavigate();
+  const [createOrgOpen, setCreateOrgOpen] = useState(false);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   const displayName = me.displayName || me.email.split('@')[0];
 
-  const orgOptions = useMemo(
-    () =>
-      me.organizations.map((org) => ({
-        label: org.name,
-        value: org.slug,
-      })),
-    [me.organizations],
-  );
-
-  const handleOrgChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSlug = e.target.value;
-    if (newSlug && newSlug !== activeOrganization.slug) {
-      navigate(`/${newSlug}`);
+  const handleOrgClick = (slug: string) => {
+    if (slug !== activeOrganization.slug) {
+      navigate(`/${slug}`);
     }
   };
 
@@ -66,14 +77,6 @@ export function DashboardLayout({
           <Logo>
             Play.link <LogoAccent>Studio</LogoAccent>
           </Logo>
-          <Select
-            options={orgOptions}
-            value={activeOrganization.slug}
-            onChange={handleOrgChange}
-            fullWidth
-            size="sm"
-            variant="ghost"
-          />
         </LogoSection>
 
         <Nav>
@@ -82,54 +85,183 @@ export function DashboardLayout({
               const to = `/${activeOrganization.slug}${item.path ? `/${item.path}` : ''}`;
               return (
                 <li key={item.path}>
-                  <StyledNavLink to={to} end={item.path === ''}>
-                    <Icon icon={item.icon} size={20} />
+                  <Button
+                    variant="nav"
+                    to={to}
+                    end={item.path === ''}
+                    className="w-full"
+                  >
+                    <Icon icon={item.icon} size={20} className="mr-3" />
                     {item.label}
-                  </StyledNavLink>
+                  </Button>
                 </li>
               );
             })}
+
+            {/* Collapsible Settings Section */}
+            <li>
+              <Button
+                variant="nav"
+                onClick={() => setSettingsExpanded(!settingsExpanded)}
+                className="w-full"
+              >
+                <Icon icon={SettingsIcon} size={20} className="mr-3" />
+                Settings
+                <SettingsChevron $expanded={settingsExpanded}>
+                  <Icon icon={ChevronDownIcon} size={16} />
+                </SettingsChevron>
+              </Button>
+
+              {settingsExpanded && (
+                <SettingsSubList>
+                  {settingsItems.map((item) => {
+                    const to = `/${activeOrganization.slug}/${item.path}`;
+                    return (
+                      <li key={item.path}>
+                        <Button variant="nav" to={to} className="w-full">
+                          <div className="flex items-center pl-7">
+                            <Icon icon={item.icon} size={18} className="mr-3" />
+                            {item.label}
+                          </div>
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </SettingsSubList>
+              )}
+            </li>
           </NavList>
         </Nav>
 
         <UserSection>
-          <UserCard>
-            <Avatar text={displayName} src={me.avatarUrl ?? undefined} size="md" />
-            <UserInfo>
-              <UserName>{displayName}</UserName>
-              <UserEmail>{me.email}</UserEmail>
-            </UserInfo>
-          </UserCard>
-          <SignOutButton onClick={signOut}>
-            <Icon icon={LogOutIcon} size={20} />
-            Sign out
-          </SignOutButton>
+          <DropdownMenu
+            overlayPosition={{
+              verticalAlign: 'top',
+              horizontalAlign: 'left',
+              noVerticalOverlap: true,
+              verticalOffset: 8,
+            }}
+          >
+            <UserCardTrigger className="">
+              <Avatar
+                text={displayName}
+                src={me.avatarUrl ?? undefined}
+                size="md"
+              />
+              <UserInfo>
+                <UserName>{displayName}</UserName>
+                <UserEmail>{me.email}</UserEmail>
+              </UserInfo>
+            </UserCardTrigger>
+
+            <MenuContent>
+              <MenuHeader>
+                <Avatar
+                  text={displayName}
+                  src={me.avatarUrl ?? undefined}
+                  size="lg"
+                />
+                <MenuHeaderInfo>
+                  <MenuHeaderName>{displayName}</MenuHeaderName>
+                  <MenuHeaderEmail>{me.email}</MenuHeaderEmail>
+                </MenuHeaderInfo>
+              </MenuHeader>
+
+              <Divider className="my-2" />
+
+              <MenuSection>
+                <MenuSectionTitle>Switch organization</MenuSectionTitle>
+                {me.organizations.map((org) => (
+                  <Button
+                    key={org.id}
+                    variant="menu"
+                    onClick={() => handleOrgClick(org.slug)}
+                    className="w-full"
+                  >
+                    <MenuItemIcon>
+                      {org.id === activeOrganization.id && (
+                        <Icon icon={CheckIcon} size={16} />
+                      )}
+                    </MenuItemIcon>
+                    <Avatar text={org.name} size="sm" />
+                    <span>{org.name}</span>
+                  </Button>
+                ))}
+                <Button
+                  variant="menu"
+                  onClick={() => setCreateOrgOpen(true)}
+                  className="w-full text-fg-muted"
+                >
+                  <MenuItemIcon />
+                  <Icon icon={PlusIcon} size={18} />
+                  <span>New organization</span>
+                </Button>
+              </MenuSection>
+
+              <Divider className="my-2" />
+
+              <Button variant="menu" className="w-full">
+                <MenuItemIcon>
+                  <Icon icon={UserIcon} size={16} />
+                </MenuItemIcon>
+                <span>Account settings</span>
+              </Button>
+
+              <Divider className="my-2" />
+
+              <Button variant="menu" className="w-full">
+                <MenuItemIcon>
+                  <Icon icon={FileTextIcon} size={16} />
+                </MenuItemIcon>
+                <span>Terms</span>
+              </Button>
+
+              <Button variant="menu" className="w-full">
+                <MenuItemIcon>
+                  <Icon icon={CircleIcon} size={16} />
+                </MenuItemIcon>
+                <span>Privacy</span>
+              </Button>
+
+              <Divider className="my-2" />
+
+              <Button variant="menu" onClick={signOut} className="w-full">
+                <MenuItemIcon>
+                  <Icon icon={LogOutIcon} size={16} />
+                </MenuItemIcon>
+                <span>Log out</span>
+              </Button>
+            </MenuContent>
+          </DropdownMenu>
         </UserSection>
       </Sidebar>
 
       <Main>{children}</Main>
+
+      <CreateOrgDialog opened={createOrgOpen} setOpened={setCreateOrgOpen} />
     </Root>
   );
 }
 
 const Root = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 16rem 1fr;
   min-height: 100vh;
-  background: var(--bg-body);
 `;
 
 const Sidebar = styled.aside`
-  width: 16rem;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-muted);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-subtle);
+  min-width: 0;
 `;
 
 const LogoSection = styled.div`
-  padding: var(--spacing-4);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
+  padding: var(--spacing-4);
 `;
 
 const Logo = styled.h1`
@@ -140,7 +272,7 @@ const Logo = styled.h1`
 `;
 
 const LogoAccent = styled.span`
-  color: var(--primary-muted);
+  color: var(--color-primary-400);
 `;
 
 const Nav = styled.nav`
@@ -154,40 +286,41 @@ const NavList = styled.ul`
   gap: var(--spacing-1);
 `;
 
-const StyledNavLink = styled(NavLink)`
+const SettingsChevron = styled.span<{$expanded: boolean}>`
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-2-5) var(--spacing-3);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--fg-muted);
-  transition: background-color 0.15s, color 0.15s;
+  transition: transform 0.2s;
+  transform: ${({$expanded}) => ($expanded ? 'rotate(180deg)' : 'rotate(0)')};
+`;
 
-  &:hover {
-    background: var(--bg-subtle);
-    color: var(--white);
-  }
-
-  &.active {
-    background: color-mix(in srgb, var(--primary-bg) 20%, transparent);
-    color: var(--primary-muted);
-  }
+const SettingsSubList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
 `;
 
 const UserSection = styled.div`
   padding: var(--spacing-3);
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
 `;
 
-const UserCard = styled.div`
+const UserCardTrigger = styled.div`
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+  width: 100%;
   padding: var(--spacing-3);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--bg-subtle) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-hover) 50%, transparent);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: var(--bg-hover);
+  }
 `;
 
 const UserInfo = styled.div`
@@ -206,29 +339,57 @@ const UserName = styled.p`
 
 const UserEmail = styled.p`
   font-size: var(--text-xs);
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
-const SignOutButton = styled.button`
+const MenuContent = styled.div`
+  min-width: 14rem;
+`;
+
+const MenuHeader = styled.div`
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  width: 100%;
-  padding: var(--spacing-2-5) var(--spacing-3);
-  margin-top: var(--spacing-2);
-  border-radius: var(--radius-lg);
+  padding: var(--spacing-3);
+`;
+
+const MenuHeaderInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const MenuHeaderName = styled.p`
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--fg);
+`;
+
+const MenuHeaderEmail = styled.p`
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+`;
+
+const MenuSection = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const MenuSectionTitle = styled.p`
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   color: var(--fg-muted);
-  transition: background-color 0.15s, color 0.15s;
+  padding: var(--spacing-2) var(--spacing-3);
+`;
 
-  &:hover {
-    background: var(--bg-subtle);
-    color: var(--white);
-  }
+const MenuItemIcon = styled.span`
+  width: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 `;
 
 const Main = styled.main`

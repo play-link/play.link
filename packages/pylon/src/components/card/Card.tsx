@@ -58,8 +58,9 @@ const StyledRoot = styled.div<{
   $padding: string;
   $scrollable: boolean;
 }>`
+  background: var(--bg-surface);
   border-radius: var(--radius-2xl);
-  border: 0.0625rem solid var(--border-soft);
+  border: 0.0625rem solid var(--border-subtle);
   overflow: hidden;
   padding: ${({$padding}) => $padding};
 
@@ -81,8 +82,8 @@ const StyledRoot = styled.div<{
   }
 
   &.variant-muted {
-    border-color: var(--bg-soft);
-    background-color: var(--bg-soft);
+    border-color: var(--bg-muted);
+    background-color: var(--bg-muted);
   }
 `;
 

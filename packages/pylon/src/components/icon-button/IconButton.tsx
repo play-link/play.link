@@ -71,7 +71,7 @@ const StyledIconButton = styled.button.withConfig({
   withArrow: boolean;
 }>`
   align-items: center;
-  cursor: var(--button-cursor, pointer);
+  cursor: pointer;
   display: inline-flex;
   flex-shrink: 0;
   justify-content: center;

@@ -128,7 +128,7 @@ const Container = styled.div<{$disabled: boolean; $fullWidth: boolean; $size: In
   gap: var(--spacing-1);
   opacity: ${({$disabled}) => ($disabled ? 0.5 : 1)};
   width: ${({$fullWidth}) => ($fullWidth ? '100%' : 'auto')};
-  height: var(--input-height-${(p) => p.$size});
+  height: var(--control-height-${(p) => p.$size});
 `;
 
 const IconButton = styled.button`
@@ -136,7 +136,7 @@ const IconButton = styled.button`
   background: transparent;
   border: none;
   border-radius: 50%;
-  color: var(--fg-body);
+  color: var(--fg);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -144,7 +144,7 @@ const IconButton = styled.button`
   transition: color 0.15s ease;
 
   &:hover:not(:disabled) {
-    color: var(--fg-body);
+    color: var(--fg);
   }
 
   &:disabled {

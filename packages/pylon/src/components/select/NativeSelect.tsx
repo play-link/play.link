@@ -47,12 +47,12 @@ const StyledSelect = styled.select<StyledSelectProps>`
     $invalid
       ? '1px solid var(--input-outline-error-color)'
       : '1px solid var(--input-border-color)'};
-  border-radius: var(--input-radius-md);
+  border-radius: var(--control-radius-md);
   color: var(--input-color);
   display: inline-block;
-  height: var(--input-height-md);
+  height: var(--control-height-md);
   outline: 0;
-  padding: var(--input-padding-md);
+  padding: var(--control-padding-md);
   text-decoration: none;
   text-overflow: ellipsis;
 

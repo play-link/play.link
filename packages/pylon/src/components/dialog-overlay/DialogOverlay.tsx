@@ -175,7 +175,7 @@ const ContentRoot = styled.div`
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: var(--border-deep);
+    background: var(--border);
   }
 `;
 

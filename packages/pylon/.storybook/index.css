@@ -1,7 +1,7 @@
 @import url('../src/style/global.css');
 
 html {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 html.is-mobile {
@@ -10,18 +10,14 @@ html.is-mobile {
 
 html,
 body {
-  color: var(--fg-body);
-  font-family: var(--family-primary);
-  font-weight: 400;
+  color: var(--fg);
+  font-family: var(--font-sans);
   line-height: var(--leading-4);
+  background-color: var(--bg);
   margin: 0;
   min-height: 100dvh;
   padding: 0;
   width: 100%;
-}
-
-body {
-  font-size: var(--text-base);
 }
 
 #root {

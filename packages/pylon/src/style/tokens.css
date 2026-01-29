@@ -31,90 +31,87 @@
    * ======================================== */
 
   /* Button sizes */
-  --button-height-xxs: 1.25rem;
-  --button-height-xs: 1.5rem;
-  --button-height-sm: 1.75rem;
-  --button-height-md: 2rem;
-  --button-height-lg: 2.25rem;
-  --button-padding-xs: 0 var(--spacing-2-5) 1px;
-  --button-padding-sm: 0 var(--spacing-3);
-  --button-padding-md: 0 var(--spacing-3);
-  --button-padding-lg: 0 var(--spacing-4);
-  --button-radius-xs: var(--radius-sm);
-  --button-radius-sm: var(--radius-md);
-  --button-radius-md: var(--radius-lg);
-  --button-radius-lg: var(--radius-full);
+  --control-height-xxs: 1.5rem;
+  --control-height-xs: 1.75rem;
+  --control-height-sm: 2rem;
+  --control-height-md: 2.25rem;
+  --control-height-lg: 2.5rem;
 
-  /* Icon and IconButton sizes */
-  --icon-button-height-xxs: 1rem;
-  --icon-button-height-xs: 1.5rem;
-  --icon-button-height-sm: 1.75rem;
-  --icon-button-height-md: 2rem;
-  --icon-button-height-lg: 2.25rem;
+  --control-radius-xxs: var(--radius-xs);
+  --control-radius-xs: var(--radius-sm);
+  --control-radius-sm: var(--radius-md);
+  --control-radius-md: var(--radius-lg);
+  --control-radius-lg: var(--radius-full);
 
-  /* Input sizes */
-  --input-height-xs: 1.5rem;
-  --input-height-sm: 1.75rem;
-  --input-height-md: 2rem;
-  --input-height-lg: 2.25rem;
-  --input-padding-xs: var(--spacing-2);
-  --input-padding-sm: var(--spacing-2-5);
-  --input-padding-md: var(--spacing-3);
-  --input-padding-lg: var(--spacing-2);
-  --input-radius-xs: var(--radius-sm);
-  --input-radius-sm: var(--radius-sm);
-  --input-radius-md: var(--radius-md);
-  --input-radius-lg: var(--radius-lg);
+  --control-padding-xxs: var(--spacing-2);
+  --control-padding-xs: var(--spacing-2);
+  --control-padding-sm: var(--spacing-2-5);
+  --control-padding-md: var(--spacing-3);
+  --control-padding-lg: var(--spacing-3);
 
   /* ========================================
-   * LIGHT THEME (Default)
+   * DARK THEME (Default)
    * ======================================== */
   /* ----- FOREGROUND (Text) ----- */
-  --fg-body: var(--color-gray-100);
-  --fg-subtle: var(--color-gray-200);
-  --fg-muted: var(--color-gray-500);
+  /* Hierarchy: fg → muted → subtle → placeholder → disabled */
+  --fg: var(--white);                    /* Main text */
+  --fg-subtle: var(--color-gray-400);    /* Helper/caption text */
+  --fg-muted: var(--color-gray-500);     /* Secondary text */
   --fg-placeholder: var(--color-gray-600);
   --fg-disabled: var(--color-gray-700);
-  --fg-warning: var(--color-amber-500);
-  --fg-success: var(--color-green-600);
-  --fg-error: var(--color-red-500);
+
+  --fg-warning: var(--color-amber-400);
+  --fg-success: var(--color-green-400);
+  --fg-error: var(--color-red-400); 
 
   /* ----- BACKGROUND ----- */
-  --bg-minimal: var(--color-gray-950);
-  --bg-body: var(--color-gray-1000);
-  --bg-soft: var(--color-gray-950);
-  --bg-subtle: var(--color-gray-900);
-  --bg-deep: color-mix(in hsl, var(--color-gray-1000), var(--color-gray-800) 50%);
-  --bg-deepest: var(--color-gray-900);
-  --bg-surface: var(--color-gray-950);
-  --bg-overlay: var(--color-gray-950);
+  /* Scale: bg → subtle → muted (consistent with fg and border patterns) */
+  --bg: var(--color-gray-950);           /* Page background */
+  --bg-subtle: var(--color-gray-900);    /* Cards, sidebars, panels */
+  --bg-muted: var(--color-gray-800);     /* Elevated surfaces, dropdown items */
+
+  /* Semantic aliases (remapeable per theme) */
+  --bg-surface: var(--bg-subtle);        /* Cards, sidebars, panels */
+  --bg-overlay: var(--bg-subtle);        /* Modals, dropdowns backdrop */
+
+  /* Interactive states (rgba overlays - context independent) */
+  --bg-hover: rgba(255, 255, 255, 0.10);
+  --bg-press: rgba(255, 255, 255, 0.14);
+  --bg-selected: rgba(255, 255, 255, 0.18);
 
   /* ----- BORDERS ----- */
-  --border-soft: color-mix(in hsl, var(--color-gray-900), var(--color-gray-1000) 35%);
-  --border-subtle: var(--color-gray-900);
-  --border-deep: var(--color-gray-900);
-  --border-outline: var(--primary);
+  /* Hierarchy: border → subtle → muted (strongest to weakest, like --fg) */
+  --border: var(--color-gray-600);          /* Base/strong: inputs, active borders */
+  --border-subtle: var(--color-gray-700);   /* Cards, containers */
+  --border-muted: var(--color-gray-800);    /* Dividers, separators */
+  --border-focus: var(--primary);           /* Focus rings */
 
   /* ----- SCROLLBAR ----- */
   --scroll-track-color: rgba(0, 0, 0, 0.3);
   --scroll-thumb-color: rgba(255, 255, 255, 0.2);
 
-  /* ----- PRIMARY (Accent) COLOR ----- */
-  --primary: var(--color-red-500);
-  --primary-hover: var(--color-red-600);
-  --primary-active: var(--color-red-700);
-  --primary-muted: var(--color-red-400);
-  --primary-subtle: var(--color-red-300);
-  --primary-bg: var(--color-red-600);
-  --primary-bg-hover: var(--color-red-700);
-  --primary-bg-soft: var(--color-red-50);
-  --primary-bg-soft-hover: var(--color-red-100);
+  /* ----- PRIMARY COLOR SCALE ----- */
+  /* Maps primary to a color family (change these to switch accent color) */
+  --color-primary-50: var(--color-cyan-50);
+  --color-primary-100: var(--color-cyan-100);
+  --color-primary-200: var(--color-cyan-200);
+  --color-primary-300: var(--color-cyan-300);
+  --color-primary-400: var(--color-cyan-400);
+  --color-primary-500: var(--color-cyan-500);
+  --color-primary-600: var(--color-cyan-600);
+  --color-primary-700: var(--color-cyan-700);
+  --color-primary-800: var(--color-cyan-800);
+  --color-primary-900: var(--color-cyan-900);
+  --color-primary-950: var(--color-cyan-950);
+
+  /* Semantic primary aliases (for convenience) */
+  --primary: var(--color-primary-500);
   --primary-contrast-text: var(--white);
 
   /* ----- INPUT OVERRIDES ----- */
-  --input-bg: var(--bg-body);
-  --input-border-color: var(--border-deep);
-  --input-outline-color: var(--color-gray-100);
+  --input-bg: var(--bg-surface);
+  --input-border-color: var(--border);
+  --input-outline-color: var(--border-focus);
   --input-outline-error-color: var(--error-dark);
 
   /* ----- COMPONENT-SPECIFIC ----- */
@@ -127,8 +124,8 @@
    */
 
   /* Info (neutral/informational) */
-  --info: var(--bg-subtle);
-  --info-contrast-text: var(--fg-subtle);
+  --info: var(--bg-hover);
+  --info-contrast-text: var(--fg-muted);
   --info-outline: var(--border-subtle);
   --info-dark: var(--color-gray-500);
   --info-dark-contrast-text: var(--white);
@@ -152,6 +149,6 @@
   --success-dark-contrast-text: var(--white);
 
   /* ----- COMPONENT-SPECIFIC ----- */
-  --segmented-selected-bg: var(--bg-body);
-  --segmented-selected-text: var(--fg-body);
+  --segmented-selected-bg: var(--bg);
+  --segmented-selected-text: var(--fg);
 }

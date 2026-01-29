@@ -116,7 +116,7 @@ export function Button({
 
 const sharedButtonStyles = css<StyledButtonProps>`
   align-items: center;
-  cursor: var(--button-cursor, pointer);
+  cursor: pointer;
   display: inline-flex;
   line-height: ${({$autoHeight}) => ($autoHeight ? 'normal' : '1')};
   text-align: center;
@@ -126,7 +126,7 @@ const sharedButtonStyles = css<StyledButtonProps>`
   white-space: nowrap;
 
   &:focus-visible {
-    outline: 2px solid var(--border-outline);
+    outline: 2px solid var(--border-focus);
   }
 
   &:disabled,
@@ -137,14 +137,16 @@ const sharedButtonStyles = css<StyledButtonProps>`
     pointer-events: none;
   }
 
-  ${({$size, $variant, $autoHeight, $elevated, $emphasis, $fullRounded}) =>
-    variantsStyles[$variant]({
+  ${({$size, $variant, $autoHeight, $elevated, $emphasis, $fullRounded}) => {
+    const styleFn = variantsStyles[$variant] || variantsStyles.default;
+    return styleFn({
       size: $size,
       autoHeight: $autoHeight,
       elevated: $elevated,
       emphasis: $emphasis,
       fullRounded: $fullRounded,
-    })}
+    });
+  }}
 `;
 
 // Styled components

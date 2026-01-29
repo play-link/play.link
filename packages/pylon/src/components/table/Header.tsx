@@ -48,7 +48,7 @@ const THead = styled.thead<{
       position: sticky;
       top: ${$offset}px;
       z-index: 90;
-      background: var(--bg-minimal);
+      background: var(--bg);
 
       /* Borders on thead level so they stay visible when sticky */
       &::before,
@@ -58,7 +58,7 @@ const THead = styled.thead<{
         left: 0;
         right: 0;
         height: 1px;
-        background: var(--border-soft);
+        background: var(--border-muted);
       }
 
       &::before {

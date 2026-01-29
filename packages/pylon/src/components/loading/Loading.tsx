@@ -60,7 +60,7 @@ const stretch = keyframes`
 `;
 
 const Wrapper = styled.div`
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   display: inline-flex;
 `;
 

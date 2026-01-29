@@ -22,14 +22,14 @@
  * These use CSS variables directly
  */
 @layer utilities {
-  .fg-body {
-    color: var(--fg-body);
+  .fg-primary {
+    color: var(--fg);
   }
-  .fg-subtle {
-    color: var(--fg-subtle);
-  }
-  .fg-muted {
+  .fg-secondary {
     color: var(--fg-muted);
+  }
+  .fg-tertiary {
+    color: var(--fg-subtle);
   }
   .fg-disabled {
     color: var(--fg-disabled);
@@ -45,17 +45,17 @@
   }
 
   /* Background colors */
-  .bg-soft {
-    background-color: var(--bg-soft);
+  .bg-elevated {
+    background-color: var(--bg-muted);
   }
   .bg-body {
-    background-color: var(--bg-body);
+    background-color: var(--bg);
   }
-  .bg-subtle {
-    background-color: var(--bg-subtle);
+  .bg-hover {
+    background-color: var(--bg-hover);
   }
-  .bg-deep {
-    background-color: var(--bg-deep);
+  .bg-active {
+    background-color: var(--bg-press);
   }
 
   .ellipsis {
@@ -71,7 +71,7 @@
   }
 
   .primary-link {
-    color: var(--primary-active);
+    color: var(--color-primary-700);
     text-decoration: none;
   }
 
@@ -80,12 +80,12 @@
   }
 
   .muted-link {
-    color: var(--fg-muted);
+    color: var(--fg-subtle);
     text-decoration: none;
   }
 
   .muted-link:hover {
-    color: var(--fg-body);
+    color: var(--fg);
   }
 
   /* Primary color utilities */
@@ -93,19 +93,19 @@
     color: var(--primary);
   }
   .text-primary-muted {
-    color: var(--primary-muted);
+    color: var(--color-primary-400);
   }
   .text-primary-subtle {
-    color: var(--primary-subtle);
+    color: var(--color-primary-300);
   }
   .bg-primary {
-    background-color: var(--primary-bg);
+    background-color: var(--color-primary-600);
   }
   .bg-primary-hover:hover {
-    background-color: var(--primary-bg-hover);
+    background-color: var(--color-primary-700);
   }
   .bg-primary-soft {
-    background-color: var(--primary-bg-soft);
+    background-color: var(--color-primary-50);
   }
   .border-primary {
     border-color: var(--primary);

@@ -135,12 +135,12 @@ const SIZES = {
 
 const Root = styled.div<{$size: SegmentedControlsProps['size']}>`
   align-items: center;
-  background: var(--bg-deep);
+  background: var(--bg-press);
   border-radius: var(--radius-lg);
   cursor: pointer;
   display: inline-flex;
   height: ${(props) => SIZES[props.$size as keyof typeof SIZES]};
-  outline: 0.125rem solid var(--bg-deep);
+  outline: 0.125rem solid var(--bg-press);
   position: relative;
   user-select: none;
 `;
@@ -149,7 +149,7 @@ const ControlButton = styled.button`
   all: unset;
   /*  */
   align-items: center;
-  color: var(--fg-body);
+  color: var(--fg);
   display: flex;
   flex: 1;
   height: 100%;
@@ -162,7 +162,7 @@ const ControlButton = styled.button`
   z-index: 1;
 
   &.active {
-    color: var(--segmented-selected-text, --fg-body);
+    color: var(--segmented-selected-text, --fg);
     font-weight: var(--font-weight-medium);
   }
 
@@ -192,7 +192,7 @@ const ActiveBgWrapper = styled.div<{$hasUserInteracted: boolean}>`
 `;
 
 const ActiveBg = styled.div`
-  background: var(--segmented-selected-bg, --bg-body);
+  background: var(--segmented-selected-bg, --bg);
   border-radius: var(--radius-lg);
   height: 100%;
   width: 100%;

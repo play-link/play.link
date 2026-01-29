@@ -46,9 +46,9 @@ export function TableHeaderCell({column: c, index, onUpdateSortBy, sortBy}: Prop
 }
 
 const Th = styled.th`
-  background: var(--bg-minimal);
-  border-bottom: 0.0625rem solid var(--border-soft);
-  border-top: 0.0625rem solid var(--border-soft);
+  background: var(--bg);
+  border-bottom: 0.0625rem solid var(--border-muted);
+  border-top: 0.0625rem solid var(--border-muted);
   padding-bottom: 0.0625rem;
   user-select: none;
 
@@ -75,15 +75,15 @@ const HeaderTitle = styled.div`
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   gap: var(--spacing-1);
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   padding: var(--spacing-2) var(--spacing-4);
   white-space: nowrap;
 
   &.sortable {
-    cursor: var(--button-cursor, pointer);
+    cursor: pointer;
 
     &:hover {
-      color: var(--fg-body);
+      color: var(--fg);
     }
   }
 `;
