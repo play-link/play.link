@@ -26,10 +26,10 @@ export function getVariant({
     css`
       transition: background-color 0.2s var(--ease-in-out);
       border-radius: var(--radius-full);
-      height: var(--icon-button-height-${size});
-      width: ${withArrow ? 'auto' : `var(--icon-button-height-${size})`};
+      height: var(--control-height-${size});
+      width: ${withArrow ? 'auto' : `var(--control-height-${size})`};
       ${withArrow && 'padding-inline: 0.5rem;'}
-      border-radius: var(--button-radius-${size});
+      border-radius: var(--control-radius-${size});
     `}
     ${variantsStyles[variant]}
   `;
@@ -45,83 +45,83 @@ export const variantsStyles: {
 
   /* Default */
   default: css`
-    color: var(--fg-body);
+    color: var(--fg);
     border: 1px solid transparent;
 
     &:hover {
-      background: var(--bg-deep);
+      background: var(--bg-press);
     }
 
     &.opened {
-      background: var(--bg-deep);
-      border-color: var(--bg-deep);
+      background: var(--bg-press);
+      border-color: var(--bg-press);
     }
   `,
 
   outline: css`
-    border: 1px solid var(--border-deep);
-    color: var(--fg-body);
+    border: 1px solid var(--border);
+    color: var(--fg);
 
     &:hover {
-      background-color: var(--bg-deep);
+      background-color: var(--bg-press);
     }
 
     &.opened {
-      background-color: var(--bg-subtle);
+      background-color: var(--bg-hover);
     }
   `,
 
   /* Ghost */
   ghost: css`
-    color: var(--fg-muted);
+    color: var(--fg-subtle);
     background-color: transparent;
 
     &:hover {
-      color: var(--fg-body);
+      color: var(--fg);
     }
   `,
   /* Filled Primary */
   primary: css`
-    background: var(--primary-bg);
+    background: var(--color-primary-600);
     color: var(--primary-contrast-text);
 
     &:hover {
-      background: var(--primary-bg-hover);
+      background: var(--color-primary-700);
     }
   `,
 
   /* Filled */
   filled: css`
-    background-color: var(--bg-subtle);
-    color: var(--fg-body);
+    background-color: var(--bg-hover);
+    color: var(--fg);
 
     &:hover {
-      background-color: var(--bg-deep);
+      background-color: var(--bg-press);
     }
   `,
 
   /* Filled Primary */
   'filled-primary': css`
-    background-color: var(--primary-bg-soft);
-    color: var(--primary-active);
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-700);
 
     &:hover {
-      background-color: var(--primary-bg-soft-hover);
+      background-color: var(--color-primary-100);
     }
   `,
 
   /* Muted */
   muted: css`
-    color: var(--fg-muted);
-    border-radius: var(--button-radius-md);
+    color: var(--fg-subtle);
+    border-radius: var(--control-radius-md);
 
     &:hover {
-      background: var(--bg-subtle);
-      color: var(--fg-body);
+      background: var(--bg-hover);
+      color: var(--fg);
     }
 
     &.opened {
-      background: var(--bg-subtle);
+      background: var(--bg-hover);
     }
   `,
 };

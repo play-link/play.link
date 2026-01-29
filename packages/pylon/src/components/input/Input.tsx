@@ -51,13 +51,13 @@ const StyledInput = styled.input<{
   $fullRounded: InputProps['fullRounded'];
 }>`
   align-items: center;
-  background: transparent;
-  border: 1px solid var(--input-border-color);
-  color: var(--fg-body);
+  background: var(--input-bg);
+  border: 0.0625rem solid var(--input-border-color);
+  color: var(--fg);
   display: inline-flex;
-  height: var(--input-height-${(p) => p.$size});
+  height: var(--control-height-${(p) => p.$size});
   outline: 0;
-  padding: 0 var(--input-padding-${(p) => p.$size});
+  padding: 0 var(--control-padding-${(p) => p.$size});
 
   ${({$fullRounded, $size}) =>
     $fullRounded
@@ -65,7 +65,7 @@ const StyledInput = styled.input<{
           border-radius: var(--radius-full);
         `
       : css`
-          border-radius: var(--input-radius-${$size});
+          border-radius: var(--control-radius-${$size});
         `}
 
   &:disabled {
@@ -90,7 +90,7 @@ const StyledInput = styled.input<{
   }
 
   &[readonly] {
-    background-color: var(--bg-soft);
+    background-color: var(--bg-muted);
     color: var(--fg-placeholder);
     pointer-events: none;
   }

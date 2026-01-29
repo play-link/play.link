@@ -2,12 +2,17 @@ import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
 import {
   AdminPage,
+  AnalyticsPage,
   AuthCallbackPage,
-  HomePage,
+  BillingSettingsPage,
+  CampaignsPage,
+  DomainsSettingsPage,
+  GameEditorPage,
+  GamesPage,
   LoginPage,
-  MembersPage,
   OnboardingPage,
-  SettingsPage,
+  StudioSettingsPage,
+  TeamSettingsPage,
 } from '@/pages';
 import {OrganizationLayout} from './OrganizationLayout';
 import {ProtectedRoute} from './ProtectedRoute';
@@ -47,15 +52,39 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <HomePage />,
+            element: <GamesPage />,
           },
           {
-            path: 'members',
-            element: <MembersPage />,
+            path: 'games',
+            element: <GamesPage />,
           },
           {
-            path: 'settings',
-            element: <SettingsPage />,
+            path: 'games/:gameId',
+            element: <GameEditorPage />,
+          },
+          {
+            path: 'campaigns',
+            element: <CampaignsPage />,
+          },
+          {
+            path: 'analytics',
+            element: <AnalyticsPage />,
+          },
+          {
+            path: 'settings/studio',
+            element: <StudioSettingsPage />,
+          },
+          {
+            path: 'settings/team',
+            element: <TeamSettingsPage />,
+          },
+          {
+            path: 'settings/domains',
+            element: <DomainsSettingsPage />,
+          },
+          {
+            path: 'settings/billing',
+            element: <BillingSettingsPage />,
           },
         ],
       },

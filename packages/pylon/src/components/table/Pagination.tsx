@@ -84,7 +84,7 @@ export function TablePagination({
 
 const PaginationStack = styled.div`
   align-items: center;
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   display: flex;
   font-size: var(--text-sm);
   justify-content: flex-end;

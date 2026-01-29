@@ -73,7 +73,7 @@ const StyledFieldset = styled.fieldset<{
 `;
 
 const Label = styled.label`
-  color: var(--fg-body);
+  color: var(--fg);
   font-size: var(--text-sm);
   margin-bottom: var(--spacing-0-5);
   width: 100%;
@@ -87,7 +87,7 @@ const InvalidText = styled.p`
 `;
 
 const HelpText = styled.p`
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   font-size: var(--text-sm);
   margin-top: var(--spacing-0-5);
 `;

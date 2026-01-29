@@ -59,7 +59,7 @@ export function CheckboxGroup({
 }
 
 const StyledButton = styled(Button)`
-  color: var(--primary-subtle);
+  color: var(--color-primary-300);
   &:hover {
     color: var(--primary);
   }

@@ -41,7 +41,7 @@ interface StyledSkeletonProps {
 }
 
 const StyledSkeleton = styled.div<StyledSkeletonProps>`
-  background: var(--bg-soft);
+  background: var(--bg-muted);
   border-radius: ${({$variant, $width}) =>
     $variant === 'circular' ? `${$width}` : $variant === 'rounded' ? 'var(--radius-md)' : '0'};
   height: ${({$height}) => $height};

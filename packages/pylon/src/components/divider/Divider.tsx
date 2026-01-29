@@ -20,7 +20,7 @@ const DividerRow = styled.div<{$variant?: 'soft' | 'subtle'}>`
   width: 0.0625rem;
   height: 100%;
   background: ${(props) =>
-    props.$variant === 'soft' ? 'var(--border-soft)' : 'var(--border-subtle)'};
+    props.$variant === 'soft' ? 'var(--border-muted)' : 'var(--border-subtle)'};
 `;
 
 const DividerCol = styled.div<{
@@ -29,7 +29,7 @@ const DividerCol = styled.div<{
 }>`
   height: 0.0625rem;
   background: ${(props) =>
-    props.$variant === 'soft' ? 'var(--border-soft)' : 'var(--border-subtle)'};
+    props.$variant === 'soft' ? 'var(--border-muted)' : 'var(--border-subtle)'};
 
   ${(props) =>
     props.$bleedSpacing

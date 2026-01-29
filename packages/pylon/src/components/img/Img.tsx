@@ -83,7 +83,7 @@ interface StyledImgProps {
 }
 
 const StyledImg = styled.div<StyledImgProps>`
-  background-color: var(--bg-deep);
+  background-color: var(--bg-press);
   background-image: ${({$src}) => ($src ? `url(${$src})` : 'none')};
   background-position: ${({$position}) => $position};
   background-repeat: no-repeat;

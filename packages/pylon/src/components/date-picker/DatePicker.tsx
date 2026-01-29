@@ -143,10 +143,10 @@ export function DatePicker(props: Props) {
 const Root = styled.div`
   .rdp-root {
     --rdp-accent-color: var(
-      --fg-body
+      --fg
     ); /* The accent color used for selected days and UI elements. */
     --rdp-accent-background-color: var(
-      --bg-deep
+      --bg-press
     ); /* The accent background color used for selected days and UI elements. */
 
     --rdp-day-height: 2.25rem; /* The height of the day cells. */
@@ -175,7 +175,7 @@ const Root = styled.div`
     ); /* The color of the background for days in the middle of a range. */
     --rdp-range_middle-color: inherit; /* The color of the range text. */
 
-    --rdp-range_start-color: var(--bg-body); /* The color of the range text. */
+    --rdp-range_start-color: var(--bg); /* The color of the range text. */
     --rdp-range_start-background: linear-gradient(
       var(--rdp-gradient-direction),
       transparent 50%,
@@ -240,7 +240,7 @@ const Root = styled.div`
       left: 0;
       width: 100%;
       height: 100%;
-      border: 1px solid var(--fg-body);
+      border: 1px solid var(--fg);
       border-radius: var(--rdp-day_button-border-radius);
     }
   }
@@ -304,13 +304,13 @@ const Root = styled.div`
     margin-top: -0.375rem;
 
     svg {
-      fill: var(--fg-muted);
+      fill: var(--fg-subtle);
       width: 1.125rem;
       height: 1.125rem;
     }
 
     &:hover {
-      background: var(--bg-subtle);
+      background: var(--bg-hover);
     }
   }
 
@@ -428,7 +428,7 @@ const Root = styled.div`
   }
 
   .rdp-weekday {
-    color: var(--fg-muted);
+    color: var(--fg-subtle);
     font-size: var(--text-xxs);
     font-weight: var(--font-weight-medium);
     padding: var(--spacing-3) 0 var(--spacing-2);

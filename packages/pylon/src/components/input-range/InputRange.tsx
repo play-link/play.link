@@ -10,8 +10,8 @@ export function NativeInputRange(props: Props) {
 const thumbStyles = css`
   -webkit-appearance: none;
   -moz-appearance: none;
-  border: 1px solid var(--fg-body);
-  background: var(--fg-body);
+  border: 1px solid var(--fg);
+  background: var(--fg);
   border-radius: var(--radius-full);
   width: 0.875rem;
   height: 0.875rem;
@@ -24,7 +24,7 @@ const StyledInput = styled.input`
   height: 0.1875rem;
   border-top: white;
   border-bottom: white;
-  background: var(--border-soft);
+  background: var(--border-muted);
   width: 100%;
 
   &::-moz-range-thumb {

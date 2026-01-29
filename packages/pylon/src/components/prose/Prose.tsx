@@ -61,7 +61,7 @@ const Root = styled.div<{$size: 'sm' | 'base'}>`
   }
 
   li::marker {
-    color: var(--fg-muted);
+    color: var(--fg-subtle);
   }
 
   /* Nested lists */
@@ -90,7 +90,7 @@ const Root = styled.div<{$size: 'sm' | 'base'}>`
 
   /* Code */
   code {
-    background: var(--bg-subtle);
+    background: var(--bg-hover);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: 0.9em;

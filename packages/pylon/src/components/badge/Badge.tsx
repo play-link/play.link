@@ -98,7 +98,7 @@ const sizeStyles = {
     fontSize: 'var(--text-xs)',
   },
   md: {
-    height: 'var(--button-height-xs)',
+    height: 'var(--control-height-xs)',
     padding: '0 var(--spacing-2-5)',
     gap: 'var(--spacing-1-5)',
     fontSize: 'var(--text-sm)',

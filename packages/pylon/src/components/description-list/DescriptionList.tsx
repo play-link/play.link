@@ -188,7 +188,7 @@ const DL = styled.dl<DLProps>`
   ${(p) =>
     p.$bordered &&
     css`
-      border-bottom: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-muted);
 
       &:last-child {
         border-bottom: none;
@@ -199,7 +199,7 @@ const DL = styled.dl<DLProps>`
     p.$striped &&
     css`
       &:nth-child(odd) {
-        background: var(--bg-soft);
+        background: var(--bg-muted);
       }
     `}
 
@@ -214,7 +214,7 @@ const DL = styled.dl<DLProps>`
 
 const DT = styled.dt<{$alignTop?: boolean}>`
   align-items: ${(p) => (p.$alignTop ? 'flex-start' : 'center')};
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   display: flex;
 `;
 

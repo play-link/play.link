@@ -504,12 +504,12 @@ const SelectButton = styled.button<{
 }>`
   align-items: center;
   color: inherit;
-  cursor: var(--button-cursor, pointer);
+  cursor: pointer;
   display: inline-flex;
   gap: var(--spacing-1);
-  height: var(--input-height-${(p) => p.$size});
+  height: var(--control-height-${(p) => p.$size});
   overflow: hidden;
-  padding: var(--button-padding-${(p) => p.$size});
+  padding: var(--control-padding-${(p) => p.$size});
   text-align: center;
   transition-duration: 0.3s;
   transition-property: background-color, color;
@@ -522,7 +522,7 @@ const SelectButton = styled.button<{
           border-radius: var(--radius-full);
         `
       : css`
-          border-radius: var(--input-radius-${p.$size});
+          border-radius: var(--control-radius-${p.$size});
         `}
 
   ${(p) =>
@@ -533,7 +533,7 @@ const SelectButton = styled.button<{
       : ''}
 
   .arrow-icon {
-    color: var(--fg-muted);
+    color: var(--fg-subtle);
     flex-shrink: 0;
   }
 
@@ -567,7 +567,7 @@ const OptionButton = styled(Button)`
   display: grid;
   grid-template-columns: 1.5rem 1fr;
   height: auto;
-  min-height: var(--button-height-md);
+  min-height: var(--control-height-md);
   padding-right: var(--spacing-3);
   text-align: left;
 
@@ -586,14 +586,14 @@ const OptionButton = styled(Button)`
 `;
 
 const CategoryTitle = styled.div`
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   font-size: var(--text-xs);
   font-weight: var(--font-weight-medium);
   padding: var(--spacing-2) 0 var(--spacing-0-5) 36px;
 `;
 
 const SearchInputWrapper = styled.div`
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-muted);
   padding: var(--spacing-2) var(--spacing-2);
 `;
 
@@ -605,8 +605,8 @@ const OptionsWrapper = styled.div`
 
 const NoResultsMessage = styled.div`
   align-items: center;
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   display: flex;
-  min-height: var(--button-height-md);
-  padding: var(--button-padding-md);
+  min-height: var(--control-height-md);
+  padding: var(--control-padding-md);
 `;

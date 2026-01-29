@@ -23,13 +23,13 @@ export function ClearIconButton(props: ClearIconButtonProps) {
 }
 
 const StyledIcon = styled(Icon)`
-  background-color: var(--fg-muted);
-  color: var(--bg-body);
+  background-color: var(--fg-subtle);
+  color: var(--bg);
   padding: var(--spacing-0-5);
   flex-shrink: 0;
   border-radius: var(--radius-full);
 
   &:hover {
-    background-color: var(--fg-body);
+    background-color: var(--fg);
   }
 `;

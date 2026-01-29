@@ -180,7 +180,7 @@ const TableRoot = styled.div<{
   $bleed?: TableProps['bleed'];
   $scrollable?: boolean;
 }>`
-  color: var(--fg-body);
+  color: var(--fg);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -243,12 +243,12 @@ const StyledTable = styled.table<{
 
       /* Header first cell uses header background color */
       th:first-child {
-        background: var(--bg-minimal);
+        background: var(--bg);
       }
 
       /* Body first cell uses body background color */
       td:first-child {
-        background: var(--bg-body);
+        background: var(--bg);
       }
 
       /* Header first cell (corner): highest z-index */
@@ -279,12 +279,12 @@ const StyledTable = styled.table<{
 
       /* Header last cell uses header background color */
       th:last-child {
-        background: var(--bg-minimal);
+        background: var(--bg);
       }
 
       /* Body last cell uses body background color */
       td:last-child {
-        background: var(--bg-body);
+        background: var(--bg);
       }
 
       /* Header last cell (corner): highest z-index */
@@ -305,5 +305,5 @@ const LoadMoreIndicator = styled.div`
 const EmptyMessage = styled.div`
   padding: var(--spacing-6) var(--spacing-4);
   text-align: center;
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
 `;

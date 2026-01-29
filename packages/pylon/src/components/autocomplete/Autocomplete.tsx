@@ -125,12 +125,12 @@ const DropdownHeader = styled.div`
   padding: var(--spacing-1-5) var(--spacing-3) var(--spacing-1);
   font-weight: var(--font-weight-medium);
   font-size: var(--text-xs);
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
 `;
 
 const NoResults = styled.div`
   padding: var(--spacing-3);
   font-size: var(--text-sm);
-  color: var(--fg-muted);
+  color: var(--fg-subtle);
   text-align: center;
 `;

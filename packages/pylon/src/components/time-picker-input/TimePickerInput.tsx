@@ -682,13 +682,13 @@ const TimeOption = styled.div<{$selected: boolean}>`
   ${({$selected}) =>
     $selected
       ? css`
-          background-color: var(--bg-deep);
-          color: var(--fg-body);
+          background-color: var(--bg-press);
+          color: var(--fg);
           font-weight: var(--font-weight-bold);
         `
       : css`
           &:hover {
-            background-color: var(--bg-subtle);
+            background-color: var(--bg-hover);
           }
         `}
 `;

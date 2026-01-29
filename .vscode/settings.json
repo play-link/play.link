@@ -1,14 +1,11 @@
 {
+  "editor.rulers": [100],
   "editor.formatOnSave": true,
+  "explorer.fileNesting.enabled": true,
+  // Force using prettier in this repo
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "prettier.configPath": "./prettier.config.js",
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // Disable formatOnSave for justfiles (prevents underscore escaping)
+  "[just]": {
+    "editor.formatOnSave": false
   }
 }

@@ -47,7 +47,7 @@ function getRandomGradient(value: string, colors: string[][] = defaultColors): s
   return `linear-gradient(to bottom, ${colorA}, ${colorB})`;
 }
 
-export type AvatarSize = 'lg' | 'md' | 'sm' | 'xs';
+export type AvatarSize = 'lg' | 'md' | 'sm';
 
 export interface AvatarProps {
   className?: string;
@@ -92,8 +92,7 @@ const StyledAvatar = styled.div<{$size: number; $src?: string; $text: string}>`
 `;
 
 const sizeMap = {
-  lg: 38,
-  md: 28,
-  sm: 24,
-  xs: 18,
+  lg: 40,
+  md: 36,
+  sm: 32,
 };

@@ -124,7 +124,7 @@ const StyledCropperContainer = styled.div<{$roundedCropArea: boolean}>`
   height: 100%;
   position: relative;
   .reactEasyCrop_CropArea {
-    color: var(--bg-body) !important;
+    color: var(--bg) !important;
     ${({$roundedCropArea}) => $roundedCropArea && 'border-radius: 50%;'}
   }
 `;

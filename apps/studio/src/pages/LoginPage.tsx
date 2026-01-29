@@ -17,8 +17,8 @@ export function LoginPage() {
   // Show loading state while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[var(--primary-active)] to-gray-950 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[var(--primary)] border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-(--color-primary-700) to-gray-950 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-(--primary) border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -59,7 +59,7 @@ export function LoginPage() {
 
   if (status === 'sent' || status === 'verifying') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[var(--primary-active)] to-gray-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-(--color-primary-700) to-gray-950 flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center space-y-6">
           <div className="text-6xl">✉️</div>
           <h1 className="text-2xl font-bold text-white">Check your email</h1>
@@ -84,12 +84,12 @@ export function LoginPage() {
                 }
                 placeholder="Enter 6-digit code"
                 maxLength={6}
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white text-center text-2xl tracking-widest placeholder:text-gray-500 placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white text-center text-2xl tracking-widest placeholder:text-gray-500 placeholder:text-base placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-(--primary) focus:border-transparent"
               />
             </div>
 
             {errorMessage && (
-              <p className="text-[var(--fg-error)] text-sm">{errorMessage}</p>
+              <p className="text-(--fg-error) text-sm">{errorMessage}</p>
             )}
 
             <Button
@@ -107,7 +107,7 @@ export function LoginPage() {
               setOtpCode('');
               setErrorMessage('');
             }}
-            className="text-[var(--primary-muted)] hover:text-[var(--primary-subtle)] text-sm underline"
+            className="text-(--color-primary-400) hover:text-(--color-primary-300) text-sm underline"
           >
             Use a different email
           </button>
@@ -117,11 +117,11 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[var(--primary-active)] to-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-(--color-primary-700) to-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Play.link <span className="text-[var(--primary-muted)]">Studio</span>
+            Play.link <span className="text-(--color-primary-400)">Studio</span>
           </h1>
           <p className="text-gray-200">Sign in with your email</p>
         </div>
@@ -134,12 +134,12 @@ export function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
-              className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
+              className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:border-transparent"
             />
           </div>
 
           {status === 'error' && (
-            <p className="text-[var(--fg-error)] text-sm">{errorMessage}</p>
+            <p className="text-(--fg-error) text-sm">{errorMessage}</p>
           )}
 
           <Button

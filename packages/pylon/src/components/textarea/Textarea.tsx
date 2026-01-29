@@ -10,11 +10,11 @@ export function Textarea({invalid, className, ...rest}: TextareaProps) {
 }
 
 const StyledTextarea = styled.textarea`
-  border-radius: var(--input-radius-md);
+  border-radius: var(--control-radius-md);
   border: 1px solid var(--input-border-color);
-  color: var(--fg-body);
+  color: var(--fg);
   outline: 0;
-  padding: var(--input-padding-md);
+  padding: var(--control-padding-md);
   resize: none;
 
   &.invalid {
