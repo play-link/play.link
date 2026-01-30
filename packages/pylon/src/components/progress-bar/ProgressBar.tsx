@@ -21,7 +21,13 @@ export function ProgressBar({
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
-    <Track role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max} {...restProps}>
+    <Track
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      {...restProps}
+    >
       <Fill $pct={pct} $variant={variant} />
     </Track>
   );

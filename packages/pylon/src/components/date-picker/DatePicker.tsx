@@ -142,9 +142,7 @@ export function DatePicker(props: Props) {
 
 const Root = styled.div`
   .rdp-root {
-    --rdp-accent-color: var(
-      --fg
-    ); /* The accent color used for selected days and UI elements. */
+    --rdp-accent-color: var(--fg); /* The accent color used for selected days and UI elements. */
     --rdp-accent-background-color: var(
       --bg-press
     ); /* The accent background color used for selected days and UI elements. */

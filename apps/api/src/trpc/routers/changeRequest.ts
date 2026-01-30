@@ -2,11 +2,7 @@ import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
 import type {OrgRoleType} from '@play/supabase-client'
 import {OrgRole} from '@play/supabase-client'
-import {
-  adminProcedure,
-  protectedProcedure,
-  router,
-} from '../index'
+import {adminProcedure, protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
 // Roles that can create change requests

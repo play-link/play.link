@@ -1,5 +1,6 @@
 import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
+import {GameAnalytics, GameOverview, GameSettings} from '@/components/games';
 import {
   AdminPage,
   AnalyticsPage,
@@ -7,7 +8,7 @@ import {
   BillingSettingsPage,
   CampaignsPage,
   DomainsSettingsPage,
-  GameEditorPage,
+  GamePage,
   GamesPage,
   LoginPage,
   OnboardingPage,
@@ -60,7 +61,21 @@ export const router = createBrowserRouter([
           },
           {
             path: 'games/:gameId',
-            element: <GameEditorPage />,
+            element: <GamePage />,
+            children: [
+              {
+                index: true,
+                element: <GameOverview />,
+              },
+              {
+                path: 'analytics',
+                element: <GameAnalytics />,
+              },
+              {
+                path: 'settings',
+                element: <GameSettings />,
+              },
+            ],
           },
           {
             path: 'campaigns',

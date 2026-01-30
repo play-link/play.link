@@ -1,3 +1,5 @@
 export {CreateGameDialog} from './CreateGameDialog';
+export {GameSettings} from './game-settings';
+export {GameAnalytics} from './GameAnalytics';
 export {GameCard, type GameCardProps} from './GameCard';
-export {GameEditor} from './GameEditor';
+export {GameOverview} from './GameOverview';

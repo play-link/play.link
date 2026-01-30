@@ -27,13 +27,14 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
   }, [slug]);
 
   // Check slug availability
-  const {data: slugCheck, isFetching: isCheckingSlug} = trpc.organization.checkSlug.useQuery(
-    {slug: debouncedSlug},
-    {
-      enabled: debouncedSlug.length >= 3,
-      staleTime: 5000,
-    },
-  );
+  const {data: slugCheck, isFetching: isCheckingSlug} =
+    trpc.organization.checkSlug.useQuery(
+      {slug: debouncedSlug},
+      {
+        enabled: debouncedSlug.length >= 3,
+        staleTime: 5000,
+      },
+    );
 
   const createOrg = trpc.organization.create.useMutation({
     onSuccess: (org) => {
@@ -82,9 +83,11 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
     setSlugTouched(false);
   };
 
-  const isSlugValid = slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  const isSlugValid =
+    slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
   const isSlugAvailable = slugCheck?.available === true;
-  const canSubmit = name.length > 0 && isSlugValid && isSlugAvailable && !createOrg.isPending;
+  const canSubmit =
+    name.length > 0 && isSlugValid && isSlugAvailable && !createOrg.isPending;
 
   if (!opened) return null;
 
@@ -98,7 +101,9 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
         <Content>
           <Header>
             <Title>Create a new organization</Title>
-            <Subtitle>Set up your team's workspace on Play.link Studio</Subtitle>
+            <Subtitle>
+              Set up your team's workspace on Play.link Studio
+            </Subtitle>
           </Header>
 
           <Form onSubmit={handleSubmit}>
@@ -159,7 +164,9 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
               </HelpText>
             </FormGroup>
 
-            {createOrg.error && <ErrorMessage>{createOrg.error.message}</ErrorMessage>}
+            {createOrg.error && (
+              <ErrorMessage>{createOrg.error.message}</ErrorMessage>
+            )}
 
             <Actions>
               <Button type="button" variant="ghost" onClick={handleClose}>
@@ -319,7 +326,9 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
-const StatusIcon = styled.span<{$status: 'loading' | 'available' | 'unavailable'}>`
+const StatusIcon = styled.span<{
+  $status: 'loading' | 'available' | 'unavailable';
+}>`
   display: flex;
   align-items: center;
   justify-content: center;

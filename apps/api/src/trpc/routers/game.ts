@@ -190,11 +190,16 @@ export const gameRouter = router({
         status: z
           .enum(['DRAFT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
           .optional(),
-        releaseDate: z.string().datetime().optional().nullable(),
+        releaseDate: z
+          .string()
+          .date()
+          .or(z.string().datetime())
+          .optional()
+          .nullable(),
         genres: z.array(z.string()).optional(),
-        coverUrl: z.string().url().optional().nullable(),
-        headerUrl: z.string().url().optional().nullable(),
-        trailerUrl: z.string().url().optional().nullable(),
+        coverUrl: z.string().url().or(z.literal('')).optional().nullable(),
+        headerUrl: z.string().url().or(z.literal('')).optional().nullable(),
+        trailerUrl: z.string().url().or(z.literal('')).optional().nullable(),
         themeColor: z.string().max(20).optional().nullable(),
         platforms: z.any().optional(), // JSONB
       }),

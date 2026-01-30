@@ -16,7 +16,10 @@ interface ChangeRequestsTableProps {
   onUpdate: () => void;
 }
 
-export function ChangeRequestsTable({changeRequests, onUpdate}: ChangeRequestsTableProps) {
+export function ChangeRequestsTable({
+  changeRequests,
+  onUpdate,
+}: ChangeRequestsTableProps) {
   const approveMutation = trpc.changeRequest.approve.useMutation({
     onSuccess: onUpdate,
   });

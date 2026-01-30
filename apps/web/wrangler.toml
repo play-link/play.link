@@ -1,0 +1,17 @@
+name = "play-web"
+main = "build/server/index.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[dev]
+port = 3015
+
+[vars]
+ENVIRONMENT = "development"
+
+[assets]
+directory = "build/client"
+
+# Secrets (set via `wrangler secret put`):
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY

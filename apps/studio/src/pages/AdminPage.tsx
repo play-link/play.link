@@ -1,5 +1,5 @@
-import {trpc} from '@/lib';
 import {ChangeRequestsTable, PageLayout} from '@/components';
+import {trpc} from '@/lib';
 
 export function AdminPage() {
   const utils = trpc.useUtils();

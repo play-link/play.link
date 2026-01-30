@@ -54,37 +54,37 @@
    * ======================================== */
   /* ----- FOREGROUND (Text) ----- */
   /* Hierarchy: fg → muted → subtle → placeholder → disabled */
-  --fg: var(--white);                    /* Main text */
-  --fg-subtle: var(--color-gray-400);    /* Helper/caption text */
-  --fg-muted: var(--color-gray-500);     /* Secondary text */
+  --fg: var(--white); /* Main text */
+  --fg-subtle: var(--color-gray-400); /* Helper/caption text */
+  --fg-muted: var(--color-gray-500); /* Secondary text */
   --fg-placeholder: var(--color-gray-600);
   --fg-disabled: var(--color-gray-700);
 
   --fg-warning: var(--color-amber-400);
   --fg-success: var(--color-green-400);
-  --fg-error: var(--color-red-400); 
+  --fg-error: var(--color-red-400);
 
   /* ----- BACKGROUND ----- */
   /* Scale: bg → subtle → muted (consistent with fg and border patterns) */
-  --bg: var(--color-gray-950);           /* Page background */
-  --bg-subtle: var(--color-gray-900);    /* Cards, sidebars, panels */
-  --bg-muted: var(--color-gray-800);     /* Elevated surfaces, dropdown items */
+  --bg: var(--color-gray-950); /* Page background */
+  --bg-subtle: var(--color-gray-900); /* Cards, sidebars, panels */
+  --bg-muted: var(--color-gray-800); /* Elevated surfaces, dropdown items */
 
   /* Semantic aliases (remapeable per theme) */
-  --bg-surface: var(--bg-subtle);        /* Cards, sidebars, panels */
-  --bg-overlay: var(--bg-subtle);        /* Modals, dropdowns backdrop */
+  --bg-surface: var(--bg-subtle); /* Cards, sidebars, panels */
+  --bg-overlay: var(--bg-subtle); /* Modals, dropdowns backdrop */
 
   /* Interactive states (rgba overlays - context independent) */
-  --bg-hover: rgba(255, 255, 255, 0.10);
+  --bg-hover: rgba(255, 255, 255, 0.1);
   --bg-press: rgba(255, 255, 255, 0.14);
   --bg-selected: rgba(255, 255, 255, 0.18);
 
   /* ----- BORDERS ----- */
   /* Hierarchy: border → subtle → muted (strongest to weakest, like --fg) */
-  --border: var(--color-gray-600);          /* Base/strong: inputs, active borders */
-  --border-subtle: var(--color-gray-700);   /* Cards, containers */
-  --border-muted: var(--color-gray-800);    /* Dividers, separators */
-  --border-focus: var(--primary);           /* Focus rings */
+  --border: var(--color-gray-600); /* Base/strong: inputs, active borders */
+  --border-subtle: var(--color-gray-700); /* Cards, containers */
+  --border-muted: var(--color-gray-800); /* Dividers, separators */
+  --border-focus: var(--primary); /* Focus rings */
 
   /* ----- SCROLLBAR ----- */
   --scroll-track-color: rgba(0, 0, 0, 0.3);

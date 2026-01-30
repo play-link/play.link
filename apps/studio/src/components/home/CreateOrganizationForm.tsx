@@ -5,7 +5,9 @@ interface CreateOrganizationFormProps {
   onSuccess: () => void;
 }
 
-export function CreateOrganizationForm({onSuccess}: CreateOrganizationFormProps) {
+export function CreateOrganizationForm({
+  onSuccess,
+}: CreateOrganizationFormProps) {
   const [slug, setSlug] = useState('');
   const [name, setName] = useState('');
 
@@ -24,7 +26,9 @@ export function CreateOrganizationForm({onSuccess}: CreateOrganizationFormProps)
 
   return (
     <div className="bg-gray-900 rounded-lg p-6 max-w-md mb-8">
-      <h2 className="text-lg font-semibold text-white mb-4">Create Organization</h2>
+      <h2 className="text-lg font-semibold text-white mb-4">
+        Create Organization
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm text-gray-500 mb-1">Slug</label>

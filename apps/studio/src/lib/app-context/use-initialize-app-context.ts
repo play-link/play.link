@@ -11,7 +11,8 @@ import type {AppContextType, Organization} from './AppContext';
  */
 export function useInitializeAppContext(): AppContextType {
   const {user, loading: authLoading} = useAuth();
-  const [activeOrganization, setActiveOrganization] = useState<Organization | null>(null);
+  const [activeOrganization, setActiveOrganization] =
+    useState<Organization | null>(null);
 
   const {data, isLoading: meLoading} = trpc.me.get.useQuery(undefined, {
     enabled: !!user,
@@ -26,7 +27,11 @@ export function useInitializeAppContext(): AppContextType {
 
   // Auto-select first organization if none is active
   useEffect(() => {
-    if (data?.organizations && data.organizations.length > 0 && !activeOrganization) {
+    if (
+      data?.organizations &&
+      data.organizations.length > 0 &&
+      !activeOrganization
+    ) {
       setActiveOrganization(data.organizations[0] as Organization);
     }
   }, [data?.organizations, activeOrganization]);

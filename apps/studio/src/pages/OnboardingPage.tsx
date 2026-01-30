@@ -6,8 +6,12 @@ export function OnboardingPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🎮</div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to Play.link!</h1>
-          <p className="text-gray-200">Let's create your first organization to get started.</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome to Play.link!
+          </h1>
+          <p className="text-gray-200">
+            Let's create your first organization to get started.
+          </p>
         </div>
 
         <OnboardingForm />

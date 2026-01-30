@@ -36,7 +36,10 @@ export function GamesPage() {
 
   return (
     <PageLayout>
-      <PageLayout.Header title="Games" subtitle={`${games.length} game${games.length !== 1 ? 's' : ''}`}>
+      <PageLayout.Header
+        title="Games"
+        subtitle={`${games.length} game${games.length !== 1 ? 's' : ''}`}
+      >
         <Button variant="primary" onClick={() => setCreateDialogOpen(true)}>
           <PlusIcon size={18} />
           New Game
@@ -47,7 +50,9 @@ export function GamesPage() {
         {games.length === 0 ? (
           <EmptyState>
             <EmptyTitle>No games yet</EmptyTitle>
-            <EmptyText>Create your first game to start building your play.link page.</EmptyText>
+            <EmptyText>
+              Create your first game to start building your play.link page.
+            </EmptyText>
             <Button variant="primary" onClick={() => setCreateDialogOpen(true)}>
               <PlusIcon size={18} />
               Create Your First Game
@@ -70,7 +75,10 @@ export function GamesPage() {
         )}
       </PageLayout.Content>
 
-      <CreateGameDialog opened={createDialogOpen} setOpened={setCreateDialogOpen} />
+      <CreateGameDialog
+        opened={createDialogOpen}
+        setOpened={setCreateDialogOpen}
+      />
     </PageLayout>
   );
 }

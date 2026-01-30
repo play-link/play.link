@@ -1,7 +1,7 @@
 @import url('@play/pylon/style/global.css');
 
 html {
-   font-size: 18px; /* 120% of default */
+  font-size: 16px; /* 120% of default */
 }
 
 /* Base styles */

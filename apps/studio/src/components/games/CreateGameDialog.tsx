@@ -30,13 +30,14 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
   }, [slug]);
 
   // Check slug availability
-  const {data: slugCheck, isFetching: isCheckingSlug} = trpc.game.checkSlug.useQuery(
-    {slug: debouncedSlug},
-    {
-      enabled: debouncedSlug.length >= 3,
-      staleTime: 5000,
-    },
-  );
+  const {data: slugCheck, isFetching: isCheckingSlug} =
+    trpc.game.checkSlug.useQuery(
+      {slug: debouncedSlug},
+      {
+        enabled: debouncedSlug.length >= 3,
+        staleTime: 5000,
+      },
+    );
 
   const createGame = trpc.game.create.useMutation({
     onSuccess: (game) => {
@@ -87,9 +88,11 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
     setSlugTouched(false);
   };
 
-  const isSlugValid = slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  const isSlugValid =
+    slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
   const isSlugAvailable = slugCheck?.available === true;
-  const canSubmit = title.length > 0 && isSlugValid && isSlugAvailable && !createGame.isPending;
+  const canSubmit =
+    title.length > 0 && isSlugValid && isSlugAvailable && !createGame.isPending;
 
   if (!opened) return null;
 
@@ -164,7 +167,9 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
               </HelpText>
             </FormGroup>
 
-            {createGame.error && <ErrorMessage>{createGame.error.message}</ErrorMessage>}
+            {createGame.error && (
+              <ErrorMessage>{createGame.error.message}</ErrorMessage>
+            )}
 
             <Actions>
               <Button type="button" variant="ghost" onClick={handleClose}>
@@ -252,10 +257,24 @@ const Backdrop = styled.div`
     top: -30%;
     right: -30%;
     background:
-      radial-gradient(ellipse 60% 50% at 40% 45%, rgba(120, 80, 255, 0.35) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 60% at 65% 55%, rgba(0, 180, 255, 0.3) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200, 60, 255, 0.2) 0%, transparent 60%);
-    animation: ${gradientPulse} 8s ease-in-out infinite, ${gradientDrift} 12s ease-in-out infinite;
+      radial-gradient(
+        ellipse 60% 50% at 40% 45%,
+        rgba(120, 80, 255, 0.35) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 60% at 65% 55%,
+        rgba(0, 180, 255, 0.3) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 40% 40% at 50% 50%,
+        rgba(200, 60, 255, 0.2) 0%,
+        transparent 60%
+      );
+    animation:
+      ${gradientPulse} 8s ease-in-out infinite,
+      ${gradientDrift} 12s ease-in-out infinite;
   }
 
   &::after {
@@ -264,9 +283,19 @@ const Backdrop = styled.div`
     top: -20%;
     right: -20%;
     background:
-      radial-gradient(ellipse 45% 55% at 55% 40%, rgba(255, 60, 180, 0.25) 0%, transparent 65%),
-      radial-gradient(ellipse 55% 45% at 40% 60%, rgba(60, 200, 255, 0.2) 0%, transparent 65%);
-    animation: ${gradientPulse} 10s ease-in-out infinite 2s, ${gradientDrift2} 14s ease-in-out infinite;
+      radial-gradient(
+        ellipse 45% 55% at 55% 40%,
+        rgba(255, 60, 180, 0.25) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 55% 45% at 40% 60%,
+        rgba(60, 200, 255, 0.2) 0%,
+        transparent 65%
+      );
+    animation:
+      ${gradientPulse} 10s ease-in-out infinite 2s,
+      ${gradientDrift2} 14s ease-in-out infinite;
   }
 `;
 
@@ -287,7 +316,9 @@ const CloseButton = styled.button`
   padding: var(--spacing-2);
   border-radius: var(--radius-lg);
   color: var(--fg-muted);
-  transition: color 0.15s, background-color 0.15s;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 
   &:hover {
     color: var(--fg);
@@ -402,7 +433,9 @@ const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
-const StatusIcon = styled.span<{$status: 'loading' | 'available' | 'unavailable'}>`
+const StatusIcon = styled.span<{
+  $status: 'loading' | 'available' | 'unavailable';
+}>`
   display: flex;
   align-items: center;
   justify-content: center;

@@ -41,7 +41,10 @@ export function OnboardingForm() {
     <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="org-name" className="block text-sm font-medium text-gray-200 mb-2">
+          <label
+            htmlFor="org-name"
+            className="block text-sm font-medium text-gray-200 mb-2"
+          >
             Organization Name
           </label>
           <input
@@ -59,7 +62,10 @@ export function OnboardingForm() {
         </div>
 
         <div>
-          <label htmlFor="org-slug" className="block text-sm font-medium text-gray-200 mb-2">
+          <label
+            htmlFor="org-slug"
+            className="block text-sm font-medium text-gray-200 mb-2"
+          >
             URL Slug
           </label>
           <div className="flex items-center">
@@ -83,7 +89,9 @@ export function OnboardingForm() {
               className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-(--primary) focus:border-transparent"
             />
           </div>
-          <p className="mt-1 text-xs text-gray-500">Only lowercase letters, numbers, and hyphens.</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Only lowercase letters, numbers, and hyphens.
+          </p>
         </div>
 
         {createOrg.error && (
@@ -92,7 +100,11 @@ export function OnboardingForm() {
           </p>
         )}
 
-        <Button type="submit" disabled={createOrg.isPending || !name || !slug} style={{width: '100%'}}>
+        <Button
+          type="submit"
+          disabled={createOrg.isPending || !name || !slug}
+          style={{width: '100%'}}
+        >
           {createOrg.isPending ? 'Creating...' : 'Create Organization'}
         </Button>
       </form>

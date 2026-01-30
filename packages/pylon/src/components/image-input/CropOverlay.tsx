@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import Cropper from 'react-easy-crop';
 import type {Area, Point} from 'react-easy-crop';
+import 'react-easy-crop/react-easy-crop.css';
 import styled from 'styled-components';
 import {afterNextRender} from '../../lib';
 import {DialogOverlay} from '../dialog-overlay';
@@ -56,12 +57,7 @@ export function CropOverlay({
   }, [opened]);
 
   return (
-    <StyledDialogOverlay
-      opened={opened}
-      setOpened={setOpened}
-      maxWidth="300px"
-      padding="var(--spacing-3)"
-    >
+    <StyledDialogOverlay opened={opened} setOpened={setOpened} padding="var(--spacing-3)">
       <StyledCloseIconButton
         name="close"
         size="sm"
@@ -115,13 +111,11 @@ export function CropOverlay({
 }
 
 const StyledDialogOverlay = styled(DialogOverlay)`
-  height: 100%;
-  max-height: 350px;
   overflow: hidden;
 `;
 
 const StyledCropperContainer = styled.div<{$roundedCropArea: boolean}>`
-  height: 100%;
+  height: 350px;
   position: relative;
   .reactEasyCrop_CropArea {
     color: var(--bg) !important;
