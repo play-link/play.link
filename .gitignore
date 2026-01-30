@@ -11,6 +11,7 @@ pnpm-debug.log*
 .tmp/
 temp/
 .dev.vars
+!.dev.vars.example
 # Dependency directories: ignore all node_modules directories, regardless of location.
 **/node_modules/
 

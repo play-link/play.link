@@ -6,7 +6,7 @@ import {Section, SectionTitle} from './shared';
 import type {GameSettingsFormValues, SectionProps} from './types';
 
 const STATUS_OPTIONS = [
-  {label: 'Draft', value: 'DRAFT'},
+  {label: 'In Development', value: 'IN_DEVELOPMENT'},
   {label: 'Upcoming', value: 'UPCOMING'},
   {label: 'Early Access', value: 'EARLY_ACCESS'},
   {label: 'Released', value: 'RELEASED'},

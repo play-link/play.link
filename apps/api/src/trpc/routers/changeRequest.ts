@@ -25,7 +25,7 @@ export const changeRequestRouter = router({
         status: z
           .enum(['pending', 'approved', 'rejected', 'cancelled'])
           .optional(),
-        entityType: z.enum(['organization', 'game']).optional(),
+        entityType: z.enum(['organization', 'game', 'game_page']).optional(),
         limit: z.number().min(1).max(100).default(50),
       }),
     )
@@ -78,7 +78,7 @@ export const changeRequestRouter = router({
   myRequests: protectedProcedure
     .input(
       z.object({
-        entityType: z.enum(['organization', 'game']).optional(),
+        entityType: z.enum(['organization', 'game', 'game_page']).optional(),
         entityId: z.string().uuid().optional(),
       }),
     )
@@ -117,7 +117,7 @@ export const changeRequestRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        entityType: z.enum(['organization', 'game']),
+        entityType: z.enum(['organization', 'game', 'game_page']),
         entityId: z.string().uuid(),
         fieldName: z.enum(['slug', 'name']),
         requestedValue: z.string().min(1).max(200),
@@ -141,7 +141,7 @@ export const changeRequestRouter = router({
             message: 'You do not have permission to request changes',
           })
         }
-      } else {
+      } else if (input.entityType === 'game') {
         // For games, check user is member of owner org
         const {data: game} = await supabase
           .from('games')
@@ -166,11 +166,50 @@ export const changeRequestRouter = router({
             message: 'You do not have permission to request changes',
           })
         }
+      } else {
+        // For game_pages, check page → game → org membership
+        const {data: page} = await supabase
+          .from('game_pages')
+          .select('game_id')
+          .eq('id', input.entityId)
+          .single()
+
+        if (!page) {
+          throw new TRPCError({code: 'NOT_FOUND', message: 'Game page not found'})
+        }
+
+        const {data: game} = await supabase
+          .from('games')
+          .select('owner_organization_id')
+          .eq('id', page.game_id)
+          .single()
+
+        if (!game) {
+          throw new TRPCError({code: 'NOT_FOUND', message: 'Game not found'})
+        }
+
+        const {data: member} = await supabase
+          .from('organization_members')
+          .select('role')
+          .eq('organization_id', game.owner_organization_id)
+          .eq('user_id', user.id)
+          .single()
+
+        if (!member || !REQUEST_ROLES.includes(member.role as OrgRoleType)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to request changes',
+          })
+        }
       }
 
       // Get current value
-      const table =
-        input.entityType === 'organization' ? 'organizations' : 'games'
+      const tableMap = {
+        organization: 'organizations',
+        game: 'games',
+        game_page: 'game_pages',
+      } as const
+      const table = tableMap[input.entityType]
       const {data: entity} = await supabase
         .from(table)
         .select('id, slug, name')
@@ -342,8 +381,12 @@ export const changeRequestRouter = router({
       }
 
       // Apply the change
-      const table =
-        request.entity_type === 'organization' ? 'organizations' : 'games'
+      const approveTableMap: Record<string, 'organizations' | 'games' | 'game_pages'> = {
+        organization: 'organizations',
+        game: 'games',
+        game_page: 'game_pages',
+      }
+      const table = approveTableMap[request.entity_type] || 'games'
       const updateField = request.field_name
       const cooldownField = `last_${request.field_name}_change`
 

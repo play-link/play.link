@@ -11,7 +11,7 @@ export interface GameCardProps {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft',
+  IN_DEVELOPMENT: 'In Development',
   UPCOMING: 'Upcoming',
   EARLY_ACCESS: 'Early Access',
   RELEASED: 'Released',
@@ -107,6 +107,8 @@ const StatusBadge = styled.span<{$status: string}>`
         return 'var(--color-blue-600)';
       case 'UPCOMING':
         return 'var(--color-purple-600)';
+      case 'IN_DEVELOPMENT':
+        return 'var(--color-yellow-600)';
       case 'CANCELLED':
         return 'var(--color-red-600)';
       default:

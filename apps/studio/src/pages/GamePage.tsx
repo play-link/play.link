@@ -19,11 +19,18 @@ function useActiveTab(): Tab {
   return 'overview';
 }
 
+function useIsFullscreen(): boolean {
+  const location = useLocation();
+  const segment = location.pathname.split('/').pop();
+  return segment === 'preview' || segment === 'design';
+}
+
 export function GamePage() {
   const {gameId} = useParams<{gameId: string}>();
   const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
   const navigate = useNavigate();
   const activeTab = useActiveTab();
+  const isFullscreen = useIsFullscreen();
 
   const basePath = `/${activeOrganization.slug}/games/${gameId}`;
 
@@ -53,6 +60,10 @@ export function GamePage() {
         </Link>
       </Container>
     );
+  }
+
+  if (isFullscreen) {
+    return <Outlet context={game} />;
   }
 
   return (

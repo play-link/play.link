@@ -1,19 +1,22 @@
 import {
   EyeIcon,
   GamepadIcon,
+  GlobeIcon,
   PencilIcon,
   RocketIcon,
   ShareIcon,
 } from 'lucide-react';
 import {useState} from 'react';
-import {useOutletContext} from 'react-router';
+import {useNavigate, useOutletContext} from 'react-router';
 import styled from 'styled-components';
 import {Button} from '@play/pylon';
+import type {Tables} from '@play/supabase-client';
 import type {GameOutletContext} from '@/pages/GamePage';
+import {trpc} from '@/lib/trpc';
 import {ShareOverlay} from './ShareOverlay';
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft',
+  IN_DEVELOPMENT: 'In Development',
   UPCOMING: 'Upcoming',
   EARLY_ACCESS: 'Early Access',
   RELEASED: 'Released',
@@ -22,8 +25,32 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function GameOverview() {
   const game = useOutletContext<GameOutletContext>();
+  const navigate = useNavigate();
   const [shareOpen, setShareOpen] = useState(false);
-  const gameUrl = `https://play.link/${game.slug}`;
+
+  const pages = (game.pages ?? []) as Tables<'game_pages'>[];
+  const primaryPage = pages.find((p) => p.is_primary);
+  const isPublished = primaryPage?.visibility === 'PUBLISHED';
+  const gameUrl = primaryPage ? `https://play.link/${primaryPage.slug}` : '';
+
+  const utils = trpc.useUtils();
+
+  const publish = trpc.gamePage.publish.useMutation({
+    onSuccess: () => utils.game.get.invalidate({id: game.id}),
+  });
+
+  const unpublish = trpc.gamePage.unpublish.useMutation({
+    onSuccess: () => utils.game.get.invalidate({id: game.id}),
+  });
+
+  const handleTogglePublish = () => {
+    if (!primaryPage) return;
+    if (isPublished) {
+      unpublish.mutate({pageId: primaryPage.id});
+    } else {
+      publish.mutate({pageId: primaryPage.id});
+    }
+  };
 
   return (
     <>
@@ -38,30 +65,49 @@ export function GameOverview() {
                   <GamepadIcon size={48} />
                 </CoverPlaceholder>
               )}
-              <StatusBadge $status={game.status}>
-                {STATUS_LABELS[game.status] || game.status}
-              </StatusBadge>
+              <BadgeRow>
+                <StatusBadge $status={game.status}>
+                  {STATUS_LABELS[game.status] || game.status}
+                </StatusBadge>
+                <PublishedBadge $published={isPublished}>
+                  {isPublished ? 'Live' : 'Not published'}
+                </PublishedBadge>
+              </BadgeRow>
             </Cover>
             <CardInfo>
               <CardTitle>{game.title}</CardTitle>
             </CardInfo>
           </PreviewCard>
 
-          <ShareBox>
-            <ShareUrl>play.link/{game.slug}</ShareUrl>
-            <ShareButton type="button" onClick={() => setShareOpen(true)}>
-              <ShareIcon size={16} />
-            </ShareButton>
-          </ShareBox>
+          {primaryPage && (
+            <ShareBox>
+              <ShareUrl>play.link/{primaryPage.slug}</ShareUrl>
+              <ShareButton type="button" onClick={() => setShareOpen(true)}>
+                <ShareIcon size={16} />
+              </ShareButton>
+            </ShareBox>
+          )}
 
-          <Button variant="nav">
+          <Button variant="nav" onClick={() => navigate('preview', {relative: 'path'})}>
             <EyeIcon size={16} className="mr-3" /> Preview page
           </Button>
-          <Button variant="nav">
+          <Button variant="nav" onClick={() => navigate('design', {relative: 'path'})}>
             <PencilIcon size={16} className="mr-3" /> Edit page
           </Button>
-          <Button variant="nav">
-            <RocketIcon size={16} className="mr-3" /> Publish
+          <Button
+            variant="nav"
+            onClick={handleTogglePublish}
+            disabled={!primaryPage || publish.isPending || unpublish.isPending}
+          >
+            {isPublished ? (
+              <>
+                <GlobeIcon size={16} className="mr-3" /> Unpublish
+              </>
+            ) : (
+              <>
+                <RocketIcon size={16} className="mr-3" /> Publish
+              </>
+            )}
           </Button>
         </Sidebar>
 
@@ -75,7 +121,7 @@ export function GameOverview() {
         </Main>
       </Layout>
 
-      {shareOpen && (
+      {shareOpen && gameUrl && (
         <ShareOverlay
           gameUrl={gameUrl}
           gameTitle={game.title}
@@ -131,9 +177,6 @@ const CoverPlaceholder = styled.div`
 `;
 
 const StatusBadge = styled.span<{$status: string}>`
-  position: absolute;
-  top: var(--spacing-2);
-  right: var(--spacing-2);
   padding: var(--spacing-1) var(--spacing-2);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
@@ -146,12 +189,31 @@ const StatusBadge = styled.span<{$status: string}>`
         return 'var(--color-blue-600)';
       case 'UPCOMING':
         return 'var(--color-purple-600)';
+      case 'IN_DEVELOPMENT':
+        return 'var(--color-yellow-600)';
       case 'CANCELLED':
         return 'var(--color-red-600)';
       default:
         return 'var(--bg-muted)';
     }
   }};
+  color: var(--white);
+`;
+
+const BadgeRow = styled.div`
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  display: flex;
+  gap: var(--spacing-1);
+`;
+
+const PublishedBadge = styled.span<{$published: boolean}>`
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  background: ${(p) => (p.$published ? 'var(--color-green-600)' : 'rgba(0, 0, 0, 0.6)')};
   color: var(--white);
 `;
 

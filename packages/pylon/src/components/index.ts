@@ -4,6 +4,7 @@ export * from './badge';
 export * from './button';
 export * from './card';
 export * from './checkbox';
+export * from './color-picker-input';
 export * from './date-picker';
 export * from './description-list';
 export * from './dialog-overlay';
