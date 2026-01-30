@@ -23,7 +23,6 @@ type Game = inferRouterOutputs<AppRouter>['game']['get'];
 function gameToFormValues(game: Game): GameSettingsFormValues {
   return {
     title: game.title,
-    slug: game.slug,
     summary: game.summary || '',
     description:
       typeof game.description === 'string'
@@ -77,7 +76,6 @@ export function GameSettings() {
     updateGame.mutate({
       id: game.id,
       title: values.title,
-      slug: values.slug,
       summary: values.summary || null,
       description: values.description || null,
       status: values.status,

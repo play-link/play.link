@@ -31,7 +31,7 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
 
   // Check slug availability
   const {data: slugCheck, isFetching: isCheckingSlug} =
-    trpc.game.checkSlug.useQuery(
+    trpc.gamePage.checkSlug.useQuery(
       {slug: debouncedSlug},
       {
         enabled: debouncedSlug.length >= 3,

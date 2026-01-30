@@ -22,27 +22,6 @@ const slugSchema = z
 
 export const gameRouter = router({
   /**
-   * Check if a game slug is available
-   */
-  checkSlug: protectedProcedure
-    .input(z.object({slug: slugSchema}))
-    .query(async ({ctx, input}) => {
-      const {supabase} = ctx
-
-      const {data, error} = await supabase
-        .from('games')
-        .select('id')
-        .eq('slug', input.slug)
-        .maybeSingle()
-
-      if (error) {
-        return {available: false, error: error.message}
-      }
-
-      return {available: data === null}
-    }),
-
-  /**
    * List games for an organization
    */
   list: protectedProcedure
@@ -67,7 +46,7 @@ export const gameRouter = router({
 
       const {data: games, error} = await supabase
         .from('games')
-        .select('*')
+        .select('*, pages:game_pages(*)')
         .eq('owner_organization_id', input.organizationId)
         .order('created_at', {ascending: false})
 
@@ -91,7 +70,7 @@ export const gameRouter = router({
 
       const {data: game, error} = await supabase
         .from('games')
-        .select('*')
+        .select('*, pages:game_pages(*)')
         .eq('id', input.id)
         .single()
 
@@ -106,7 +85,7 @@ export const gameRouter = router({
     }),
 
   /**
-   * Create a new game
+   * Create a new game (also creates a primary game_page)
    */
   create: protectedProcedure
     .input(
@@ -116,8 +95,8 @@ export const gameRouter = router({
         title: z.string().min(1).max(200),
         summary: z.string().optional(),
         status: z
-          .enum(['DRAFT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
-          .default('DRAFT'),
+          .enum(['IN_DEVELOPMENT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
+          .default('IN_DEVELOPMENT'),
       }),
     )
     .mutation(async ({ctx, input}) => {
@@ -138,11 +117,11 @@ export const gameRouter = router({
         })
       }
 
-      const {data: game, error} = await supabase
+      // Insert game
+      const {data: game, error: gameError} = await supabase
         .from('games')
         .insert({
           owner_organization_id: input.organizationId,
-          slug: input.slug,
           title: input.title,
           summary: input.summary || null,
           status: input.status,
@@ -150,18 +129,44 @@ export const gameRouter = router({
         .select()
         .single()
 
-      if (error) {
-        if (error.code === '23505') {
+      if (gameError) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: gameError.message,
+        })
+      }
+
+      // Insert primary game_page with the slug
+      const {error: pageError} = await supabase
+        .from('game_pages')
+        .insert({
+          game_id: game.id,
+          slug: input.slug,
+          is_primary: true,
+        })
+
+      if (pageError) {
+        // Rollback game if page creation fails
+        await supabase.from('games').delete().eq('id', game.id)
+
+        if (pageError.code === '23505') {
           throw new TRPCError({
             code: 'CONFLICT',
-            message: 'Game slug already exists',
+            message: 'Slug already exists',
           })
         }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message,
+          message: pageError.message,
         })
       }
+
+      // Re-fetch with pages joined
+      const {data: fullGame} = await supabase
+        .from('games')
+        .select('*, pages:game_pages(*)')
+        .eq('id', game.id)
+        .single()
 
       await logAuditEvent(supabase, {
         userId: user.id,
@@ -170,25 +175,24 @@ export const gameRouter = router({
         organizationId: input.organizationId,
         targetType: 'game',
         targetId: game.id,
-        metadata: {slug: game.slug, title: game.title},
+        metadata: {slug: input.slug, title: game.title},
       })
 
-      return game
+      return fullGame!
     }),
 
   /**
-   * Update a game
+   * Update a game (metadata only, no slug)
    */
   update: protectedProcedure
     .input(
       z.object({
         id: z.string().uuid(),
-        slug: slugSchema.optional(),
         title: z.string().min(1).max(200).optional(),
         summary: z.string().optional().nullable(),
         description: z.any().optional().nullable(), // JSONB
         status: z
-          .enum(['DRAFT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
+          .enum(['IN_DEVELOPMENT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
           .optional(),
         releaseDate: z
           .string()
@@ -239,7 +243,6 @@ export const gameRouter = router({
 
       // Build update object with snake_case keys
       const dbUpdates: Record<string, unknown> = {}
-      if (updates.slug !== undefined) dbUpdates.slug = updates.slug
       if (updates.title !== undefined) dbUpdates.title = updates.title
       if (updates.summary !== undefined) dbUpdates.summary = updates.summary
       if (updates.description !== undefined)
@@ -271,16 +274,10 @@ export const gameRouter = router({
         .from('games')
         .update(dbUpdates)
         .eq('id', id)
-        .select()
+        .select('*, pages:game_pages(*)')
         .single()
 
       if (error) {
-        if (error.code === '23505') {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Game slug already exists',
-          })
-        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message,
@@ -311,7 +308,7 @@ export const gameRouter = router({
       // Get the game to check ownership
       const {data: game, error: gameError} = await supabase
         .from('games')
-        .select('owner_organization_id, slug, title')
+        .select('owner_organization_id, title')
         .eq('id', input.id)
         .single()
 
@@ -353,7 +350,7 @@ export const gameRouter = router({
         organizationId: game.owner_organization_id,
         targetType: 'game',
         targetId: input.id,
-        metadata: {slug: game.slug, title: game.title},
+        metadata: {title: game.title},
       })
 
       return {success: true}

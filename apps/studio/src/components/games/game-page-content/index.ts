@@ -1,0 +1,1 @@
+export {GamePageContent} from './GamePageContent';

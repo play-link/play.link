@@ -10,11 +10,17 @@ export const OrgRole = {
 } as const
 
 export const GameStatus = {
-  DRAFT: 'DRAFT',
+  IN_DEVELOPMENT: 'IN_DEVELOPMENT',
   UPCOMING: 'UPCOMING',
   EARLY_ACCESS: 'EARLY_ACCESS',
   RELEASED: 'RELEASED',
   CANCELLED: 'CANCELLED',
+} as const
+
+export const PageVisibility = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED',
 } as const
 
 export const CreditRole = {
@@ -28,4 +34,5 @@ export const CreditRole = {
 // Type helpers derived from constants
 export type OrgRoleType = (typeof OrgRole)[keyof typeof OrgRole]
 export type GameStatusType = (typeof GameStatus)[keyof typeof GameStatus]
+export type PageVisibilityType = (typeof PageVisibility)[keyof typeof PageVisibility]
 export type CreditRoleType = (typeof CreditRole)[keyof typeof CreditRole]

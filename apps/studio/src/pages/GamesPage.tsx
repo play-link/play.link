@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled from 'styled-components';
 import {Button, Loading} from '@play/pylon';
+import type {Tables} from '@play/supabase-client';
 import {CreateGameDialog, GameCard} from '@/components/games';
 import {PageLayout} from '@/components/layout';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
@@ -65,7 +66,7 @@ export function GamesPage() {
                 key={game.id}
                 id={game.id}
                 title={game.title}
-                slug={game.slug}
+                slug={(game.pages as Tables<'game_pages'>[] | null)?.find((p) => p.is_primary)?.slug ?? ''}
                 coverUrl={game.cover_url}
                 status={game.status}
                 onClick={() => handleGameClick(game.id)}

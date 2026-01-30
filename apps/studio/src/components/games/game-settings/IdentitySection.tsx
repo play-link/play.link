@@ -28,27 +28,6 @@ export function IdentitySection({disabled}: SectionProps) {
         )}
       />
 
-      <FieldsetController
-        control={control}
-        name="slug"
-        rules={{
-          required: 'Slug is required',
-          maxLength: {value: 100, message: 'Max 100 characters'},
-          pattern: {
-            value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-            message: 'Lowercase letters, numbers, and hyphens only',
-          },
-        }}
-        fieldsetProps={{label: 'Slug', helpText: 'play.link/your-slug'}}
-        render={({controlledProps}) => (
-          <Input
-            {...controlledProps}
-            placeholder="my-game"
-            disabled={disabled}
-            className="w-full"
-          />
-        )}
-      />
     </Section>
   );
 }

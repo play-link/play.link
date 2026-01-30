@@ -2,7 +2,6 @@ import type {GameStatusType} from '@play/supabase-client';
 
 export interface GameSettingsFormValues {
   title: string;
-  slug: string;
   summary: string;
   description: string;
   status: GameStatusType;
