@@ -18,7 +18,13 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'Cancelled',
 };
 
-export function GameCard({title, slug, coverUrl, status, onClick}: GameCardProps) {
+export function GameCard({
+  title,
+  slug,
+  coverUrl,
+  status,
+  onClick,
+}: GameCardProps) {
   return (
     <Card onClick={onClick}>
       <Cover>
@@ -29,7 +35,9 @@ export function GameCard({title, slug, coverUrl, status, onClick}: GameCardProps
             <GamepadIcon size={48} />
           </CoverPlaceholder>
         )}
-        <StatusBadge $status={status}>{STATUS_LABELS[status] || status}</StatusBadge>
+        <StatusBadge $status={status}>
+          {STATUS_LABELS[status] || status}
+        </StatusBadge>
       </Cover>
       <Info>
         <Title>{title}</Title>
@@ -45,7 +53,9 @@ const Card = styled.button`
   border-radius: var(--radius-xl);
   overflow: hidden;
   text-align: left;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
   cursor: pointer;
 
   &:hover {

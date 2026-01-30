@@ -13,14 +13,20 @@ interface OrganizationsListProps {
   onDelete: () => void;
 }
 
-export function OrganizationsList({organizations, isLoading, onDelete}: OrganizationsListProps) {
+export function OrganizationsList({
+  organizations,
+  isLoading,
+  onDelete,
+}: OrganizationsListProps) {
   const deleteOrg = trpc.organization.delete.useMutation({
     onSuccess: onDelete,
   });
 
   return (
     <div className="bg-gray-900 rounded-lg p-6 max-w-md">
-      <h2 className="text-lg font-semibold text-white mb-4">Your Organizations</h2>
+      <h2 className="text-lg font-semibold text-white mb-4">
+        Your Organizations
+      </h2>
       {isLoading ? (
         <p className="text-gray-500">Loading...</p>
       ) : organizations.length === 0 ? (

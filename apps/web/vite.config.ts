@@ -1,29 +1,25 @@
-import react from '@vitejs/plugin-react';
+import {reactRouter} from '@react-router/dev/vite';
+import {cloudflareDevProxy} from '@react-router/dev/vite/cloudflare';
+import tailwindcss from '@tailwindcss/postcss';
+import autoprefixer from 'autoprefixer';
 import path from 'node:path';
 import {defineConfig} from 'vite';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [cloudflareDevProxy(), reactRouter()],
+  css: {
+    postcss: {
+      plugins: [tailwindcss(), autoprefixer()],
+    },
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './app'),
       '@play/pylon': path.resolve(__dirname, '../../packages/pylon/src'),
       '@play/supabase-client': path.resolve(
         __dirname,
         '../../packages/supabase-client/src',
       ),
-    },
-  },
-  server: {
-    port: 3015,
-    host: true,
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8787',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
     },
   },
 });

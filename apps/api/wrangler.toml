@@ -10,8 +10,13 @@ local_protocol = "http"
 [vars]
 ENVIRONMENT = "development"
 
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "play-link-assets"
+
 # Secrets (set via `wrangler secret put`)
 # SUPABASE_URL
 # SUPABASE_SERVICE_ROLE_KEY
 # DATABASE_URL
 # SUPER_ADMIN_EMAIL
+# R2_PUBLIC_URL

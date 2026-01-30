@@ -1,6 +1,15 @@
+import type {MetaFunction} from 'react-router';
 import {Button} from '@play/pylon';
 
-function App() {
+export const meta: MetaFunction = () => [
+  {title: 'Play.link - Interactive experiences, reimagined'},
+  {name: 'description', content: 'Play.link - Interactive experiences'},
+  {property: 'og:title', content: 'Play.link'},
+  {property: 'og:description', content: 'Interactive experiences, reimagined'},
+  {property: 'og:type', content: 'website'},
+];
+
+export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-(--color-primary-700) to-gray-950 flex items-center justify-center">
       <div className="text-center space-y-6">
@@ -15,5 +24,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

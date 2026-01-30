@@ -1,8 +1,8 @@
-import { Navigate } from 'react-router-dom';
-import { useAppContext } from '@/lib/app-context';
+import {Navigate} from 'react-router-dom';
+import {useAppContext} from '@/lib/app-context';
 
-export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
-  const { me, isLoading } = useAppContext();
+export const AdminGuard = ({children}: {children: React.ReactNode}) => {
+  const {me, isLoading} = useAppContext();
 
   if (isLoading) {
     return null;

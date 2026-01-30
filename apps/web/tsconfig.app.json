@@ -22,15 +22,30 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
+    /* Types */
+    "types": ["@cloudflare/workers-types"],
+
+    /* React Router types */
+    "rootDirs": [".", "./.react-router/types"],
+
     /* Path aliases */
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["app/*"],
       "@play/supabase-client": ["../../packages/supabase-client/src"],
+      "@play/supabase-client/server": [
+        "../../packages/supabase-client/src/server"
+      ],
       "@play/pylon": ["../../packages/pylon/src"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "app/**/*.d.ts",
+    "react-router.config.ts",
+    ".react-router/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist", "build"],
   "references": [
     {"path": "../../packages/pylon"},

@@ -1,24 +1,29 @@
 import {TrashIcon} from 'lucide-react';
 import {useCallback, useMemo, useState} from 'react';
-import {Avatar, Badge, IconButton, Select, Table, useSnackbar} from '@play/pylon';
+import type {AppRouter} from '@play/api/trpc';
+import type {OrgRoleType} from '@play/supabase-client';
+import type {inferRouterOutputs} from '@trpc/server';
+import {css} from 'styled-components';
+import {
+  Avatar,
+  Badge,
+  IconButton,
+  Select,
+  Table,
+  useSnackbar,
+} from '@play/pylon';
 import type {TableColumn} from '@play/pylon';
 import {trpc} from '@/lib/trpc';
 
-type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type RawMember = RouterOutput['member']['list'][number];
 
-interface MemberProfile {
-  email: string;
-  username: string | null;
-  display_name: string | null;
-  avatar_url: string | null;
-}
-
-export interface Member {
-  user_id: string;
-  role: MemberRole;
-  created_at: string;
-  profiles: MemberProfile;
-}
+// profiles comes as array from Supabase join but is normalized to a single object in TeamSettingsPage
+export type Member = Omit<RawMember, 'profiles'> & {
+  profiles: RawMember['profiles'] extends (infer P)[]
+    ? P
+    : RawMember['profiles'];
+};
 
 const ROLE_OPTIONS = [
   {label: 'Owner', value: 'OWNER'},
@@ -26,7 +31,7 @@ const ROLE_OPTIONS = [
   {label: 'Member', value: 'MEMBER'},
 ];
 
-const ROLE_BADGE_INTENT: Record<MemberRole, 'info' | 'success' | 'warning'> = {
+const ROLE_BADGE_INTENT: Record<OrgRoleType, 'info' | 'success' | 'warning'> = {
   OWNER: 'success',
   ADMIN: 'warning',
   MEMBER: 'info',
@@ -57,7 +62,10 @@ export function MembersTable({
     onSettled: () => setUpdatingUserId(null),
     onSuccess: (_, {role}) => {
       onMembersChange();
-      showSnackbar({message: `Role updated to ${role.toLowerCase()}`, severity: 'success'});
+      showSnackbar({
+        message: `Role updated to ${role.toLowerCase()}`,
+        severity: 'success',
+      });
     },
     onError: (error) => {
       showSnackbar({message: error.message, severity: 'error'});
@@ -75,7 +83,7 @@ export function MembersTable({
   });
 
   const handleRoleChange = useCallback(
-    (userId: string, newRole: MemberRole) => {
+    (userId: string, newRole: OrgRoleType) => {
       updateMember.mutate({
         organizationId,
         userId,
@@ -125,14 +133,22 @@ export function MembersTable({
         width: 150,
         renderContent: ({d}) => {
           const canChangeRole =
-            canManage && d.user_id !== currentUserId && (isOwner || d.role !== 'OWNER');
+            canManage &&
+            d.user_id !== currentUserId &&
+            (isOwner || d.role !== 'OWNER');
 
           if (canChangeRole) {
             return (
               <Select
-                options={isOwner ? ROLE_OPTIONS : ROLE_OPTIONS.filter((r) => r.value !== 'OWNER')}
+                options={
+                  isOwner
+                    ? ROLE_OPTIONS
+                    : ROLE_OPTIONS.filter((r) => r.value !== 'OWNER')
+                }
                 value={d.role}
-                onChange={(e) => handleRoleChange(d.user_id, e.target.value as MemberRole)}
+                onChange={(e) =>
+                  handleRoleChange(d.user_id, e.target.value as OrgRoleType)
+                }
                 size="xs"
                 variant="ghost"
                 disabled={updatingUserId === d.user_id}
@@ -141,7 +157,7 @@ export function MembersTable({
           }
 
           return (
-            <Badge intent={ROLE_BADGE_INTENT[d.role as MemberRole]}>
+            <Badge intent={ROLE_BADGE_INTENT[d.role as OrgRoleType]}>
               {d.role.toLowerCase()}
             </Badge>
           );
@@ -153,7 +169,9 @@ export function MembersTable({
         width: 120,
         type: 'date',
         renderContent: ({d}) => (
-          <span className="text-gray-500">{new Date(d.created_at).toLocaleDateString()}</span>
+          <span className="text-gray-500">
+            {new Date(d.created_at).toLocaleDateString()}
+          </span>
         ),
       },
       ...(canManage
@@ -164,7 +182,9 @@ export function MembersTable({
               width: 60,
               noSortable: true,
               renderContent: ({d}: {d: Member}) => {
-                const canRemove = d.user_id !== currentUserId && (isOwner || d.role !== 'OWNER');
+                const canRemove =
+                  d.user_id !== currentUserId &&
+                  (isOwner || d.role !== 'OWNER');
 
                 if (!canRemove) return null;
 
@@ -201,6 +221,11 @@ export function MembersTable({
         propertyForKey="user_id"
         emptyMessage="No members found"
         pagination={false}
+        headCss={css`
+          th {
+            border-top: 0;
+          }
+        `}
       />
     </div>
   );
