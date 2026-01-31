@@ -1,5 +1,6 @@
 export {AdminPage} from './AdminPage';
 export {AnalyticsPage} from './AnalyticsPage';
+export {AudiencePage} from './AudiencePage';
 export {AuthCallbackPage} from './AuthCallbackPage';
 export {CampaignDetailPage} from './CampaignDetailPage';
 export {CampaignsPage} from './CampaignsPage';

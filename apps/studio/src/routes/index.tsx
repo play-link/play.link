@@ -1,9 +1,10 @@
 import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
-import {GameAnalytics, GameEditor, GameOverview, GamePreview, GameSettings} from '@/components/games';
+import {CreateGameUpdate, GameAnalytics, GameEditor, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
 import {
   AdminPage,
   AnalyticsPage,
+  AudiencePage,
   AuthCallbackPage,
   BillingSettingsPage,
   CampaignDetailPage,
@@ -74,6 +75,18 @@ export const router = createBrowserRouter([
                 element: <GameAnalytics />,
               },
               {
+                path: 'updates',
+                element: <GameUpdates />,
+              },
+              {
+                path: 'updates/new',
+                element: <CreateGameUpdate />,
+              },
+              {
+                path: 'updates/:updateId',
+                element: <GameUpdateDetail />,
+              },
+              {
                 path: 'settings',
                 element: <GameSettings />,
               },
@@ -98,6 +111,10 @@ export const router = createBrowserRouter([
           {
             path: 'campaigns/:campaignId',
             element: <CampaignDetailPage />,
+          },
+          {
+            path: 'audience',
+            element: <AudiencePage />,
           },
           {
             path: 'analytics',

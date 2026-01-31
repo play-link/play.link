@@ -1,45 +1,14 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
-
-const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
-
-async function verifyGameAccess(
-  supabase: any,
-  userId: string,
-  gameId: string,
-) {
-  const {data: game} = await supabase
-    .from('games')
-    .select('owner_organization_id')
-    .eq('id', gameId)
-    .single()
-
-  if (!game) {
-    throw new TRPCError({code: 'NOT_FOUND', message: 'Game not found'})
-  }
-
-  const {data: member} = await supabase
-    .from('organization_members')
-    .select('role')
-    .eq('organization_id', game.owner_organization_id)
-    .eq('user_id', userId)
-    .single()
-
-  if (!member || !EDIT_ROLES.includes(member.role as OrgRoleType)) {
-    throw new TRPCError({code: 'FORBIDDEN', message: 'No access to this game'})
-  }
-
-  return game
-}
+import {verifyGameAccess} from '../lib/verify-access'
 
 export const gameMediaRouter = router({
   list: protectedProcedure
     .input(z.object({gameId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
 
       const {data: media, error} = await supabase
         .from('game_media')

@@ -1,6 +1,7 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
 import {protectedProcedure, router} from '../index'
+import {verifyGameAccess} from '../lib/verify-access'
 
 export const gameSubscriberRouter = router({
   list: protectedProcedure
@@ -12,7 +13,8 @@ export const gameSubscriberRouter = router({
       }),
     )
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
 
       const {data: subscribers, error, count} = await supabase
         .from('game_subscribers')
@@ -34,7 +36,8 @@ export const gameSubscriberRouter = router({
   count: protectedProcedure
     .input(z.object({gameId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
 
       const {count, error} = await supabase
         .from('game_subscribers')

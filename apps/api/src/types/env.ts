@@ -10,6 +10,7 @@ export interface Env {
   ENVIRONMENT: string
   R2_BUCKET: R2Bucket
   R2_PUBLIC_URL: string
+  RESEND_API_KEY?: string
 }
 
 // Context variables

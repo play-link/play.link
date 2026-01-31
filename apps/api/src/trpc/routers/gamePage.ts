@@ -184,7 +184,15 @@ export const gamePageRouter = router({
   updatePageConfig: protectedProcedure
     .input(z.object({
       pageId: z.string().uuid(),
-      pageConfig: z.any(),
+      pageConfig: z.object({
+        theme: z
+          .object({
+            bgColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+            textColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+            linkColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+          })
+          .optional(),
+      }),
     }))
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx

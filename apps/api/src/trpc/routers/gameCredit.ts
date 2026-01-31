@@ -4,6 +4,7 @@ import type {OrgRoleType} from '@play/supabase-client'
 import {OrgRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
+import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can manage game credits
 const MANAGE_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
@@ -24,7 +25,8 @@ export const gameCreditRouter = router({
   list: protectedProcedure
     .input(z.object({gameId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
 
       const {data: credits, error} = await supabase
         .from('game_credits')

@@ -9,13 +9,16 @@ import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'analytics' | 'settings';
+type Tab = 'overview' | 'updates' | 'analytics' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
-  const segment = location.pathname.split('/').pop();
+  const parts = location.pathname.split('/');
+  const segment = parts[parts.length - 1];
+  const parentSegment = parts[parts.length - 2];
   if (segment === 'analytics') return 'analytics';
   if (segment === 'settings') return 'settings';
+  if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
 }
 
@@ -83,6 +86,14 @@ export function GamePage() {
           onClick={() => navigate(basePath)}
         >
           Overview
+        </Button>
+        <Button
+          variant="nav"
+          size="sm"
+          className={activeTab === 'updates' ? 'active' : ''}
+          onClick={() => navigate(`${basePath}/updates`)}
+        >
+          Updates
         </Button>
         <Button
           variant="nav"

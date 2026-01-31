@@ -10,6 +10,15 @@ import type {Route} from './+types/game';
 type GameLink = Tables<'game_links'>;
 type GameMedia = Tables<'game_media'>;
 
+interface GameUpdate {
+  id: string;
+  title: string;
+  body: string;
+  cta_url: string | null;
+  cta_label: string | null;
+  published_at: string | null;
+}
+
 interface CloudflareLoadContext {
   cloudflare: {
     env: Env;
@@ -38,7 +47,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     env.SUPABASE_SERVICE_ROLE_KEY,
   );
 
-  const [{data: links}, {data: media}] = await Promise.all([
+  const [{data: links}, {data: media}, {data: updates}] = await Promise.all([
     supabase
       .from('game_links')
       .select('*')
@@ -49,6 +58,13 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       .select('*')
       .eq('game_id', game.id)
       .order('position', {ascending: true}),
+    (supabase as any)
+      .from('game_updates')
+      .select('id, title, body, cta_url, cta_label, published_at')
+      .eq('game_id', game.id)
+      .eq('status', 'published')
+      .order('published_at', {ascending: false})
+      .limit(5),
   ]);
 
   // Track page view (fire-and-forget, don't block response)
@@ -93,6 +109,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       page,
       links: (links || []) as GameLink[],
       media: (media || []) as GameMedia[],
+      updates: (updates || []) as GameUpdate[],
     },
     {
       headers: {
@@ -159,7 +176,7 @@ function trackLinkClick(gameId: string, linkId: string) {
 }
 
 export default function GamePage({loaderData}: Route.ComponentProps) {
-  const {game, page, links, media} = loaderData;
+  const {game, page, links, media, updates} = loaderData;
 
   // Theme colors from page_config, with fallbacks
   const theme = (page.page_config as Record<string, unknown> | null)?.theme as
@@ -176,6 +193,25 @@ export default function GamePage({loaderData}: Route.ComponentProps) {
   const hasMedia = media.length > 0;
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showSubscribe, setShowSubscribe] = useState(false);
+  const [subEmail, setSubEmail] = useState('');
+  const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubscribe = useCallback(async () => {
+    if (!subEmail.trim()) return;
+    setSubStatus('loading');
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({gameId: game.id, email: subEmail.trim()}),
+      });
+      if (!res.ok) throw new Error('Subscribe failed');
+      setSubStatus('success');
+    } catch {
+      setSubStatus('error');
+    }
+  }, [subEmail, game.id]);
 
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
   const goNext = useCallback(() => {
@@ -216,7 +252,24 @@ export default function GamePage({loaderData}: Route.ComponentProps) {
       )}
 
       <div className="max-w-4xl mx-auto px-4 py-8 relative -mt-[12rem] z-[1]">
-        <h1 className="text-[3rem] leading-[1.1] font-bold">{game.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-[3rem] leading-[1.1] font-bold">{game.title}</h1>
+          <button
+            type="button"
+            onClick={() => { setShowSubscribe(true); setSubStatus('idle'); }}
+            title="Get updates"
+            className="shrink-0 mt-3 p-2 rounded-full border-0 cursor-pointer transition-opacity hover:opacity-80"
+            style={{
+              background: `color-mix(in srgb, ${textColor} 10%, transparent)`,
+              color: textColor,
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+          </button>
+        </div>
 
         {game.summary && (
           <p className="mt-2 text-lg" style={{color: textColor, opacity: 0.75}}>
@@ -312,6 +365,54 @@ export default function GamePage({loaderData}: Route.ComponentProps) {
           </div>
         )}
 
+        {updates.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold mb-4">Latest Updates</h2>
+            <div className="flex flex-col gap-4">
+              {updates.map((u: GameUpdate) => (
+                <div
+                  key={u.id}
+                  className="rounded-lg p-4"
+                  style={{
+                    background: `color-mix(in srgb, ${textColor} 5%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${textColor} 10%, transparent)`,
+                  }}
+                >
+                  <div className="flex items-baseline justify-between gap-3 mb-2">
+                    <h3 className="font-semibold text-[0.9375rem]">{u.title}</h3>
+                    {u.published_at && (
+                      <span className="text-xs shrink-0" style={{color: textColor, opacity: 0.4}}>
+                        {new Date(u.published_at).toLocaleDateString('en', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    className="text-sm leading-relaxed whitespace-pre-wrap"
+                    style={{color: textColor, opacity: 0.75}}
+                  >
+                    {u.body.length > 300 ? `${u.body.slice(0, 300)}...` : u.body}
+                  </p>
+                  {u.cta_url && (
+                    <a
+                      href={u.cta_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-3 text-sm font-medium no-underline hover:opacity-80"
+                      style={{color: linkColor}}
+                    >
+                      {u.cta_label || 'Learn more'} →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {game.trailer_url && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold mb-4">Trailer</h2>
@@ -327,6 +428,72 @@ export default function GamePage({loaderData}: Route.ComponentProps) {
           </div>
         )}
       </div>
+
+      {showSubscribe && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4"
+          onClick={() => setShowSubscribe(false)}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-xl p-6"
+            style={{background: bgColor, border: `1px solid color-mix(in srgb, ${textColor} 15%, transparent)`}}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowSubscribe(false)}
+              className="absolute top-3 right-3 bg-transparent border-0 cursor-pointer opacity-60 hover:opacity-100 p-1"
+              style={{color: textColor}}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+
+            {subStatus === 'success' ? (
+              <div className="text-center py-4">
+                <p className="text-lg font-semibold mb-1">You're subscribed!</p>
+                <p className="text-sm" style={{color: textColor, opacity: 0.6}}>
+                  You'll receive updates about {game.title}.
+                </p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold mb-1">Get updates</h3>
+                <p className="text-sm mb-4" style={{color: textColor, opacity: 0.6}}>
+                  Subscribe to receive news about {game.title}.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={subEmail}
+                    onChange={(e) => setSubEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+                    className="flex-1 px-3 py-2 rounded-lg border-0 text-sm outline-none"
+                    style={{
+                      background: `color-mix(in srgb, ${textColor} 10%, transparent)`,
+                      color: textColor,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSubscribe}
+                    disabled={subStatus === 'loading' || !subEmail.trim()}
+                    className="px-4 py-2 rounded-lg border-0 text-sm font-medium cursor-pointer transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{background: linkColor, color: '#fff'}}
+                  >
+                    {subStatus === 'loading' ? '...' : 'Subscribe'}
+                  </button>
+                </div>
+                {subStatus === 'error' && (
+                  <p className="text-sm mt-2" style={{color: '#ef4444'}}>
+                    Something went wrong. Please try again.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {lightboxIndex !== null && media[lightboxIndex] && (
         <div

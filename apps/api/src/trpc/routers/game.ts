@@ -4,6 +4,7 @@ import type {OrgRoleType} from '@play/supabase-client'
 import {OrgRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
+import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can edit games
 const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
@@ -66,7 +67,8 @@ export const gameRouter = router({
   get: protectedProcedure
     .input(z.object({id: z.string().uuid()}))
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.id)
 
       const {data: game, error} = await supabase
         .from('games')
@@ -190,7 +192,7 @@ export const gameRouter = router({
         id: z.string().uuid(),
         title: z.string().min(1).max(200).optional(),
         summary: z.string().optional().nullable(),
-        description: z.any().optional().nullable(), // JSONB
+        description: z.string().optional().nullable(),
         status: z
           .enum(['IN_DEVELOPMENT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED'])
           .optional(),
@@ -205,7 +207,20 @@ export const gameRouter = router({
         headerUrl: z.string().url().or(z.literal('')).optional().nullable(),
         trailerUrl: z.string().url().or(z.literal('')).optional().nullable(),
         themeColor: z.string().max(20).optional().nullable(),
-        platforms: z.any().optional(), // JSONB
+        platforms: z
+          .array(
+            z.enum([
+              'PC',
+              'Mac',
+              'Linux',
+              'PS5',
+              'Xbox Series',
+              'Switch',
+              'iOS',
+              'Android',
+            ]),
+          )
+          .optional(),
       }),
     )
     .mutation(async ({ctx, input}) => {

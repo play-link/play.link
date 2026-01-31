@@ -20,3 +20,4 @@ bucket_name = "play-link-assets"
 # DATABASE_URL
 # SUPER_ADMIN_EMAIL
 # R2_PUBLIC_URL
+# RESEND_API_KEY
