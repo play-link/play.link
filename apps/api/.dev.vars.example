@@ -8,7 +8,6 @@ DATABASE_URL=postgres://postgres:postgres@127.0.0.1:54322/postgres
 # Super Admin
 SUPER_ADMIN_EMAIL=your-super-admin-email
 
-
 # R2 Storage
 R2_PUBLIC_URL=http://localhost:8787/r2
-RESEND_API_KEY=re_33cu8cUA_GcrSxvoHNBPsnh8zDQqzTYZn
+RESEND_API_KEY=your-resend-api-key
