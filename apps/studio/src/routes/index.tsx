@@ -6,7 +6,9 @@ import {
   AnalyticsPage,
   AuthCallbackPage,
   BillingSettingsPage,
+  CampaignDetailPage,
   CampaignsPage,
+  CreateCampaignPage,
   DomainsSettingsPage,
   GamePage,
   GamesPage,
@@ -88,6 +90,14 @@ export const router = createBrowserRouter([
           {
             path: 'campaigns',
             element: <CampaignsPage />,
+          },
+          {
+            path: 'campaigns/new',
+            element: <CreateCampaignPage />,
+          },
+          {
+            path: 'campaigns/:campaignId',
+            element: <CampaignDetailPage />,
           },
           {
             path: 'analytics',
