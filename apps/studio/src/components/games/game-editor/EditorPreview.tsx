@@ -5,6 +5,7 @@ import {GamePageContent} from '../game-page-content';
 import type {PageConfig} from './EditorSidebar';
 
 type GameLink = Tables<'game_links'>;
+type GameMedia = Tables<'game_media'>;
 
 const DEFAULTS = {
   bgColor: '#030712',
@@ -15,10 +16,12 @@ const DEFAULTS = {
 interface EditorPreviewProps {
   game: GameOutletContext;
   links: GameLink[];
+  media: GameMedia[];
   pageConfig: PageConfig;
+  description: string;
 }
 
-export function EditorPreview({game, links, pageConfig}: EditorPreviewProps) {
+export function EditorPreview({game, links, media, pageConfig, description}: EditorPreviewProps) {
   const t = pageConfig.theme ?? {};
 
   return (
@@ -26,11 +29,13 @@ export function EditorPreview({game, links, pageConfig}: EditorPreviewProps) {
       <GamePageContent
         game={game}
         links={links}
+        media={media}
         theme={{
           bgColor: t.bgColor || DEFAULTS.bgColor,
           textColor: t.textColor || DEFAULTS.textColor,
           linkColor: t.linkColor || DEFAULTS.linkColor,
         }}
+        descriptionOverride={description}
       />
     </PageScroll>
   );

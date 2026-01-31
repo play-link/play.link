@@ -23,6 +23,7 @@ export function GamePreview() {
   const t = pageConfig.theme ?? {};
 
   const {data: links = []} = trpc.gameLink.list.useQuery({gameId: game.id});
+  const {data: media = []} = trpc.gameMedia.list.useQuery({gameId: game.id});
 
   const goBack = () => navigate('..', {relative: 'path'});
   const goDesign = () => navigate('../design', {relative: 'path'});
@@ -58,6 +59,7 @@ export function GamePreview() {
         <GamePageContent
           game={game}
           links={links}
+          media={media}
           theme={{
             bgColor: t.bgColor || DEFAULTS.bgColor,
             textColor: t.textColor || DEFAULTS.textColor,

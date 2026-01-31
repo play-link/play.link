@@ -148,6 +148,97 @@ export type Database = {
           },
         ]
       }
+      campaign_events: {
+        Row: {
+          campaign_id: string
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          referrer: string | null
+          visitor_hash: string
+        }
+        Insert: {
+          campaign_id: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          referrer?: string | null
+          visitor_hash: string
+        }
+        Update: {
+          campaign_id?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          referrer?: string | null
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          created_at: string
+          destination: string
+          destination_url: string | null
+          game_id: string
+          id: string
+          name: string
+          slug: string
+          status: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          created_at?: string
+          destination?: string
+          destination_url?: string | null
+          game_id: string
+          id?: string
+          name: string
+          slug: string
+          status?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          destination_url?: string | null
+          game_id?: string
+          id?: string
+          name?: string
+          slug?: string
+          status?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       change_requests: {
         Row: {
           created_at: string
@@ -284,6 +375,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "game_links_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_media: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          position: number
+          thumbnail_url: string | null
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          position?: number
+          thumbnail_url?: string | null
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          position?: number
+          thumbnail_url?: string | null
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_media_game_id_fkey"
             columns: ["game_id"]
             isOneToOne: false
             referencedRelation: "games"
@@ -657,6 +786,53 @@ export type Database = {
       analytics_top_referrers: {
         Args: {
           p_game_id: string
+          p_from: string
+          p_to: string
+          p_limit?: number
+        }
+        Returns: {
+          referrer: string
+          total: number
+        }[]
+      }
+      campaign_summary: {
+        Args: {
+          p_campaign_id: string
+          p_from: string
+          p_to: string
+        }
+        Returns: {
+          total_clicks: number
+          unique_visitors: number
+        }[]
+      }
+      campaign_timeseries: {
+        Args: {
+          p_campaign_id: string
+          p_from: string
+          p_to: string
+        }
+        Returns: {
+          day: string
+          total_clicks: number
+          unique_visitors: number
+        }[]
+      }
+      campaign_top_countries: {
+        Args: {
+          p_campaign_id: string
+          p_from: string
+          p_to: string
+          p_limit?: number
+        }
+        Returns: {
+          country: string
+          total: number
+        }[]
+      }
+      campaign_top_referrers: {
+        Args: {
+          p_campaign_id: string
           p_from: string
           p_to: string
           p_limit?: number
