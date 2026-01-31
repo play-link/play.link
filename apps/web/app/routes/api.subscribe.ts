@@ -30,7 +30,7 @@ export async function action({request, context}: Route.ActionArgs) {
   const {error} = await supabase
     .from('game_subscribers')
     .upsert(
-      {game_id: gameId, email},
+      {game_id: gameId, email, confirmed: true},
       {onConflict: 'game_id,email'},
     );
 

@@ -1,6 +1,7 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
 import {protectedProcedure, router} from '../index'
+import {verifyGameAccess} from '../lib/verify-access'
 
 const dateRangeInput = z.object({
   gameId: z.string().uuid(),
@@ -18,7 +19,8 @@ export const analyticsRouter = router({
   summary: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_summary', {
@@ -40,7 +42,8 @@ export const analyticsRouter = router({
   timeseries: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_timeseries', {
@@ -62,7 +65,8 @@ export const analyticsRouter = router({
   topReferrers: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_top_referrers', {
@@ -85,7 +89,8 @@ export const analyticsRouter = router({
   topCountries: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_top_countries', {
@@ -108,7 +113,8 @@ export const analyticsRouter = router({
   topLinks: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_top_links', {
@@ -131,7 +137,8 @@ export const analyticsRouter = router({
   devices: protectedProcedure
     .input(dateRangeInput)
     .query(async ({ctx, input}) => {
-      const {supabase} = ctx
+      const {user, supabase} = ctx
+      await verifyGameAccess(supabase, user.id, input.gameId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('analytics_devices', {

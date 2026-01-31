@@ -1,7 +1,9 @@
 import {fetchRequestHandler} from '@trpc/server/adapters/fetch'
 import {Hono} from 'hono'
+import type {Context} from 'hono'
 import {cors} from 'hono/cors'
 import {logger} from 'hono/logger'
+import {secureHeaders} from 'hono/secure-headers'
 import {authMiddleware, dbMiddleware, supabaseMiddleware} from './middleware'
 import {upload} from './routes/upload'
 import type {TRPCContext} from './trpc'
@@ -14,20 +16,41 @@ import type {AppContext} from './types'
 
 const app = new Hono<AppContext>()
 
+const CORS_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3005',
+]
+
+const R2_CACHE_CONTROL = 'public, max-age=31536000, immutable'
+
+const getR2Key = (path: string) => path.replace('/r2/', '')
+
+const createTRPCContext = (c: Context<AppContext>): TRPCContext => ({
+  user: c.get('user'),
+  supabase: c.get('supabase'),
+  env: c.env,
+})
+
 // =============================================================================
 // Global Middleware
 // =============================================================================
 
 app.use('*', logger())
+app.use('*', secureHeaders({
+  crossOriginResourcePolicy: false,
+}))
+
+// Allow cross-origin loading for R2-served assets (images, media)
+app.use('/r2/*', async (c, next) => {
+  await next()
+  c.res.headers.set('Cross-Origin-Resource-Policy', 'cross-origin')
+})
 
 app.use(
   '*',
   cors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:3005',
-    ],
+    origin: CORS_ORIGINS,
     credentials: true,
   }),
 )
@@ -47,15 +70,28 @@ app.route('/upload', upload)
 // =============================================================================
 
 app.get('/r2/*', async (c) => {
-  const key = c.req.path.replace('/r2/', '')
-  const object = await c.env.R2_BUCKET.get(key)
+  const key = getR2Key(c.req.path)
+  const reqHeaders = c.req.raw.headers
+  const object = await c.env.R2_BUCKET.get(key, {
+    onlyIf: reqHeaders,
+    range: reqHeaders,
+  })
+
   if (!object) {
     return c.notFound()
   }
+
   const headers = new Headers()
   object.writeHttpMetadata(headers)
-  headers.set('Cache-Control', 'public, max-age=31536000, immutable')
-  return new Response(object.body, {headers})
+  headers.set('Cache-Control', R2_CACHE_CONTROL)
+  headers.set('ETag', object.httpEtag)
+
+  if (!('body' in object)) {
+    return new Response(null, {status: 304, headers})
+  }
+
+  const status = object.range ? 206 : 200
+  return new Response(object.body, {status, headers})
 })
 
 // =============================================================================
@@ -67,13 +103,15 @@ app.all('/trpc/*', async (c) => {
     endpoint: '/trpc',
     req: c.req.raw,
     router: appRouter,
-    createContext: (): TRPCContext => ({
-      user: c.get('user'),
-      supabase: c.get('supabase'),
-      env: c.env,
-    }),
+    createContext: () => createTRPCContext(c),
   })
 })
+
+// =============================================================================
+// Not Found
+// =============================================================================
+
+app.notFound((c) => c.json({error: 'Not Found'}, 404))
 
 // =============================================================================
 // Export

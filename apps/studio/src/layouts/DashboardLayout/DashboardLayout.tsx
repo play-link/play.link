@@ -6,6 +6,7 @@ import {
   CreditCardIcon,
   GamepadIcon,
   GlobeIcon,
+  MailIcon,
   MegaphoneIcon,
   SettingsIcon,
   UsersIcon,
@@ -27,6 +28,7 @@ export interface NavItem {
 const defaultNavItems: NavItem[] = [
   {label: 'Games', path: '', icon: GamepadIcon},
   {label: 'Campaigns', path: 'campaigns', icon: MegaphoneIcon},
+  {label: 'Audience', path: 'audience', icon: MailIcon},
   {label: 'Analytics', path: 'analytics', icon: ChartBarIcon},
 ];
 

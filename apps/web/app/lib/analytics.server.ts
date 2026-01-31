@@ -36,7 +36,7 @@ export async function trackEvent(
     const deviceType = parseDeviceType(userAgent);
     const referrer = parseReferrer(request.headers.get('referer'));
 
-    await supabase.from('analytics_events').insert({
+    const {error} = await supabase.from('analytics_events').insert({
       game_id: gameId,
       event_type: eventType,
       link_id: linkId || null,
@@ -46,6 +46,11 @@ export async function trackEvent(
       device_type: deviceType,
       referrer,
     });
+
+    // 23505 = unique_violation — expected for duplicate page_view per visitor/day
+    if (error && error.code !== '23505') {
+      console.error('Failed to track event:', error);
+    }
   } catch (error) {
     console.error('Failed to track event:', error);
   }
