@@ -1,17 +1,17 @@
-import {OrganizationSettingsForm, PageLayout} from '@/components';
+import {PageLayout, StudioSettingsForm} from '@/components';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 
 export function StudioSettingsPage() {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
 
   return (
     <PageLayout>
       <PageLayout.Header
         title="Studio"
-        subtitle={`Configure ${activeOrganization.name}`}
+        subtitle={`Configure ${activeStudio.name}`}
       />
       <PageLayout.Content>
-        <OrganizationSettingsForm organization={activeOrganization} />
+        <StudioSettingsForm studio={activeStudio} />
       </PageLayout.Content>
     </PageLayout>
   );

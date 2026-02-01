@@ -1,17 +1,17 @@
 import {useState} from 'react';
 import {trpc} from '@/lib/trpc';
 
-interface CreateOrganizationFormProps {
+interface CreateStudioFormProps {
   onSuccess: () => void;
 }
 
-export function CreateOrganizationForm({
+export function CreateStudioForm({
   onSuccess,
-}: CreateOrganizationFormProps) {
+}: CreateStudioFormProps) {
   const [slug, setSlug] = useState('');
   const [name, setName] = useState('');
 
-  const createOrg = trpc.organization.create.useMutation({
+  const createStudio = trpc.studio.create.useMutation({
     onSuccess: () => {
       setSlug('');
       setName('');
@@ -21,13 +21,13 @@ export function CreateOrganizationForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createOrg.mutate({slug, name});
+    createStudio.mutate({slug, name});
   };
 
   return (
     <div className="bg-gray-900 rounded-lg p-6 max-w-md mb-8">
       <h2 className="text-lg font-semibold text-white mb-4">
-        Create Organization
+        Create Studio
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -52,15 +52,15 @@ export function CreateOrganizationForm({
             required
           />
         </div>
-        {createOrg.error && (
-          <p className="text-(--fg-error) text-sm">{createOrg.error.message}</p>
+        {createStudio.error && (
+          <p className="text-(--fg-error) text-sm">{createStudio.error.message}</p>
         )}
         <button
           type="submit"
-          disabled={createOrg.isPending}
+          disabled={createStudio.isPending}
           className="w-full bg-(--color-primary-600) hover:bg-(--color-primary-700) disabled:opacity-50 text-white font-medium py-2 px-4 rounded transition-colors"
         >
-          {createOrg.isPending ? 'Creating...' : 'Create Organization'}
+          {createStudio.isPending ? 'Creating...' : 'Create Studio'}
         </button>
       </form>
     </div>

@@ -1,2 +1,2 @@
-export * from './CreateOrganizationForm';
-export * from './OrganizationsList';
+export * from './CreateStudioForm';
+export * from './StudiosList';

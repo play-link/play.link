@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useAuth} from '@/lib/auth';
 import {trpc} from '@/lib/trpc';
-import type {AppContextType, Organization} from './AppContext';
+import type {AppContextType, Studio} from './AppContext';
 
 /**
  * Initializes the AppContext with user data from the API.
@@ -11,8 +11,8 @@ import type {AppContextType, Organization} from './AppContext';
  */
 export function useInitializeAppContext(): AppContextType {
   const {user, loading: authLoading} = useAuth();
-  const [activeOrganization, setActiveOrganization] =
-    useState<Organization | null>(null);
+  const [activeStudio, setActiveStudio] =
+    useState<Studio | null>(null);
 
   const {data, isLoading: meLoading} = trpc.me.get.useQuery(undefined, {
     enabled: !!user,
@@ -25,21 +25,21 @@ export function useInitializeAppContext(): AppContextType {
     },
   });
 
-  // Auto-select first organization if none is active
+  // Auto-select first studio if none is active
   useEffect(() => {
     if (
-      data?.organizations &&
-      data.organizations.length > 0 &&
-      !activeOrganization
+      data?.studios &&
+      data.studios.length > 0 &&
+      !activeStudio
     ) {
-      setActiveOrganization(data.organizations[0] as Organization);
+      setActiveStudio(data.studios[0] as Studio);
     }
-  }, [data?.organizations, activeOrganization]);
+  }, [data?.studios, activeStudio]);
 
-  // Clear active organization when user logs out
+  // Clear active studio when user logs out
   useEffect(() => {
     if (!user) {
-      setActiveOrganization(null);
+      setActiveStudio(null);
     }
   }, [user]);
 
@@ -52,11 +52,11 @@ export function useInitializeAppContext(): AppContextType {
           email: user?.email ?? '',
           displayName: data.profile?.display_name ?? null,
           avatarUrl: data.profile?.avatar_url ?? null,
-          organizations: (data.organizations ?? []) as Organization[],
+          studios: (data.studios ?? []) as Studio[],
         }
       : null,
     isLoading,
-    activeOrganization,
-    setActiveOrganization,
+    activeStudio,
+    setActiveStudio,
   };
 }

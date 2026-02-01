@@ -10,16 +10,16 @@ import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
 
 export function GamesPage() {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const {data: games = [], isLoading} = trpc.game.list.useQuery({
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
   });
 
   const handleGameClick = (gameId: string) => {
-    navigate(`/${activeOrganization.slug}/games/${gameId}`);
+    navigate(`/${activeStudio.slug}/games/${gameId}`);
   };
 
   if (isLoading) {
@@ -42,7 +42,7 @@ export function GamesPage() {
         subtitle={`${games.length} game${games.length !== 1 ? 's' : ''}`}
       >
         <Button variant="primary" onClick={() => setCreateDialogOpen(true)}>
-          <PlusIcon size={18} />
+          <PlusIcon size={18} className="mr-2" />
           New Game
         </Button>
       </PageLayout.Header>
@@ -55,7 +55,7 @@ export function GamesPage() {
               Create your first game to start building your play.link page.
             </EmptyText>
             <Button variant="primary" onClick={() => setCreateDialogOpen(true)}>
-              <PlusIcon size={18} />
+              <PlusIcon size={18} className="mr-2" />
               Create Your First Game
             </Button>
           </EmptyState>

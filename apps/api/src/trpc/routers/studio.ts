@@ -1,12 +1,12 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
-import {protectedProcedure, router} from '../index'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
+import {protectedProcedure, publicProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
-// Roles that can update an organization
-const UPDATE_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
+// Roles that can update a studio
+const UPDATE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
 
 // Slug validation: lowercase letters, numbers, hyphens only
 const slugSchema = z
@@ -18,9 +18,9 @@ const slugSchema = z
     'Slug must be lowercase letters, numbers, and hyphens only',
   )
 
-export const organizationRouter = router({
+export const studioRouter = router({
   /**
-   * Check if an organization slug is available
+   * Check if a studio slug is available
    */
   checkSlug: protectedProcedure
     .input(z.object({slug: slugSchema}))
@@ -28,7 +28,7 @@ export const organizationRouter = router({
       const {supabase} = ctx
 
       const {data, error} = await supabase
-        .from('organizations')
+        .from('studios')
         .select('id')
         .eq('slug', input.slug)
         .maybeSingle()
@@ -41,15 +41,15 @@ export const organizationRouter = router({
     }),
 
   /**
-   * List organizations for current user
+   * List studios for current user
    */
   list: protectedProcedure.query(async ({ctx}) => {
     const {user, supabase} = ctx
 
-    // Get organizations where user is a member
+    // Get studios where user is a member
     const {data: memberships, error: memberError} = await supabase
-      .from('organization_members')
-      .select('organization_id, role')
+      .from('studio_members')
+      .select('studio_id, role')
       .eq('user_id', user.id)
 
     if (memberError) {
@@ -63,92 +63,92 @@ export const organizationRouter = router({
       return []
     }
 
-    // Get the actual organizations
-    const orgIds = memberships.map((m) => m.organization_id)
-    const {data: orgs, error: orgsError} = await supabase
-      .from('organizations')
+    // Get the actual studios
+    const studioIds = memberships.map((m) => m.studio_id)
+    const {data: studios, error: studiosError} = await supabase
+      .from('studios')
       .select('*')
-      .in('id', orgIds)
+      .in('id', studioIds)
 
-    if (orgsError) {
+    if (studiosError) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: orgsError.message,
+        message: studiosError.message,
       })
     }
 
-    // Add role to each org
+    // Add role to each studio
     return (
-      orgs?.map((org) => ({
-        ...org,
-        role: memberships.find((m) => m.organization_id === org.id)?.role,
+      studios?.map((studio) => ({
+        ...studio,
+        role: memberships.find((m) => m.studio_id === studio.id)?.role,
       })) || []
     )
   }),
 
   /**
-   * Create a new organization
+   * Create a new studio
    */
   create: protectedProcedure
     .input(z.object({slug: slugSchema, name: z.string().min(1).max(100)}))
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
-      // Create organization
-      const {data: org, error: orgError} = await supabase
-        .from('organizations')
+      // Create studio
+      const {data: studio, error: studioError} = await supabase
+        .from('studios')
         .insert({slug: input.slug, name: input.name})
         .select()
         .single()
 
-      if (orgError) {
-        if (orgError.code === '23505') {
+      if (studioError) {
+        if (studioError.code === '23505') {
           throw new TRPCError({
             code: 'CONFLICT',
-            message: 'Organization slug already exists',
+            message: 'Studio slug already exists',
           })
         }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: orgError.message,
+          message: studioError.message,
         })
       }
 
       // Add creator as OWNER
       const {error: memberError} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .insert({
-          organization_id: org.id,
+          studio_id: studio.id,
           user_id: user.id,
-          role: OrgRole.OWNER,
+          role: StudioRole.OWNER,
         })
 
       if (memberError) {
-        // Rollback: delete the org if we couldn't add the member
-        await supabase.from('organizations').delete().eq('id', org.id)
+        // Rollback: delete the studio if we couldn't add the member
+        await supabase.from('studios').delete().eq('id', studio.id)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to add owner to organization',
+          message: 'Failed to add owner to studio',
         })
       }
 
       await logAuditEvent(supabase, {
         userId: user.id,
         userEmail: user.email,
-        action: AuditAction.ORGANIZATION_CREATE,
-        organizationId: org.id,
-        targetType: 'organization',
-        targetId: org.id,
-        metadata: {slug: org.slug, name: org.name},
+        action: AuditAction.STUDIO_CREATE,
+        studioId: studio.id,
+        targetType: 'studio',
+        targetId: studio.id,
+        metadata: {slug: studio.slug, name: studio.name},
       })
 
-      return org
+      return studio
     }),
 
   /**
-   * Update an organization
-   * - For verified orgs: slug/name changes require change request
-   * - For non-verified orgs: slug/name changes have 24h cooldown
+   * Update a studio
+   * - For verified studios: slug/name changes require change request
+   * - For non-verified studios: slug/name changes have 24h cooldown
    * - Other fields can be updated freely
    */
   update: protectedProcedure
@@ -158,7 +158,12 @@ export const organizationRouter = router({
         slug: slugSchema.optional(),
         name: z.string().min(1).max(100).optional(),
         avatarUrl: z.string().url().optional().nullable(),
-        websiteUrl: z.string().url().optional().nullable(),
+        coverUrl: z.string().url().optional().nullable(),
+        backgroundColor: z.string().regex(/^#[0-9a-f]{3,8}$/i).optional().nullable(),
+        accentColor: z.string().regex(/^#[0-9a-f]{3,8}$/i).optional().nullable(),
+        textColor: z.string().regex(/^#[0-9a-f]{3,8}$/i).optional().nullable(),
+        bio: z.string().max(280).optional().nullable(),
+        socialLinks: z.record(z.string(), z.string().url().or(z.literal(''))).optional().nullable(),
       }),
     )
     .mutation(async ({ctx, input}) => {
@@ -166,27 +171,27 @@ export const organizationRouter = router({
 
       // Check user is OWNER or ADMIN
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.id)
+        .eq('studio_id', input.id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !UPDATE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !UPDATE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({code: 'FORBIDDEN'})
       }
 
-      // Get current org state
-      const {data: org} = await supabase
-        .from('organizations')
+      // Get current studio state
+      const {data: studio} = await supabase
+        .from('studios')
         .select('is_verified, slug, name, last_slug_change, last_name_change')
         .eq('id', input.id)
         .single()
 
-      if (!org) {
+      if (!studio) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Organization not found',
+          message: 'Studio not found',
         })
       }
 
@@ -195,29 +200,29 @@ export const organizationRouter = router({
 
       // Handle protected fields (slug, name)
       const protectedChanges: Array<{field: string; value: string}> = []
-      if (input.slug && input.slug !== org.slug) {
+      if (input.slug && input.slug !== studio.slug) {
         protectedChanges.push({field: 'slug', value: input.slug})
       }
-      if (input.name && input.name !== org.name) {
+      if (input.name && input.name !== studio.name) {
         protectedChanges.push({field: 'name', value: input.name})
       }
 
       // If verified, protected fields require change request
-      if (org.is_verified && protectedChanges.length > 0) {
+      if (studio.is_verified && protectedChanges.length > 0) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'This organization is verified. Slug and name changes require approval. Use changeRequest.create instead.',
+            'This studio is verified. Slug and name changes require approval. Use changeRequest.create instead.',
         })
       }
 
       // If not verified, check cooldowns for protected fields
-      if (!org.is_verified && protectedChanges.length > 0) {
+      if (!studio.is_verified && protectedChanges.length > 0) {
         for (const change of protectedChanges) {
           const lastChange =
             change.field === 'slug'
-              ? org.last_slug_change
-              : org.last_name_change
+              ? studio.last_slug_change
+              : studio.last_name_change
           if (
             lastChange &&
             now - new Date(lastChange).getTime() < COOLDOWN_MS
@@ -236,16 +241,21 @@ export const organizationRouter = router({
 
       // Build update object - only update provided fields
       const updates: Record<string, unknown> = {}
-      if (input.slug && input.slug !== org.slug) {
+      if (input.slug && input.slug !== studio.slug) {
         updates.slug = input.slug
         updates.last_slug_change = new Date().toISOString()
       }
-      if (input.name && input.name !== org.name) {
+      if (input.name && input.name !== studio.name) {
         updates.name = input.name
         updates.last_name_change = new Date().toISOString()
       }
       if (input.avatarUrl !== undefined) updates.avatar_url = input.avatarUrl
-      if (input.websiteUrl !== undefined) updates.website_url = input.websiteUrl
+      if (input.coverUrl !== undefined) updates.cover_url = input.coverUrl
+      if (input.backgroundColor !== undefined) updates.background_color = input.backgroundColor
+      if (input.accentColor !== undefined) updates.accent_color = input.accentColor
+      if (input.textColor !== undefined) updates.text_color = input.textColor
+      if (input.bio !== undefined) updates.bio = input.bio
+      if (input.socialLinks !== undefined) updates.social_links = input.socialLinks
 
       if (Object.keys(updates).length === 0) {
         throw new TRPCError({
@@ -256,8 +266,8 @@ export const organizationRouter = router({
 
       updates.updated_at = new Date().toISOString()
 
-      const {data: updatedOrg, error} = await supabase
-        .from('organizations')
+      const {data: updatedStudio, error} = await supabase
+        .from('studios')
         .update(updates)
         .eq('id', input.id)
         .select()
@@ -267,7 +277,7 @@ export const organizationRouter = router({
         if (error.code === '23505') {
           throw new TRPCError({
             code: 'CONFLICT',
-            message: 'Organization slug already exists',
+            message: 'Studio slug already exists',
           })
         }
         throw new TRPCError({
@@ -279,18 +289,18 @@ export const organizationRouter = router({
       await logAuditEvent(supabase, {
         userId: user.id,
         userEmail: user.email,
-        action: AuditAction.ORGANIZATION_UPDATE,
-        organizationId: input.id,
-        targetType: 'organization',
+        action: AuditAction.STUDIO_UPDATE,
+        studioId: input.id,
+        targetType: 'studio',
         targetId: input.id,
         metadata: {changes: updates},
       })
 
-      return updatedOrg
+      return updatedStudio
     }),
 
   /**
-   * Delete an organization
+   * Delete a studio
    */
   delete: protectedProcedure
     .input(z.object({id: z.string().uuid()}))
@@ -299,28 +309,28 @@ export const organizationRouter = router({
 
       // Check user is OWNER
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.id)
+        .eq('studio_id', input.id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || member.role !== OrgRole.OWNER) {
+      if (!member || member.role !== StudioRole.OWNER) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only the owner can delete an organization',
+          message: 'Only the owner can delete a studio',
         })
       }
 
-      // Get org info before deletion for audit
-      const {data: org} = await supabase
-        .from('organizations')
+      // Get studio info before deletion for audit
+      const {data: studio} = await supabase
+        .from('studios')
         .select('slug, name')
         .eq('id', input.id)
         .single()
 
       const {error} = await supabase
-        .from('organizations')
+        .from('studios')
         .delete()
         .eq('id', input.id)
 
@@ -334,13 +344,63 @@ export const organizationRouter = router({
       await logAuditEvent(supabase, {
         userId: user.id,
         userEmail: user.email,
-        action: AuditAction.ORGANIZATION_DELETE,
-        organizationId: input.id,
-        targetType: 'organization',
+        action: AuditAction.STUDIO_DELETE,
+        studioId: input.id,
+        targetType: 'studio',
         targetId: input.id,
-        metadata: {slug: org?.slug, name: org?.name},
+        metadata: {slug: studio?.slug, name: studio?.name},
       })
 
       return {success: true}
+    }),
+
+  /**
+   * Public studio profile (no auth required)
+   */
+  publicProfile: publicProcedure
+    .input(z.object({handle: slugSchema}))
+    .query(async ({ctx, input}) => {
+      const {supabase} = ctx
+
+      const {data: studio, error} = await supabase
+        .from('studios')
+        .select('id, slug, name, avatar_url, cover_url, background_color, accent_color, text_color, bio, social_links, is_verified')
+        .eq('slug', input.handle)
+        .single()
+
+      if (error || !studio) {
+        throw new TRPCError({code: 'NOT_FOUND', message: 'Studio not found'})
+      }
+
+      // Fetch published games with their page slugs
+      const {data: pages} = await supabase
+        .from('game_pages')
+        .select('slug, games!inner(id, title, summary, cover_url, status)')
+        .eq('games.owner_studio_id', studio.id)
+        .eq('visibility', 'PUBLISHED')
+        .eq('is_primary', true)
+
+      return {
+        name: studio.name,
+        handle: studio.slug,
+        avatarImage: studio.avatar_url,
+        coverImage: studio.cover_url,
+        isVerified: studio.is_verified,
+        theme: {
+          backgroundColor: studio.background_color ?? '#030712',
+          accentColor: studio.accent_color ?? '#818cf8',
+          textColor: studio.text_color ?? '#ffffff',
+        },
+        bio: studio.bio,
+        socialLinks: (studio.social_links as Record<string, string>) ?? {},
+        games: (pages ?? []).map((p: any) => ({
+          id: p.games.id,
+          title: p.games.title,
+          summary: p.games.summary,
+          coverUrl: p.games.cover_url,
+          status: p.games.status,
+          pageSlug: p.slug,
+        })),
+      }
     }),
 })

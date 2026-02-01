@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
-import {CreateGameUpdate, GameAnalytics, GameEditor, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
+import {GameEditor, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
 import {
   AdminPage,
   AnalyticsPage,
@@ -9,7 +9,6 @@ import {
   BillingSettingsPage,
   CampaignDetailPage,
   CampaignsPage,
-  CreateCampaignPage,
   DomainsSettingsPage,
   GamePage,
   GamesPage,
@@ -18,9 +17,9 @@ import {
   StudioSettingsPage,
   TeamSettingsPage,
 } from '@/pages';
-import {OrganizationLayout} from './OrganizationLayout';
+import {StudioLayout} from './StudioLayout';
 import {ProtectedRoute} from './ProtectedRoute';
-import {RedirectToFirstOrg} from './RedirectToFirstOrg';
+import {RedirectToFirstStudio} from './RedirectToFirstStudio';
 
 export const router = createBrowserRouter([
   {
@@ -48,11 +47,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/',
-        element: <RedirectToFirstOrg />,
+        element: <RedirectToFirstStudio />,
       },
       {
-        path: '/:orgSlug',
-        element: <OrganizationLayout />,
+        path: '/:studioSlug',
+        element: <StudioLayout />,
         children: [
           {
             index: true,
@@ -71,16 +70,8 @@ export const router = createBrowserRouter([
                 element: <GameOverview />,
               },
               {
-                path: 'analytics',
-                element: <GameAnalytics />,
-              },
-              {
                 path: 'updates',
                 element: <GameUpdates />,
-              },
-              {
-                path: 'updates/new',
-                element: <CreateGameUpdate />,
               },
               {
                 path: 'updates/:updateId',
@@ -103,10 +94,6 @@ export const router = createBrowserRouter([
           {
             path: 'campaigns',
             element: <CampaignsPage />,
-          },
-          {
-            path: 'campaigns/new',
-            element: <CreateCampaignPage />,
           },
           {
             path: 'campaigns/:campaignId',

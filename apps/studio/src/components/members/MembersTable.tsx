@@ -1,7 +1,7 @@
 import {TrashIcon} from 'lucide-react';
 import {useCallback, useMemo, useState} from 'react';
 import type {AppRouter} from '@play/api/trpc';
-import type {OrgRoleType} from '@play/supabase-client';
+import type {StudioRoleType} from '@play/supabase-client';
 import type {inferRouterOutputs} from '@trpc/server';
 import {css} from 'styled-components';
 import {
@@ -31,7 +31,7 @@ const ROLE_OPTIONS = [
   {label: 'Member', value: 'MEMBER'},
 ];
 
-const ROLE_BADGE_INTENT: Record<OrgRoleType, 'info' | 'success' | 'warning'> = {
+const ROLE_BADGE_INTENT: Record<StudioRoleType, 'info' | 'success' | 'warning'> = {
   OWNER: 'success',
   ADMIN: 'warning',
   MEMBER: 'info',
@@ -39,7 +39,7 @@ const ROLE_BADGE_INTENT: Record<OrgRoleType, 'info' | 'success' | 'warning'> = {
 
 interface MembersTableProps {
   members: Member[];
-  organizationId: string;
+  studioId: string;
   currentUserId: string;
   canManage: boolean;
   isOwner: boolean;
@@ -48,7 +48,7 @@ interface MembersTableProps {
 
 export function MembersTable({
   members,
-  organizationId,
+  studioId,
   currentUserId,
   canManage,
   isOwner,
@@ -83,14 +83,14 @@ export function MembersTable({
   });
 
   const handleRoleChange = useCallback(
-    (userId: string, newRole: OrgRoleType) => {
+    (userId: string, newRole: StudioRoleType) => {
       updateMember.mutate({
-        organizationId,
+        studioId,
         userId,
         role: newRole,
       });
     },
-    [organizationId, updateMember],
+    [studioId, updateMember],
   );
 
   const handleRemoveMember = useCallback(
@@ -98,12 +98,12 @@ export function MembersTable({
       // eslint-disable-next-line no-alert
       if (window.confirm('Are you sure you want to remove this member?')) {
         deleteMember.mutate({
-          organizationId,
+          studioId,
           userId,
         });
       }
     },
-    [organizationId, deleteMember],
+    [studioId, deleteMember],
   );
 
   const columns: TableColumn<Member>[] = useMemo(
@@ -147,7 +147,7 @@ export function MembersTable({
                 }
                 value={d.role}
                 onChange={(e) =>
-                  handleRoleChange(d.user_id, e.target.value as OrgRoleType)
+                  handleRoleChange(d.user_id, e.target.value as StudioRoleType)
                 }
                 size="xs"
                 variant="ghost"
@@ -157,7 +157,7 @@ export function MembersTable({
           }
 
           return (
-            <Badge intent={ROLE_BADGE_INTENT[d.role as OrgRoleType]}>
+            <Badge intent={ROLE_BADGE_INTENT[d.role as StudioRoleType]}>
               {d.role.toLowerCase()}
             </Badge>
           );

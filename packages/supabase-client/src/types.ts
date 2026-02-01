@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json
           operationName?: string
           query?: string
           variables?: Json
-          extensions?: Json
         }
         Returns: Json
       }
@@ -41,7 +41,7 @@ export type Database = {
           created_at: string
           device_type: string | null
           event_type: string
-          game_id: string
+          game_id: string | null
           id: string
           link_id: string | null
           referrer: string | null
@@ -54,7 +54,7 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           event_type: string
-          game_id: string
+          game_id?: string | null
           id?: string
           link_id?: string | null
           referrer?: string | null
@@ -67,7 +67,7 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           event_type?: string
-          game_id?: string
+          game_id?: string | null
           id?: string
           link_id?: string | null
           referrer?: string | null
@@ -96,9 +96,9 @@ export type Database = {
           action: string
           created_at: string
           id: number
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
-          organization_id: string | null
+          studio_id: string | null
           target_id: string | null
           target_type: string | null
           user_agent: string | null
@@ -109,9 +109,9 @@ export type Database = {
           action: string
           created_at?: string
           id?: never
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
-          organization_id?: string | null
+          studio_id?: string | null
           target_id?: string | null
           target_type?: string | null
           user_agent?: string | null
@@ -122,9 +122,9 @@ export type Database = {
           action?: string
           created_at?: string
           id?: never
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
-          organization_id?: string | null
+          studio_id?: string | null
           target_id?: string | null
           target_type?: string | null
           user_agent?: string | null
@@ -133,10 +133,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: "audit_logs_studio_id_fkey"
+            columns: ["studio_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "studios"
             referencedColumns: ["id"]
           },
           {
@@ -307,22 +307,22 @@ export type Database = {
           custom_name: string | null
           game_id: string
           id: number
-          organization_id: string | null
           role: Database["public"]["Enums"]["credit_role"]
+          studio_id: string | null
         }
         Insert: {
           custom_name?: string | null
           game_id: string
           id?: never
-          organization_id?: string | null
           role: Database["public"]["Enums"]["credit_role"]
+          studio_id?: string | null
         }
         Update: {
           custom_name?: string | null
           game_id?: string
           id?: never
-          organization_id?: string | null
           role?: Database["public"]["Enums"]["credit_role"]
+          studio_id?: string | null
         }
         Relationships: [
           {
@@ -333,10 +333,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "game_credits_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: "game_credits_studio_id_fkey"
+            columns: ["studio_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "studios"
             referencedColumns: ["id"]
           },
         ]
@@ -477,6 +477,7 @@ export type Database = {
           email: string
           game_id: string
           id: string
+          unsubscribed_at: string | null
         }
         Insert: {
           confirmed?: boolean
@@ -484,6 +485,7 @@ export type Database = {
           email: string
           game_id: string
           id?: string
+          unsubscribed_at?: string | null
         }
         Update: {
           confirmed?: boolean
@@ -491,10 +493,70 @@ export type Database = {
           email?: string
           game_id?: string
           id?: string
+          unsubscribed_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "game_subscribers_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_updates: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          game_id: string
+          id: string
+          published_at: string | null
+          published_by: string | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          game_id: string
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          game_id?: string
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_updates_game_id_fkey"
             columns: ["game_id"]
             isOneToOne: false
             referencedRelation: "games"
@@ -511,7 +573,7 @@ export type Database = {
           header_url: string | null
           id: string
           last_name_change: string | null
-          owner_organization_id: string
+          owner_studio_id: string
           platforms: Json | null
           release_date: string | null
           status: Database["public"]["Enums"]["game_status"]
@@ -529,7 +591,7 @@ export type Database = {
           header_url?: string | null
           id?: string
           last_name_change?: string | null
-          owner_organization_id: string
+          owner_studio_id: string
           platforms?: Json | null
           release_date?: string | null
           status?: Database["public"]["Enums"]["game_status"]
@@ -547,7 +609,7 @@ export type Database = {
           header_url?: string | null
           id?: string
           last_name_change?: string | null
-          owner_organization_id?: string
+          owner_studio_id?: string
           platforms?: Json | null
           release_date?: string | null
           status?: Database["public"]["Enums"]["game_status"]
@@ -559,10 +621,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "games_owner_organization_id_fkey"
-            columns: ["owner_organization_id"]
+            foreignKeyName: "games_owner_studio_id_fkey"
+            columns: ["owner_studio_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "studios"
             referencedColumns: ["id"]
           },
         ]
@@ -574,8 +636,8 @@ export type Database = {
           email: string
           expires_at: string
           id: number
-          organization_id: string
-          role: Database["public"]["Enums"]["org_role"]
+          role: Database["public"]["Enums"]["studio_role"]
+          studio_id: string
           token: string
         }
         Insert: {
@@ -584,8 +646,8 @@ export type Database = {
           email: string
           expires_at?: string
           id?: never
-          organization_id: string
-          role: Database["public"]["Enums"]["org_role"]
+          role: Database["public"]["Enums"]["studio_role"]
+          studio_id: string
           token?: string
         }
         Update: {
@@ -594,97 +656,19 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: never
-          organization_id?: string
-          role?: Database["public"]["Enums"]["org_role"]
+          role?: Database["public"]["Enums"]["studio_role"]
+          studio_id?: string
           token?: string
         }
         Relationships: [
           {
-            foreignKeyName: "invites_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: "invites_studio_id_fkey"
+            columns: ["studio_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "studios"
             referencedColumns: ["id"]
           },
         ]
-      }
-      organization_members: {
-        Row: {
-          created_at: string
-          organization_id: string
-          role: Database["public"]["Enums"]["org_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          organization_id: string
-          role?: Database["public"]["Enums"]["org_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          organization_id?: string
-          role?: Database["public"]["Enums"]["org_role"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
-      organizations: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          id: string
-          is_verified: boolean
-          last_name_change: string | null
-          last_slug_change: string | null
-          name: string
-          slug: string
-          stripe_customer_id: string | null
-          updated_at: string | null
-          website_url: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          id?: string
-          is_verified?: boolean
-          last_name_change?: string | null
-          last_slug_change?: string | null
-          name: string
-          slug: string
-          stripe_customer_id?: string | null
-          updated_at?: string | null
-          website_url?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          id?: string
-          is_verified?: boolean
-          last_name_change?: string | null
-          last_slug_change?: string | null
-          name?: string
-          slug?: string
-          stripe_customer_id?: string | null
-          updated_at?: string | null
-          website_url?: string | null
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -716,28 +700,113 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_members: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["studio_role"]
+          studio_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["studio_role"]
+          studio_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["studio_role"]
+          studio_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_members_studio_id_fkey"
+            columns: ["studio_id"]
+            isOneToOne: false
+            referencedRelation: "studios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      studios: {
+        Row: {
+          accent_color: string | null
+          avatar_url: string | null
+          background_color: string | null
+          bio: string | null
+          cover_url: string | null
+          created_at: string
+          id: string
+          is_verified: boolean
+          last_name_change: string | null
+          last_slug_change: string | null
+          name: string
+          slug: string
+          social_links: Json | null
+          stripe_customer_id: string | null
+          text_color: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          background_color?: string | null
+          bio?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          last_name_change?: string | null
+          last_slug_change?: string | null
+          name: string
+          slug: string
+          social_links?: Json | null
+          stripe_customer_id?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          background_color?: string | null
+          bio?: string | null
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          last_name_change?: string | null
+          last_slug_change?: string | null
+          name?: string
+          slug?: string
+          social_links?: Json | null
+          stripe_customer_id?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       analytics_devices: {
-        Args: {
-          p_game_id: string
-          p_from: string
-          p_to: string
-        }
+        Args: { p_from: string; p_game_id: string; p_to: string }
         Returns: {
           device_type: string
           total: number
         }[]
       }
       analytics_summary: {
-        Args: {
-          p_game_id: string
-          p_from: string
-          p_to: string
-        }
+        Args: { p_from: string; p_game_id: string; p_to: string }
         Returns: {
           event_type: string
           total: number
@@ -745,11 +814,7 @@ export type Database = {
         }[]
       }
       analytics_timeseries: {
-        Args: {
-          p_game_id: string
-          p_from: string
-          p_to: string
-        }
+        Args: { p_from: string; p_game_id: string; p_to: string }
         Returns: {
           day: string
           event_type: string
@@ -759,10 +824,10 @@ export type Database = {
       }
       analytics_top_countries: {
         Args: {
-          p_game_id: string
           p_from: string
-          p_to: string
+          p_game_id: string
           p_limit?: number
+          p_to: string
         }
         Returns: {
           country: string
@@ -771,47 +836,81 @@ export type Database = {
       }
       analytics_top_links: {
         Args: {
-          p_game_id: string
           p_from: string
-          p_to: string
+          p_game_id: string
           p_limit?: number
+          p_to: string
         }
         Returns: {
-          link_id: string
           label: string
-          url: string
+          link_id: string
           total: number
+          url: string
         }[]
       }
       analytics_top_referrers: {
         Args: {
-          p_game_id: string
           p_from: string
-          p_to: string
+          p_game_id: string
           p_limit?: number
+          p_to: string
         }
         Returns: {
           referrer: string
           total: number
         }[]
       }
-      campaign_summary: {
+      audience_by_game: {
+        Args: { p_from: string; p_studio_id: string; p_to: string }
+        Returns: {
+          cover_url: string
+          game_id: string
+          game_title: string
+          net_growth: number
+          subscribers_gained: number
+          total_subscribers: number
+          unsubscribes: number
+        }[]
+      }
+      audience_summary: {
         Args: {
-          p_campaign_id: string
           p_from: string
+          p_game_id?: string
+          p_studio_id: string
           p_to: string
         }
+        Returns: {
+          confirmed_count: number
+          net_growth: number
+          pending_count: number
+          subscribers_gained: number
+          total_subscribers: number
+          unsubscribes: number
+        }[]
+      }
+      audience_timeseries: {
+        Args: {
+          p_from: string
+          p_game_id?: string
+          p_studio_id: string
+          p_to: string
+        }
+        Returns: {
+          day: string
+          net_growth: number
+          subscribers_gained: number
+          unsubscribes: number
+        }[]
+      }
+      campaign_summary: {
+        Args: { p_campaign_id: string; p_from: string; p_to: string }
         Returns: {
           total_clicks: number
           unique_visitors: number
         }[]
       }
       campaign_timeseries: {
-        Args: {
-          p_campaign_id: string
-          p_from: string
-          p_to: string
-        }
+        Args: { p_campaign_id: string; p_from: string; p_to: string }
         Returns: {
           day: string
           total_clicks: number
@@ -822,8 +921,8 @@ export type Database = {
         Args: {
           p_campaign_id: string
           p_from: string
-          p_to: string
           p_limit?: number
+          p_to: string
         }
         Returns: {
           country: string
@@ -834,17 +933,90 @@ export type Database = {
         Args: {
           p_campaign_id: string
           p_from: string
-          p_to: string
           p_limit?: number
+          p_to: string
         }
         Returns: {
           referrer: string
           total: number
         }[]
       }
-      cleanup_expired_invites: {
-        Args: Record<PropertyKey, never>
-        Returns: number
+      cleanup_expired_invites: { Args: never; Returns: number }
+      studio_analytics_devices: {
+        Args: { p_from: string; p_studio_id: string; p_to: string }
+        Returns: {
+          device_type: string
+          total: number
+        }[]
+      }
+      studio_analytics_summary: {
+        Args: { p_from: string; p_studio_id: string; p_to: string }
+        Returns: {
+          follows: number
+          link_clicks: number
+          page_views: number
+          unique_visitors: number
+        }[]
+      }
+      studio_analytics_timeseries: {
+        Args: { p_from: string; p_studio_id: string; p_to: string }
+        Returns: {
+          day: string
+          follows: number
+          link_clicks: number
+          page_views: number
+        }[]
+      }
+      studio_analytics_top_countries: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_studio_id: string
+          p_to: string
+        }
+        Returns: {
+          country: string
+          total: number
+        }[]
+      }
+      studio_analytics_top_games: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_studio_id: string
+          p_to: string
+        }
+        Returns: {
+          follows: number
+          game_id: string
+          link_clicks: number
+          page_views: number
+          title: string
+        }[]
+      }
+      studio_analytics_top_platforms: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_studio_id: string
+          p_to: string
+        }
+        Returns: {
+          platform: string
+          total: number
+        }[]
+      }
+      studio_analytics_top_referrers: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_studio_id: string
+          p_to: string
+        }
+        Returns: {
+          referrer: string
+          total: number
+        }[]
       }
     }
     Enums: {
@@ -860,8 +1032,8 @@ export type Database = {
         | "EARLY_ACCESS"
         | "RELEASED"
         | "CANCELLED"
-      org_role: "OWNER" | "ADMIN" | "MEMBER"
       page_visibility: "DRAFT" | "PUBLISHED" | "ARCHIVED"
+      studio_role: "OWNER" | "ADMIN" | "MEMBER"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -869,27 +1041,33 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -897,20 +1075,24 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -918,20 +1100,24 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -939,40 +1125,61 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
-      credit_role: ["DEVELOPER", "PUBLISHER", "PORTING", "MARKETING", "SUPPORT"] as const,
-      game_status: ["IN_DEVELOPMENT", "UPCOMING", "EARLY_ACCESS", "RELEASED", "CANCELLED"] as const,
-      org_role: ["OWNER", "ADMIN", "MEMBER"] as const,
-      page_visibility: ["DRAFT", "PUBLISHED", "ARCHIVED"] as const,
+      credit_role: [
+        "DEVELOPER",
+        "PUBLISHER",
+        "PORTING",
+        "MARKETING",
+        "SUPPORT",
+      ],
+      game_status: [
+        "IN_DEVELOPMENT",
+        "UPCOMING",
+        "EARLY_ACCESS",
+        "RELEASED",
+        "CANCELLED",
+      ],
+      page_visibility: ["DRAFT", "PUBLISHED", "ARCHIVED"],
+      studio_role: ["OWNER", "ADMIN", "MEMBER"],
     },
   },
 } as const

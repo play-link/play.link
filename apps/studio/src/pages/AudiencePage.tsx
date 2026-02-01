@@ -42,8 +42,8 @@ interface GameRow {
 }
 
 export function AudiencePage() {
-  const {activeOrganization} = useAppContext(
-    ContextLevel.AuthenticatedWithOrg,
+  const {activeStudio} = useAppContext(
+    ContextLevel.AuthenticatedWithStudio,
   );
   const [days, setDays] = useState<DateRange>('30');
   const [selectedGameId, setSelectedGameId] = useState('');
@@ -51,7 +51,7 @@ export function AudiencePage() {
     useState<ChartMetric>('subscribers_gained');
 
   const {data: games = []} = trpc.game.list.useQuery({
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
   });
 
   const gameOptions = useMemo(
@@ -63,7 +63,7 @@ export function AudiencePage() {
   );
 
   const queryInput = {
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
     days,
     gameId: selectedGameId || undefined,
   };
@@ -72,7 +72,7 @@ export function AudiencePage() {
     trpc.audience.summary.useQuery(queryInput);
   const {data: timeseries} = trpc.audience.timeseries.useQuery(queryInput);
   const {data: byGame} = trpc.audience.byGame.useQuery({
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
     days,
   });
 

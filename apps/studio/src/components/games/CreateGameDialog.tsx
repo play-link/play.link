@@ -12,7 +12,7 @@ interface CreateGameDialogProps {
 }
 
 export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const utils = trpc.useUtils();
 
@@ -41,9 +41,9 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
 
   const createGame = trpc.game.create.useMutation({
     onSuccess: (game) => {
-      utils.game.list.invalidate({organizationId: activeOrganization.id});
+      utils.game.list.invalidate({studioId: activeStudio.id});
       setOpened(false);
-      navigate(`/${activeOrganization.slug}/games/${game.id}`);
+      navigate(`/${activeStudio.slug}/games/${game.id}`);
     },
   });
 
@@ -73,7 +73,7 @@ export function CreateGameDialog({opened, setOpened}: CreateGameDialogProps) {
     e.preventDefault();
     if (canSubmit) {
       createGame.mutate({
-        organizationId: activeOrganization.id,
+        studioId: activeStudio.id,
         title,
         slug,
       });

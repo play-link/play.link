@@ -6,21 +6,21 @@ import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {Section, SectionTitle} from './shared';
 
 export function OwnershipSection() {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
 
   return (
     <Section>
       <SectionTitle>Ownership & Access</SectionTitle>
 
       <InfoRow>
-        <InfoLabel>Owner organization</InfoLabel>
-        <InfoValue>{activeOrganization.name}</InfoValue>
+        <InfoLabel>Owner studio</InfoLabel>
+        <InfoValue>{activeStudio.name}</InfoValue>
       </InfoRow>
 
-      <Link to={`/${activeOrganization.slug}/settings/team`}>
+      <Link to={`/${activeStudio.slug}/settings/team`}>
         <Button variant="ghost" size="sm">
           <ExternalLinkIcon size={14} />
-          Manage organization members
+          Manage studio members
         </Button>
       </Link>
     </Section>

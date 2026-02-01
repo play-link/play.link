@@ -4,7 +4,6 @@ export {AudiencePage} from './AudiencePage';
 export {AuthCallbackPage} from './AuthCallbackPage';
 export {CampaignDetailPage} from './CampaignDetailPage';
 export {CampaignsPage} from './CampaignsPage';
-export {CreateCampaignPage} from './CreateCampaignPage';
 export {GamePage} from './GamePage';
 export {GamesPage} from './GamesPage';
 export {LoginPage} from './LoginPage';

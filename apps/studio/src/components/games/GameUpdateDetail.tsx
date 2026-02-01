@@ -10,12 +10,12 @@ import {trpc} from '@/lib/trpc';
 export function GameUpdateDetail() {
   const game = useOutletContext<GameOutletContext>();
   const {updateId} = useParams<{updateId: string}>();
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
   const utils = trpc.useUtils();
 
-  const basePath = `/${activeOrganization.slug}/games/${game.id}`;
+  const basePath = `/${activeStudio.slug}/games/${game.id}`;
 
   const {data: update, isLoading} = trpc.gameUpdate.get.useQuery(
     {id: updateId!, gameId: game.id},

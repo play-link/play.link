@@ -112,7 +112,7 @@ check:
     pnpm -r run lint
     echo "🔍 Running typecheck..."
     pnpm --filter @play/studio exec tsc --noEmit
-    pnpm --filter @play/web exec tsc --noEmit
+    pnpm --filter @play/web run typecheck
     echo "✅ All checks passed!"
 
 # Run lint:fix + typecheck on all apps (used by yolo)
@@ -122,7 +122,7 @@ check-fix:
     pnpm -r run lint:fix
     echo "🔍 Running typecheck..."
     pnpm --filter @play/studio exec tsc --noEmit
-    pnpm --filter @play/web exec tsc --noEmit
+    pnpm --filter @play/web run typecheck
     echo "✅ All checks passed!"
 
 # =====================================================================

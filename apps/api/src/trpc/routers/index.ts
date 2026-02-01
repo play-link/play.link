@@ -13,8 +13,8 @@ import {gameSubscriberRouter} from './gameSubscriber'
 import {inviteRouter} from './invite'
 import {meRouter} from './me'
 import {memberRouter} from './member'
-import {orgAnalyticsRouter} from './org-analytics'
-import {organizationRouter} from './organization'
+import {studioAnalyticsRouter} from './studio-analytics'
+import {studioRouter} from './studio'
 import {profileRouter} from './profile'
 
 export const appRouter = router({
@@ -32,8 +32,8 @@ export const appRouter = router({
   invite: inviteRouter,
   me: meRouter,
   member: memberRouter,
-  orgAnalytics: orgAnalyticsRouter,
-  organization: organizationRouter,
+  studioAnalytics: studioAnalyticsRouter,
+  studio: studioRouter,
   profile: profileRouter,
 })
 

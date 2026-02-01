@@ -33,7 +33,7 @@ export function GamePreview() {
       <Toolbar>
         <ToolbarLeft>
           <Button variant="ghost" size="sm" onClick={goBack}>
-            <ArrowLeftIcon size={16} />
+            <ArrowLeftIcon size={16} className="mr-2" />
             Back to game
           </Button>
         </ToolbarLeft>
@@ -49,7 +49,7 @@ export function GamePreview() {
         </ToolbarCenter>
         <ToolbarRight>
           <Button variant="ghost" size="sm" onClick={goDesign}>
-            <PencilIcon size={16} />
+            <PencilIcon size={16} className="mr-2" />
             Edit page
           </Button>
         </ToolbarRight>

@@ -27,7 +27,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@play/supabase-client": ["../../packages/supabase-client/src"],
-      "@play/pylon": ["../../packages/pylon/src"]
+      "@play/pylon": ["../../packages/pylon/src"],
+      "@play/game-renderer": ["../../packages/game-renderer/src"]
     }
   },
   "include": [
@@ -36,7 +37,9 @@
     "src/**/*.d.ts",
     "../../packages/pylon/src/**/*.ts",
     "../../packages/pylon/src/**/*.tsx",
-    "../../packages/supabase-client/src/**/*.ts"
+    "../../packages/supabase-client/src/**/*.ts",
+    "../../packages/game-renderer/src/**/*.ts",
+    "../../packages/game-renderer/src/**/*.tsx"
   ],
   "exclude": ["node_modules", "dist", "build"]
 }

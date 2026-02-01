@@ -1,11 +1,11 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
-const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
 
 const slugSchema = z
   .string()
@@ -29,7 +29,7 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
 
   const {data: game} = await supabase
     .from('games')
-    .select('owner_organization_id')
+    .select('owner_studio_id')
     .eq('id', page.game_id)
     .single()
 
@@ -38,13 +38,13 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
   }
 
   const {data: member} = await supabase
-    .from('organization_members')
+    .from('studio_members')
     .select('role')
-    .eq('organization_id', game.owner_organization_id)
+    .eq('studio_id', game.owner_studio_id)
     .eq('user_id', userId)
     .single()
 
-  if (!member || !EDIT_ROLES.includes(member.role as OrgRoleType)) {
+  if (!member || !EDIT_ROLES.includes(member.role as StudioRoleType)) {
     throw new TRPCError({code: 'FORBIDDEN', message: 'No access to this game page'})
   }
 
@@ -89,7 +89,7 @@ export const gamePageRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
         metadata: {action: 'publish', slug: page.slug},
@@ -123,7 +123,7 @@ export const gamePageRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
         metadata: {action: 'unpublish', slug: page.slug},
@@ -172,7 +172,7 @@ export const gamePageRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
         metadata: {oldSlug: page.slug, newSlug: input.slug},
@@ -216,7 +216,7 @@ export const gamePageRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
         metadata: {action: 'update_page_config', slug: page.slug},

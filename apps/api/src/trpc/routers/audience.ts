@@ -3,7 +3,7 @@ import {z} from 'zod'
 import {protectedProcedure, router} from '../index'
 
 const audienceInput = z.object({
-  organizationId: z.string().uuid(),
+  studioId: z.string().uuid(),
   days: z.enum(['7', '30', '90']).default('30'),
   gameId: z.string().uuid().optional(),
 })
@@ -15,22 +15,22 @@ function getDateRange(days: string) {
   return {from: from.toISOString(), to: to.toISOString()}
 }
 
-async function verifyOrgMembership(
+async function verifyStudioMembership(
   supabase: any,
   userId: string,
-  organizationId: string,
+  studioId: string,
 ) {
   const {data: member} = await supabase
-    .from('organization_members')
+    .from('studio_members')
     .select('role')
-    .eq('organization_id', organizationId)
+    .eq('studio_id', studioId)
     .eq('user_id', userId)
     .single()
 
   if (!member) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'You are not a member of this organization',
+      message: 'You are not a member of this studio',
     })
   }
 }
@@ -40,11 +40,11 @@ export const audienceRouter = router({
     .input(audienceInput)
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyOrgMembership(supabase, user.id, input.organizationId)
+      await verifyStudioMembership(supabase, user.id, input.studioId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('audience_summary', {
-        p_org_id: input.organizationId,
+        p_studio_id: input.studioId,
         p_from: from,
         p_to: to,
         p_game_id: input.gameId || null,
@@ -71,11 +71,11 @@ export const audienceRouter = router({
     .input(audienceInput)
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyOrgMembership(supabase, user.id, input.organizationId)
+      await verifyStudioMembership(supabase, user.id, input.studioId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('audience_timeseries', {
-        p_org_id: input.organizationId,
+        p_studio_id: input.studioId,
         p_from: from,
         p_to: to,
         p_game_id: input.gameId || null,
@@ -93,16 +93,16 @@ export const audienceRouter = router({
 
   byGame: protectedProcedure
     .input(z.object({
-      organizationId: z.string().uuid(),
+      studioId: z.string().uuid(),
       days: z.enum(['7', '30', '90']).default('30'),
     }))
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyOrgMembership(supabase, user.id, input.organizationId)
+      await verifyStudioMembership(supabase, user.id, input.studioId)
       const {from, to} = getDateRange(input.days)
 
       const {data, error} = await supabase.rpc('audience_by_game', {
-        p_org_id: input.organizationId,
+        p_studio_id: input.studioId,
         p_from: from,
         p_to: to,
       })

@@ -1,10 +1,8 @@
-import {ArrowLeftIcon} from 'lucide-react';
 import {useCallback, useMemo, useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled from 'styled-components';
-import {Button, Input, Select, useSnackbar} from '@play/pylon';
+import {Button, DialogOverlay, Input, Select, useSnackbar} from '@play/pylon';
 import type {Tables} from '@play/supabase-client';
-import {PageLayout} from '@/components/layout';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
 
@@ -24,13 +22,18 @@ const DESTINATION_OPTIONS = [
   {label: 'Custom URL', value: 'custom'},
 ];
 
-export function CreateCampaignPage() {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+interface CreateCampaignDialogProps {
+  opened: boolean;
+  setOpened: (opened: boolean) => void;
+}
+
+export function CreateCampaignDialog({opened, setOpened}: CreateCampaignDialogProps) {
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
 
   const {data: games = []} = trpc.game.list.useQuery({
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
   });
 
   const [name, setName] = useState('');
@@ -77,10 +80,24 @@ export function CreateCampaignPage() {
 
   const previewUrl = `play.link/g/${gameSlug}?c=${slug || 'your-slug'}`;
 
+  const resetForm = () => {
+    setName('');
+    setGameId('');
+    setDestination('game_page');
+    setDestinationUrl('');
+    setSlug('');
+    setSlugEdited(false);
+    setUtmSource('');
+    setUtmMedium('');
+    setUtmCampaign('');
+  };
+
   const createMutation = trpc.campaign.create.useMutation({
     onSuccess: (data) => {
       showSnackbar({message: 'Campaign created', severity: 'success'});
-      navigate(`/${activeOrganization.slug}/campaigns/${data.id}`);
+      setOpened(false);
+      resetForm();
+      navigate(`/${activeStudio.slug}/campaigns/${data.id}`);
     },
     onError: (error) => {
       showSnackbar({message: error.message, severity: 'error'});
@@ -105,26 +122,17 @@ export function CreateCampaignPage() {
   const canSubmit = name.trim() && gameId && slug.trim() && !createMutation.isPending;
 
   return (
-    <PageLayout>
-      <PageLayout.Header title="Create Campaign">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(`/${activeOrganization.slug}/campaigns`)}
-        >
-          <ArrowLeftIcon size={16} />
-          Back to Campaigns
-        </Button>
-      </PageLayout.Header>
-
-      <PageLayout.Content>
-        <FormCard>
+    <DialogOverlay opened={opened} setOpened={setOpened} size="lg">
+      <DialogOverlay.Header>Create Campaign</DialogOverlay.Header>
+      <DialogOverlay.Content>
+        <FormBody>
           <FormSection>
             <Label>Campaign name</Label>
             <Input
               placeholder="e.g. Twitter Launch, Steam Wishlist Push"
               value={name}
               onChange={handleNameChange}
+              fullWidth
             />
           </FormSection>
 
@@ -153,6 +161,7 @@ export function CreateCampaignPage() {
                 value={destinationUrl}
                 onChange={(e) => setDestinationUrl(e.target.value)}
                 style={{marginTop: 'var(--spacing-2)'}}
+                fullWidth
               />
             )}
           </FormSection>
@@ -163,6 +172,7 @@ export function CreateCampaignPage() {
               placeholder="twitter-launch"
               value={slug}
               onChange={handleSlugChange}
+              fullWidth
             />
             <Hint>Used in the tracking URL as ?c={slug || '...'}</Hint>
           </FormSection>
@@ -178,6 +188,7 @@ export function CreateCampaignPage() {
                 placeholder="twitter"
                 value={utmSource}
                 onChange={(e) => setUtmSource(e.target.value)}
+                fullWidth
               />
             </FormSection>
             <FormSection>
@@ -186,6 +197,7 @@ export function CreateCampaignPage() {
                 placeholder="social"
                 value={utmMedium}
                 onChange={(e) => setUtmMedium(e.target.value)}
+                fullWidth
               />
             </FormSection>
             <FormSection>
@@ -194,6 +206,7 @@ export function CreateCampaignPage() {
                 placeholder="launch-2026"
                 value={utmCampaign}
                 onChange={(e) => setUtmCampaign(e.target.value)}
+                fullWidth
               />
             </FormSection>
           </FormRow>
@@ -204,26 +217,25 @@ export function CreateCampaignPage() {
             <Label>Tracking URL preview</Label>
             <PreviewUrl>{previewUrl}</PreviewUrl>
           </PreviewSection>
-
-          <Button
-            variant="primary"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-          >
-            {createMutation.isPending ? 'Creating...' : 'Create Campaign'}
-          </Button>
-        </FormCard>
-      </PageLayout.Content>
-    </PageLayout>
+        </FormBody>
+      </DialogOverlay.Content>
+      <DialogOverlay.Footer>
+        <Button variant="ghost" onClick={() => setOpened(false)}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+        >
+          {createMutation.isPending ? 'Creating...' : 'Create Campaign'}
+        </Button>
+      </DialogOverlay.Footer>
+    </DialogOverlay>
   );
 }
 
-const FormCard = styled.div`
-  max-width: 36rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-muted);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
+const FormBody = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);

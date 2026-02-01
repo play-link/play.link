@@ -32,7 +32,7 @@ type InviteFormData = z.infer<typeof inviteSchema>;
 interface InviteMemberOverlayProps {
   opened: boolean;
   setOpened: (opened: boolean) => void;
-  organizationId: string;
+  studioId: string;
   existingMemberIds: string[];
   canInviteOwner: boolean;
   onSuccess: () => void;
@@ -41,7 +41,7 @@ interface InviteMemberOverlayProps {
 export function InviteMemberOverlay({
   opened,
   setOpened,
-  organizationId,
+  studioId,
   existingMemberIds,
   canInviteOwner,
   onSuccess,
@@ -115,7 +115,7 @@ export function InviteMemberOverlay({
     if (!selectedUser) return;
 
     addMember.mutate({
-      organizationId,
+      studioId,
       userId: selectedUser.user_id,
       role: data.role,
     });

@@ -7,14 +7,14 @@ import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
 
 export function TeamSettingsPage() {
-  const {activeOrganization, me} = useAppContext(
-    ContextLevel.AuthenticatedWithOrg,
+  const {activeStudio, me} = useAppContext(
+    ContextLevel.AuthenticatedWithStudio,
   );
   const [inviteOverlayOpen, setInviteOverlayOpen] = useState(false);
   const utils = trpc.useUtils();
 
   const {data: rawMembers = [], isLoading} = trpc.member.list.useQuery({
-    organizationId: activeOrganization.id,
+    studioId: activeStudio.id,
   });
 
   // Transform API response: profiles comes as array from Supabase join
@@ -24,11 +24,11 @@ export function TeamSettingsPage() {
   }));
 
   const canManage =
-    activeOrganization.role === 'OWNER' || activeOrganization.role === 'ADMIN';
-  const isOwner = activeOrganization.role === 'OWNER';
+    activeStudio.role === 'OWNER' || activeStudio.role === 'ADMIN';
+  const isOwner = activeStudio.role === 'OWNER';
 
   const handleMembersChange = () => {
-    utils.member.list.invalidate({organizationId: activeOrganization.id});
+    utils.member.list.invalidate({studioId: activeStudio.id});
   };
 
   if (isLoading) {
@@ -43,7 +43,7 @@ export function TeamSettingsPage() {
     <PageLayout>
       <PageLayout.Header
         title="Team"
-        subtitle={`Manage team members of ${activeOrganization.name}`}
+        subtitle={`Manage team members of ${activeStudio.name}`}
       >
         {canManage && (
           <Button variant="primary" onClick={() => setInviteOverlayOpen(true)}>
@@ -56,7 +56,7 @@ export function TeamSettingsPage() {
         <Card padding={0}>
           <MembersTable
             members={members}
-            organizationId={activeOrganization.id}
+            studioId={activeStudio.id}
             currentUserId={me.id}
             canManage={canManage}
             isOwner={isOwner}
@@ -68,7 +68,7 @@ export function TeamSettingsPage() {
       <InviteMemberOverlay
         opened={inviteOverlayOpen}
         setOpened={setInviteOverlayOpen}
-        organizationId={activeOrganization.id}
+        studioId={activeStudio.id}
         existingMemberIds={members.map((m) => m.user_id)}
         canInviteOwner={isOwner}
         onSuccess={handleMembersChange}

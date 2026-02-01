@@ -1,22 +1,22 @@
 import {TRPCError} from '@trpc/server'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 
-const ALL_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
+const ALL_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
 
 /**
- * Verify user has access to a game via org membership.
- * Throws FORBIDDEN if user is not a member of the game's owner org.
+ * Verify user has access to a game via studio membership.
+ * Throws FORBIDDEN if user is not a member of the game's owner studio.
  */
 export async function verifyGameAccess(
   supabase: any,
   userId: string,
   gameId: string,
-  requiredRoles: OrgRoleType[] = ALL_ROLES,
+  requiredRoles: StudioRoleType[] = ALL_ROLES,
 ) {
   const {data: game} = await supabase
     .from('games')
-    .select('owner_organization_id')
+    .select('owner_studio_id')
     .eq('id', gameId)
     .single()
 
@@ -25,13 +25,13 @@ export async function verifyGameAccess(
   }
 
   const {data: member} = await supabase
-    .from('organization_members')
+    .from('studio_members')
     .select('role')
-    .eq('organization_id', game.owner_organization_id)
+    .eq('studio_id', game.owner_studio_id)
     .eq('user_id', userId)
     .single()
 
-  if (!member || !requiredRoles.includes(member.role as OrgRoleType)) {
+  if (!member || !requiredRoles.includes(member.role as StudioRoleType)) {
     throw new TRPCError({code: 'FORBIDDEN', message: 'No access to this game'})
   }
 
