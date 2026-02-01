@@ -1,12 +1,12 @@
 import {Resend} from 'resend'
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import {OrgRole} from '@play/supabase-client'
-import type {OrgRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {verifyGameAccess} from '../lib/verify-access'
 
-const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
 
 async function generateUnsubscribeToken(secret: string, gameId: string, email: string): Promise<string> {
   const payload = `${gameId}:${email}`

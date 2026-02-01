@@ -20,7 +20,7 @@ import {UserMenuDropdown} from './UserMenuDropdown';
 
 export interface NavItem {
   label: string;
-  /** Path relative to org (e.g., "" for home, "games" for games page) */
+  /** Path relative to studio (e.g., "" for home, "games" for games page) */
   path: string;
   icon: LucideIcon;
 }
@@ -48,7 +48,7 @@ export function DashboardLayout({
   children,
   navItems = defaultNavItems,
 }: DashboardLayoutProps) {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   return (
@@ -63,7 +63,7 @@ export function DashboardLayout({
         <Nav>
           <NavList>
             {navItems.map((item) => {
-              const to = `/${activeOrganization.slug}${item.path ? `/${item.path}` : ''}`;
+              const to = `/${activeStudio.slug}${item.path ? `/${item.path}` : ''}`;
               return (
                 <li key={item.path}>
                   <Button
@@ -96,7 +96,7 @@ export function DashboardLayout({
               {settingsExpanded && (
                 <SettingsSubList>
                   {settingsItems.map((item) => {
-                    const to = `/${activeOrganization.slug}/${item.path}`;
+                    const to = `/${activeStudio.slug}/${item.path}`;
                     return (
                       <li key={item.path}>
                         <Button variant="nav" to={to} className="w-full">

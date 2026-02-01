@@ -3,7 +3,7 @@
  * These match the PostgreSQL enums in the database.
  */
 
-export const OrgRole = {
+export const StudioRole = {
   OWNER: 'OWNER',
   ADMIN: 'ADMIN',
   MEMBER: 'MEMBER',
@@ -32,7 +32,7 @@ export const CreditRole = {
 } as const
 
 // Type helpers derived from constants
-export type OrgRoleType = (typeof OrgRole)[keyof typeof OrgRole]
+export type StudioRoleType = (typeof StudioRole)[keyof typeof StudioRole]
 export type GameStatusType = (typeof GameStatus)[keyof typeof GameStatus]
 export type PageVisibilityType = (typeof PageVisibility)[keyof typeof PageVisibility]
 export type CreditRoleType = (typeof CreditRole)[keyof typeof CreditRole]

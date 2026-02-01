@@ -1,2 +1,2 @@
 export {AdminGuard} from './AdminGuard';
-export {OrganizationGuard} from './OrganizationGuard';
+export {StudioGuard} from './StudioGuard';

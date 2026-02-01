@@ -1,24 +1,29 @@
-import {CopyIcon, MegaphoneIcon, PlusIcon, Trash2Icon} from 'lucide-react';
+import {CopyIcon, PlusIcon, Trash2Icon} from 'lucide-react';
+import {useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled from 'styled-components';
 import {Button, Loading, useSnackbar} from '@play/pylon';
 import {PageLayout} from '@/components/layout';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
+import {CreateCampaignDialog} from './CreateCampaignPage';
 
 export function CampaignsPage() {
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
   const utils = trpc.useUtils();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const {data: campaigns = [], isLoading} = trpc.campaign.listByOrg.useQuery({
-    organizationId: activeOrganization.id,
+  const {data: campaigns = [], isLoading} = trpc.campaign.listByStudio.useQuery({
+    studioId: activeStudio.id,
   });
 
   const deleteMutation = trpc.campaign.delete.useMutation({
     onSuccess: () => {
-      utils.campaign.listByOrg.invalidate({organizationId: activeOrganization.id});
+      utils.campaign.listByStudio.invalidate({
+        studioId: activeStudio.id,
+      });
       showSnackbar({message: 'Campaign deleted', severity: 'success'});
     },
     onError: (error) => {
@@ -53,15 +58,9 @@ export function CampaignsPage() {
 
   return (
     <PageLayout>
-      <PageLayout.Header
-        title="Campaigns"
-        subtitle={`${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''}`}
-      >
-        <Button
-          variant="primary"
-          onClick={() => navigate(`/${activeOrganization.slug}/campaigns/new`)}
-        >
-          <PlusIcon size={18} />
+      <PageLayout.Header title="Campaigns">
+        <Button variant="primary" onClick={() => setCreateDialogOpen(true)}>
+          <PlusIcon size={18} className="mr-2" />
           Create Campaign
         </Button>
       </PageLayout.Header>
@@ -69,21 +68,11 @@ export function CampaignsPage() {
       <PageLayout.Content>
         {campaigns.length === 0 ? (
           <EmptyState>
-            <EmptyIcon>
-              <MegaphoneIcon size={40} />
-            </EmptyIcon>
+            <EmptyImage src="/assets/no-campaigns.png" alt="" />
             <EmptyTitle>No campaigns yet</EmptyTitle>
             <EmptyText>
-              Create tracked links to measure where your traffic comes from and
-              what converts best.
+              Create your first campaign to start tracking performance.
             </EmptyText>
-            <Button
-              variant="primary"
-              onClick={() => navigate(`/${activeOrganization.slug}/campaigns/new`)}
-            >
-              <PlusIcon size={18} />
-              Create Your First Campaign
-            </Button>
           </EmptyState>
         ) : (
           <Table>
@@ -102,7 +91,7 @@ export function CampaignsPage() {
                 <Tr
                   key={c.id}
                   onClick={() =>
-                    navigate(`/${activeOrganization.slug}/campaigns/${c.id}`)
+                    navigate(`/${activeStudio.slug}/campaigns/${c.id}`)
                   }
                   style={{cursor: 'pointer'}}
                 >
@@ -113,7 +102,9 @@ export function CampaignsPage() {
                   <Td>{c.game_title}</Td>
                   <Td>
                     <DestinationLabel>
-                      {c.destination === 'game_page' ? 'Game page' : c.destination}
+                      {c.destination === 'game_page'
+                        ? 'Game page'
+                        : c.destination}
                     </DestinationLabel>
                   </Td>
                   <Td>
@@ -154,6 +145,11 @@ export function CampaignsPage() {
           </Table>
         )}
       </PageLayout.Content>
+
+      <CreateCampaignDialog
+        opened={createDialogOpen}
+        setOpened={setCreateDialogOpen}
+      />
     </PageLayout>
   );
 }
@@ -172,25 +168,21 @@ const EmptyState = styled.div`
   justify-content: center;
   text-align: center;
   padding: var(--spacing-16) var(--spacing-6);
-  background: var(--bg-surface);
-  border: 1px dashed var(--border-muted);
-  border-radius: var(--radius-xl);
 `;
 
-const EmptyIcon = styled.div`
-  color: var(--fg-subtle);
-  margin-bottom: var(--spacing-4);
+const EmptyImage = styled.img`
+  width: 27.5rem;
+  margin-bottom: var(--spacing-8);
 `;
 
 const EmptyTitle = styled.h2`
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--fg);
-  margin: 0 0 var(--spacing-2);
+  margin-bottom: var(--spacing-2);
 `;
 
 const EmptyText = styled.p`
-  font-size: var(--text-base);
   color: var(--fg-muted);
   margin: 0 0 var(--spacing-6);
   max-width: 24rem;

@@ -1,13 +1,13 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can manage game credits
-const MANAGE_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
+const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
 
 // Credit role enum matching DB
 const CREDIT_ROLES = [
@@ -35,8 +35,8 @@ export const gameCreditRouter = router({
           id,
           role,
           custom_name,
-          organization_id,
-          organizations (
+          studio_id,
+          studios (
             id,
             slug,
             name,
@@ -58,19 +58,19 @@ export const gameCreditRouter = router({
 
   /**
    * Add a credit to a game
-   * Must be OWNER or ADMIN of the game's owner organization
+   * Must be OWNER or ADMIN of the game's owner studio
    */
   create: protectedProcedure
     .input(
       z
         .object({
           gameId: z.string().uuid(),
-          organizationId: z.string().uuid().optional(),
+          studioId: z.string().uuid().optional(),
           customName: z.string().min(1).max(200).optional(),
           role: z.enum(CREDIT_ROLES),
         })
-        .refine((data) => data.organizationId || data.customName, {
-          message: 'Either organizationId or customName must be provided',
+        .refine((data) => data.studioId || data.customName, {
+          message: 'Either studioId or customName must be provided',
         }),
     )
     .mutation(async ({ctx, input}) => {
@@ -79,7 +79,7 @@ export const gameCreditRouter = router({
       // Get the game to check ownership
       const {data: game, error: gameError} = await supabase
         .from('games')
-        .select('owner_organization_id')
+        .select('owner_studio_id')
         .eq('id', input.gameId)
         .single()
 
@@ -90,33 +90,33 @@ export const gameCreditRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of owner org
+      // Check user is OWNER or ADMIN of owner studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', game.owner_organization_id)
+        .eq('studio_id', game.owner_studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to add credits to this game',
         })
       }
 
-      // If linking to an org, verify it exists
-      if (input.organizationId) {
-        const {data: org} = await supabase
-          .from('organizations')
+      // If linking to a studio, verify it exists
+      if (input.studioId) {
+        const {data: studio} = await supabase
+          .from('studios')
           .select('id')
-          .eq('id', input.organizationId)
+          .eq('id', input.studioId)
           .single()
 
-        if (!org) {
+        if (!studio) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Organization not found',
+            message: 'Studio not found',
           })
         }
       }
@@ -126,7 +126,7 @@ export const gameCreditRouter = router({
         .from('game_credits')
         .insert({
           game_id: input.gameId,
-          organization_id: input.organizationId || null,
+          studio_id: input.studioId || null,
           custom_name: input.customName || null,
           role: input.role,
         })
@@ -144,13 +144,13 @@ export const gameCreditRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_CREDIT_ADD,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_credit',
         targetId: String(credit.id),
         metadata: {
           gameId: input.gameId,
           role: input.role,
-          organizationId: input.organizationId,
+          studioId: input.studioId,
           customName: input.customName,
         },
       })
@@ -166,13 +166,13 @@ export const gameCreditRouter = router({
       z
         .object({
           id: z.number(),
-          organizationId: z.string().uuid().optional().nullable(),
+          studioId: z.string().uuid().optional().nullable(),
           customName: z.string().min(1).max(200).optional().nullable(),
           role: z.enum(CREDIT_ROLES).optional(),
         })
         .refine(
           (data) =>
-            data.organizationId !== null ||
+            data.studioId !== null ||
             data.customName !== null ||
             data.role !== undefined,
           {
@@ -201,7 +201,7 @@ export const gameCreditRouter = router({
       // Get the game to check ownership
       const {data: game} = await supabase
         .from('games')
-        .select('owner_organization_id')
+        .select('owner_studio_id')
         .eq('id', credit.game_id)
         .single()
 
@@ -212,15 +212,15 @@ export const gameCreditRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of owner org
+      // Check user is OWNER or ADMIN of owner studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', game.owner_organization_id)
+        .eq('studio_id', game.owner_studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to edit credits for this game',
@@ -229,24 +229,24 @@ export const gameCreditRouter = router({
 
       // Build update object
       const dbUpdates: Record<string, unknown> = {}
-      if (updates.organizationId !== undefined)
-        dbUpdates.organization_id = updates.organizationId
+      if (updates.studioId !== undefined)
+        dbUpdates.studio_id = updates.studioId
       if (updates.customName !== undefined)
         dbUpdates.custom_name = updates.customName
       if (updates.role !== undefined) dbUpdates.role = updates.role
 
-      // Validate constraint: either org or custom_name must exist
-      const finalOrgId =
-        updates.organizationId !== undefined
-          ? updates.organizationId
+      // Validate constraint: either studio or custom_name must exist
+      const finalStudioId =
+        updates.studioId !== undefined
+          ? updates.studioId
           : undefined
       const finalCustomName =
         updates.customName !== undefined ? updates.customName : undefined
 
-      if (finalOrgId === null && finalCustomName === null) {
+      if (finalStudioId === null && finalCustomName === null) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Either organizationId or customName must be set',
+          message: 'Either studioId or customName must be set',
         })
       }
 
@@ -268,7 +268,7 @@ export const gameCreditRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_CREDIT_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_credit',
         targetId: String(id),
         metadata: {gameId: credit.game_id, changes: dbUpdates},
@@ -302,7 +302,7 @@ export const gameCreditRouter = router({
       // Get the game to check ownership
       const {data: game} = await supabase
         .from('games')
-        .select('owner_organization_id')
+        .select('owner_studio_id')
         .eq('id', credit.game_id)
         .single()
 
@@ -313,15 +313,15 @@ export const gameCreditRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of owner org
+      // Check user is OWNER or ADMIN of owner studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', game.owner_organization_id)
+        .eq('studio_id', game.owner_studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to delete credits for this game',
@@ -344,7 +344,7 @@ export const gameCreditRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_CREDIT_REMOVE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game_credit',
         targetId: String(input.id),
         metadata: {gameId: credit.game_id},

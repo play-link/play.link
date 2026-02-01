@@ -9,14 +9,13 @@ import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'updates' | 'analytics' | 'settings';
+type Tab = 'overview' | 'updates' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
   const parts = location.pathname.split('/');
   const segment = parts[parts.length - 1];
   const parentSegment = parts[parts.length - 2];
-  if (segment === 'analytics') return 'analytics';
   if (segment === 'settings') return 'settings';
   if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
@@ -30,12 +29,12 @@ function useIsFullscreen(): boolean {
 
 export function GamePage() {
   const {gameId} = useParams<{gameId: string}>();
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const activeTab = useActiveTab();
   const isFullscreen = useIsFullscreen();
 
-  const basePath = `/${activeOrganization.slug}/games/${gameId}`;
+  const basePath = `/${activeStudio.slug}/games/${gameId}`;
 
   const {data: game, isLoading} = trpc.game.get.useQuery(
     {id: gameId!},
@@ -58,7 +57,7 @@ export function GamePage() {
     return (
       <Container>
         <p>Game not found</p>
-        <Link to={`/${activeOrganization.slug}/games`}>
+        <Link to={`/${activeStudio.slug}/games`}>
           <Button variant="ghost">Back to Games</Button>
         </Link>
       </Container>
@@ -72,7 +71,7 @@ export function GamePage() {
   return (
     <Container>
       <TopBar>
-        <BackLink to={`/${activeOrganization.slug}/games`}>
+        <BackLink to={`/${activeStudio.slug}/games`}>
           <ArrowLeftIcon size={20} />
           Back to Games
         </BackLink>
@@ -94,14 +93,6 @@ export function GamePage() {
           onClick={() => navigate(`${basePath}/updates`)}
         >
           Updates
-        </Button>
-        <Button
-          variant="nav"
-          size="sm"
-          className={activeTab === 'analytics' ? 'active' : ''}
-          onClick={() => navigate(`${basePath}/analytics`)}
-        >
-          Analytics
         </Button>
         <Button
           variant="nav"

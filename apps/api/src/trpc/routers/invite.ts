@@ -1,7 +1,7 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 import {
@@ -11,26 +11,26 @@ import {
 } from '../lib/rate-limit'
 
 // Roles that can manage invites
-const MANAGE_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
+const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
 
 export const inviteRouter = router({
   /**
-   * List pending invites for an organization
+   * List pending invites for a studio
    */
   list: protectedProcedure
-    .input(z.object({organizationId: z.string().uuid()}))
+    .input(z.object({studioId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
-      // Check user is OWNER or ADMIN of org
+      // Check user is OWNER or ADMIN of studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to view invites',
@@ -40,7 +40,7 @@ export const inviteRouter = router({
       const {data: invites, error} = await supabase
         .from('invites')
         .select('id, email, role, created_at, accepted_at')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .is('accepted_at', null)
         .order('created_at', {ascending: false})
 
@@ -55,12 +55,12 @@ export const inviteRouter = router({
     }),
 
   /**
-   * Create an invite to an organization
+   * Create an invite to a studio
    */
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.string().uuid(),
+        studioId: z.string().uuid(),
         email: z.string().email(),
         role: z.enum(['OWNER', 'ADMIN', 'MEMBER']).default('MEMBER'),
       }),
@@ -81,15 +81,15 @@ export const inviteRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of org
+      // Check user is OWNER or ADMIN of studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to invite users',
@@ -97,7 +97,7 @@ export const inviteRouter = router({
       }
 
       // Only owners can invite as owner
-      if (input.role === 'OWNER' && member.role !== OrgRole.OWNER) {
+      if (input.role === 'OWNER' && member.role !== StudioRole.OWNER) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Only owners can invite other owners',
@@ -108,7 +108,7 @@ export const inviteRouter = router({
       const {data: existingInvite} = await supabase
         .from('invites')
         .select('id')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('email', input.email)
         .is('accepted_at', null)
         .single()
@@ -129,16 +129,16 @@ export const inviteRouter = router({
 
       if (existingMember) {
         const {data: isMember} = await supabase
-          .from('organization_members')
+          .from('studio_members')
           .select('user_id')
-          .eq('organization_id', input.organizationId)
+          .eq('studio_id', input.studioId)
           .eq('user_id', existingMember.user_id)
           .single()
 
         if (isMember) {
           throw new TRPCError({
             code: 'CONFLICT',
-            message: 'This user is already a member of the organization',
+            message: 'This user is already a member of the studio',
           })
         }
       }
@@ -147,7 +147,7 @@ export const inviteRouter = router({
       const {data: invite, error} = await supabase
         .from('invites')
         .insert({
-          organization_id: input.organizationId,
+          studio_id: input.studioId,
           email: input.email,
           role: input.role,
         })
@@ -165,7 +165,7 @@ export const inviteRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.INVITE_CREATE,
-        organizationId: input.organizationId,
+        studioId: input.studioId,
         targetType: 'invite',
         targetId: String(invite.id),
         metadata: {invitedEmail: input.email, role: input.role},
@@ -187,7 +187,7 @@ export const inviteRouter = router({
       // Get the invite
       const {data: invite, error: inviteError} = await supabase
         .from('invites')
-        .select('id, organization_id, email, role, accepted_at, expires_at')
+        .select('id, studio_id, email, role, accepted_at, expires_at')
         .eq('token', input.token)
         .single()
 
@@ -232,9 +232,9 @@ export const inviteRouter = router({
 
       // Check if already a member
       const {data: existingMember} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('user_id')
-        .eq('organization_id', invite.organization_id)
+        .eq('studio_id', invite.studio_id)
         .eq('user_id', user.id)
         .single()
 
@@ -247,15 +247,15 @@ export const inviteRouter = router({
 
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'You are already a member of this organization',
+          message: 'You are already a member of this studio',
         })
       }
 
-      // Add user to organization
+      // Add user to studio
       const {error: memberError} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .insert({
-          organization_id: invite.organization_id,
+          studio_id: invite.studio_id,
           user_id: user.id,
           role: invite.role,
         })
@@ -277,13 +277,13 @@ export const inviteRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.INVITE_ACCEPT,
-        organizationId: invite.organization_id,
+        studioId: invite.studio_id,
         targetType: 'invite',
         targetId: String(invite.id),
         metadata: {role: invite.role},
       })
 
-      return {success: true, organizationId: invite.organization_id}
+      return {success: true, studioId: invite.studio_id}
     }),
 
   /**
@@ -294,10 +294,10 @@ export const inviteRouter = router({
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
-      // Get the invite to check org
+      // Get the invite to check studio
       const {data: invite, error: inviteError} = await supabase
         .from('invites')
-        .select('organization_id')
+        .select('studio_id')
         .eq('id', input.id)
         .single()
 
@@ -308,15 +308,15 @@ export const inviteRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of org
+      // Check user is OWNER or ADMIN of studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', invite.organization_id)
+        .eq('studio_id', invite.studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !MANAGE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !MANAGE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to delete invites',
@@ -336,7 +336,7 @@ export const inviteRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.INVITE_REVOKE,
-        organizationId: invite.organization_id,
+        studioId: invite.studio_id,
         targetType: 'invite',
         targetId: String(input.id),
       })
@@ -360,7 +360,7 @@ export const inviteRouter = router({
           email,
           role,
           accepted_at,
-          organizations (
+          studios (
             id,
             slug,
             name,

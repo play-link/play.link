@@ -278,7 +278,7 @@ export function EditorSidebar({
             size="sm"
             onClick={() => setShowVideoInput(true)}
           >
-            <VideoIcon size={14} />
+            <VideoIcon size={14} className="mr-2" />
             Add video
           </Button>
         </MediaActions>
@@ -323,7 +323,7 @@ export function EditorSidebar({
           size="sm"
           onClick={handleAddLink}
         >
-          <PlusIcon size={14} />
+          <PlusIcon size={14} className="mr-2" />
           Add link
         </Button>
       </Section>

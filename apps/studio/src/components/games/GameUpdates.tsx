@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {FileTextIcon, PlusIcon} from 'lucide-react';
 import {useNavigate, useOutletContext} from 'react-router';
 import styled from 'styled-components';
@@ -5,13 +6,16 @@ import {Button, Loading} from '@play/pylon';
 import type {GameOutletContext} from '@/pages/GamePage';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
+import {CreateGameUpdate} from './CreateGameUpdate';
 
 export function GameUpdates() {
   const game = useOutletContext<GameOutletContext>();
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
 
-  const basePath = `/${activeOrganization.slug}/games/${game.id}`;
+  const basePath = `/${activeStudio.slug}/games/${game.id}`;
+
+  const [showCreate, setShowCreate] = useState(false);
 
   const {data: updates, isLoading} = trpc.gameUpdate.list.useQuery({
     gameId: game.id,
@@ -32,9 +36,9 @@ export function GameUpdates() {
         <Button
           variant="primary"
           size="sm"
-          onClick={() => navigate(`${basePath}/updates/new`)}
+          onClick={() => setShowCreate(true)}
         >
-          <PlusIcon size={16} />
+          <PlusIcon size={16} className="mr-2" />
           New Update
         </Button>
       </Header>
@@ -49,9 +53,9 @@ export function GameUpdates() {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => navigate(`${basePath}/updates/new`)}
+            onClick={() => setShowCreate(true)}
           >
-            <PlusIcon size={16} />
+            <PlusIcon size={16} className="mr-2" />
             Create your first update
           </Button>
         </EmptyState>
@@ -85,6 +89,12 @@ export function GameUpdates() {
           ))}
         </UpdatesList>
       )}
+
+      <CreateGameUpdate
+        opened={showCreate}
+        setOpened={setShowCreate}
+        game={game}
+      />
     </Container>
   );
 }

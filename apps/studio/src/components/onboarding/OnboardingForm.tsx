@@ -11,7 +11,7 @@ export function OnboardingForm() {
 
   const utils = trpc.useUtils();
 
-  const createOrg = trpc.organization.create.useMutation({
+  const createStudio = trpc.studio.create.useMutation({
     onSuccess: (data) => {
       utils.me.get.invalidate();
       navigate(`/${data.slug}`);
@@ -33,7 +33,7 @@ export function OnboardingForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name && slug) {
-      createOrg.mutate({name, slug});
+      createStudio.mutate({name, slug});
     }
   };
 
@@ -42,13 +42,13 @@ export function OnboardingForm() {
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
-            htmlFor="org-name"
+            htmlFor="studio-name"
             className="block text-sm font-medium text-gray-200 mb-2"
           >
-            Organization Name
+            Studio Name
           </label>
           <input
-            id="org-name"
+            id="studio-name"
             type="text"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
@@ -63,7 +63,7 @@ export function OnboardingForm() {
 
         <div>
           <label
-            htmlFor="org-slug"
+            htmlFor="studio-slug"
             className="block text-sm font-medium text-gray-200 mb-2"
           >
             URL Slug
@@ -71,7 +71,7 @@ export function OnboardingForm() {
           <div className="flex items-center">
             <span className="text-gray-500 mr-2">play.link/</span>
             <input
-              id="org-slug"
+              id="studio-slug"
               type="text"
               value={slug}
               onChange={(e) => {
@@ -94,18 +94,18 @@ export function OnboardingForm() {
           </p>
         </div>
 
-        {createOrg.error && (
+        {createStudio.error && (
           <p className="text-(--fg-error) text-sm bg-(--error)/10 p-3 rounded-lg">
-            {createOrg.error.message}
+            {createStudio.error.message}
           </p>
         )}
 
         <Button
           type="submit"
-          disabled={createOrg.isPending || !name || !slug}
+          disabled={createStudio.isPending || !name || !slug}
           style={{width: '100%'}}
         >
-          {createOrg.isPending ? 'Creating...' : 'Create Organization'}
+          {createStudio.isPending ? 'Creating...' : 'Create Studio'}
         </Button>
       </form>
     </div>

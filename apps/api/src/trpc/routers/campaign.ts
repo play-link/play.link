@@ -1,10 +1,10 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 
-const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
 
 async function verifyGameAccess(
   supabase: any,
@@ -13,7 +13,7 @@ async function verifyGameAccess(
 ) {
   const {data: game} = await supabase
     .from('games')
-    .select('owner_organization_id')
+    .select('owner_studio_id')
     .eq('id', gameId)
     .single()
 
@@ -22,13 +22,13 @@ async function verifyGameAccess(
   }
 
   const {data: member} = await supabase
-    .from('organization_members')
+    .from('studio_members')
     .select('role')
-    .eq('organization_id', game.owner_organization_id)
+    .eq('studio_id', game.owner_studio_id)
     .eq('user_id', userId)
     .single()
 
-  if (!member || !EDIT_ROLES.includes(member.role as OrgRoleType)) {
+  if (!member || !EDIT_ROLES.includes(member.role as StudioRoleType)) {
     throw new TRPCError({code: 'FORBIDDEN', message: 'No access to this game'})
   }
 
@@ -57,30 +57,30 @@ function getDateRange(days: string) {
 }
 
 export const campaignRouter = router({
-  listByOrg: protectedProcedure
-    .input(z.object({organizationId: z.string().uuid()}))
+  listByStudio: protectedProcedure
+    .input(z.object({studioId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('user_id', user.id)
         .single()
 
       if (!member) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'You are not a member of this organization',
+          message: 'You are not a member of this studio',
         })
       }
 
-      // Get all game IDs for this org
+      // Get all game IDs for this studio
       const {data: games} = await supabase
         .from('games')
         .select('id, title, pages:game_pages(slug)')
-        .eq('owner_organization_id', input.organizationId)
+        .eq('owner_studio_id', input.studioId)
 
       if (!games || games.length === 0) return []
 

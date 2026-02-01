@@ -1,12 +1,12 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {adminProcedure, protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
 // Roles that can create change requests
-const REQUEST_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
+const REQUEST_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
 
 // Cooldown period for non-verified entities (24 hours in ms)
 const COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -17,7 +17,6 @@ const PROTECTED_FIELDS = ['slug', 'name'] as const
 export const changeRequestRouter = router({
   /**
    * List change requests (for admin review)
-   * TODO: Add admin role check when you have a super-admin system
    */
   list: adminProcedure
     .input(
@@ -25,7 +24,7 @@ export const changeRequestRouter = router({
         status: z
           .enum(['pending', 'approved', 'rejected', 'cancelled'])
           .optional(),
-        entityType: z.enum(['organization', 'game', 'game_page']).optional(),
+        entityType: z.enum(['studio', 'game', 'game_page']).optional(),
         limit: z.number().min(1).max(100).default(50),
       }),
     )
@@ -78,7 +77,7 @@ export const changeRequestRouter = router({
   myRequests: protectedProcedure
     .input(
       z.object({
-        entityType: z.enum(['organization', 'game', 'game_page']).optional(),
+        entityType: z.enum(['studio', 'game', 'game_page']).optional(),
         entityId: z.string().uuid().optional(),
       }),
     )
@@ -117,7 +116,7 @@ export const changeRequestRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        entityType: z.enum(['organization', 'game', 'game_page']),
+        entityType: z.enum(['studio', 'game', 'game_page']),
         entityId: z.string().uuid(),
         fieldName: z.enum(['slug', 'name']),
         requestedValue: z.string().min(1).max(200),
@@ -127,25 +126,25 @@ export const changeRequestRouter = router({
       const {user, supabase} = ctx
 
       // Check user has permission on this entity
-      if (input.entityType === 'organization') {
+      if (input.entityType === 'studio') {
         const {data: member} = await supabase
-          .from('organization_members')
+          .from('studio_members')
           .select('role')
-          .eq('organization_id', input.entityId)
+          .eq('studio_id', input.entityId)
           .eq('user_id', user.id)
           .single()
 
-        if (!member || !REQUEST_ROLES.includes(member.role as OrgRoleType)) {
+        if (!member || !REQUEST_ROLES.includes(member.role as StudioRoleType)) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to request changes',
           })
         }
       } else if (input.entityType === 'game') {
-        // For games, check user is member of owner org
+        // For games, check user is member of owner studio
         const {data: game} = await supabase
           .from('games')
-          .select('owner_organization_id')
+          .select('owner_studio_id')
           .eq('id', input.entityId)
           .single()
 
@@ -154,20 +153,20 @@ export const changeRequestRouter = router({
         }
 
         const {data: member} = await supabase
-          .from('organization_members')
+          .from('studio_members')
           .select('role')
-          .eq('organization_id', game.owner_organization_id)
+          .eq('studio_id', game.owner_studio_id)
           .eq('user_id', user.id)
           .single()
 
-        if (!member || !REQUEST_ROLES.includes(member.role as OrgRoleType)) {
+        if (!member || !REQUEST_ROLES.includes(member.role as StudioRoleType)) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to request changes',
           })
         }
       } else {
-        // For game_pages, check page → game → org membership
+        // For game_pages, check page -> game -> studio membership
         const {data: page} = await supabase
           .from('game_pages')
           .select('game_id')
@@ -180,7 +179,7 @@ export const changeRequestRouter = router({
 
         const {data: game} = await supabase
           .from('games')
-          .select('owner_organization_id')
+          .select('owner_studio_id')
           .eq('id', page.game_id)
           .single()
 
@@ -189,13 +188,13 @@ export const changeRequestRouter = router({
         }
 
         const {data: member} = await supabase
-          .from('organization_members')
+          .from('studio_members')
           .select('role')
-          .eq('organization_id', game.owner_organization_id)
+          .eq('studio_id', game.owner_studio_id)
           .eq('user_id', user.id)
           .single()
 
-        if (!member || !REQUEST_ROLES.includes(member.role as OrgRoleType)) {
+        if (!member || !REQUEST_ROLES.includes(member.role as StudioRoleType)) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to request changes',
@@ -205,7 +204,7 @@ export const changeRequestRouter = router({
 
       // Get current value
       const tableMap = {
-        organization: 'organizations',
+        studio: 'studios',
         game: 'games',
         game_page: 'game_pages',
       } as const
@@ -273,8 +272,8 @@ export const changeRequestRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.CHANGE_REQUEST_CREATE,
-        organizationId:
-          input.entityType === 'organization' ? input.entityId : undefined,
+        studioId:
+          input.entityType === 'studio' ? input.entityId : undefined,
         targetType: 'change_request',
         targetId: String(request.id),
         metadata: {
@@ -337,8 +336,8 @@ export const changeRequestRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.CHANGE_REQUEST_CANCEL,
-        organizationId:
-          request.entity_type === 'organization'
+        studioId:
+          request.entity_type === 'studio'
             ? request.entity_id
             : undefined,
         targetType: 'change_request',
@@ -355,7 +354,6 @@ export const changeRequestRouter = router({
 
   /**
    * Approve a change request (admin only)
-   * TODO: Add proper admin role check
    */
   approve: adminProcedure
     .input(z.object({id: z.number(), notes: z.string().optional()}))
@@ -381,8 +379,8 @@ export const changeRequestRouter = router({
       }
 
       // Apply the change
-      const approveTableMap: Record<string, 'organizations' | 'games' | 'game_pages'> = {
-        organization: 'organizations',
+      const approveTableMap: Record<string, 'studios' | 'games' | 'game_pages'> = {
+        studio: 'studios',
         game: 'games',
         game_page: 'game_pages',
       }
@@ -421,8 +419,8 @@ export const changeRequestRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.CHANGE_REQUEST_APPROVE,
-        organizationId:
-          request.entity_type === 'organization'
+        studioId:
+          request.entity_type === 'studio'
             ? request.entity_id
             : undefined,
         targetType: 'change_request',
@@ -478,8 +476,8 @@ export const changeRequestRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.CHANGE_REQUEST_REJECT,
-        organizationId:
-          request.entity_type === 'organization'
+        studioId:
+          request.entity_type === 'studio'
             ? request.entity_id
             : undefined,
         targetType: 'change_request',
@@ -496,5 +494,5 @@ export const changeRequestRouter = router({
     }),
 })
 
-// Export helper for use in organization/game update endpoints
+// Export helper for use in studio/game update endpoints
 export {COOLDOWN_MS, PROTECTED_FIELDS}

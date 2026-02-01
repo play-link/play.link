@@ -41,7 +41,7 @@ interface CountryRow {
 
 export function CampaignDetailPage() {
   const {campaignId} = useParams<{campaignId: string}>();
-  const {activeOrganization} = useAppContext(ContextLevel.AuthenticatedWithOrg);
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const navigate = useNavigate();
   const {showSnackbar} = useSnackbar();
   const utils = trpc.useUtils();
@@ -75,7 +75,7 @@ export function CampaignDetailPage() {
   const updateMutation = trpc.campaign.update.useMutation({
     onSuccess: () => {
       utils.campaign.get.invalidate({id: campaignId!});
-      utils.campaign.listByOrg.invalidate({organizationId: activeOrganization.id});
+      utils.campaign.listByStudio.invalidate({studioId: activeStudio.id});
     },
     onError: (error) => {
       showSnackbar({message: error.message, severity: 'error'});
@@ -85,7 +85,7 @@ export function CampaignDetailPage() {
   const deleteMutation = trpc.campaign.delete.useMutation({
     onSuccess: () => {
       showSnackbar({message: 'Campaign deleted', severity: 'success'});
-      navigate(`/${activeOrganization.slug}/campaigns`);
+      navigate(`/${activeStudio.slug}/campaigns`);
     },
     onError: (error) => {
       showSnackbar({message: error.message, severity: 'error'});
@@ -141,9 +141,9 @@ export function CampaignDetailPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(`/${activeOrganization.slug}/campaigns`)}
+          onClick={() => navigate(`/${activeStudio.slug}/campaigns`)}
         >
-          <ArrowLeftIcon size={16} />
+          <ArrowLeftIcon size={16} className="mr-2" />
           Back
         </Button>
       </PageLayout.Header>
@@ -166,18 +166,18 @@ export function CampaignDetailPage() {
             </HeaderInfo>
             <HeaderActions>
               <Button variant="ghost" size="sm" onClick={copyLink}>
-                <CopyIcon size={14} />
+                <CopyIcon size={14} className="mr-2" />
                 Copy link
               </Button>
               <Button variant="ghost" size="sm" onClick={toggleStatus}>
                 {campaign.status === 'active' ? (
-                  <><PauseIcon size={14} /> Pause</>
+                  <><PauseIcon size={14} className="mr-2" /> Pause</>
                 ) : (
-                  <><PlayIcon size={14} /> Resume</>
+                  <><PlayIcon size={14} className="mr-2" /> Resume</>
                 )}
               </Button>
               <Button variant="ghost" size="sm" onClick={handleDelete}>
-                <Trash2Icon size={14} />
+                <Trash2Icon size={14} className="mr-2" />
                 Delete
               </Button>
             </HeaderActions>

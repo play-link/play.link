@@ -2,6 +2,7 @@ import {
   BarChart3Icon,
   EyeIcon,
   GlobeIcon,
+  LinkIcon,
   MonitorIcon,
   MousePointerClickIcon,
   SmartphoneIcon,
@@ -9,7 +10,6 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import {useState} from 'react';
-import {useNavigate} from 'react-router';
 import styled from 'styled-components';
 import {Button, Loading} from '@play/pylon';
 import {PageLayout} from '@/components/layout';
@@ -60,34 +60,53 @@ interface DeviceRow {
   total: number;
 }
 
+interface TopLinkRow {
+  link_id: string;
+  label: string;
+  url: string;
+  total: number;
+}
+
 type ChartMetric = 'page_views' | 'link_clicks' | 'follows';
 
 export function AnalyticsPage() {
-  const {activeOrganization} = useAppContext(
-    ContextLevel.AuthenticatedWithOrg,
+  const {activeStudio} = useAppContext(
+    ContextLevel.AuthenticatedWithStudio,
   );
-  const navigate = useNavigate();
   const [days, setDays] = useState<DateRange>('30');
   const [chartMetric, setChartMetric] = useState<ChartMetric>('page_views');
+  const [selectedGameId, setSelectedGameId] = useState<string | undefined>(undefined);
 
-  const queryInput = {organizationId: activeOrganization.id, days};
+  const {data: games = []} = trpc.game.list.useQuery({
+    studioId: activeStudio.id,
+  });
+
+  const queryInput = {studioId: activeStudio.id, days, gameId: selectedGameId};
 
   const {data: summary, isLoading: summaryLoading} =
-    trpc.orgAnalytics.summary.useQuery(queryInput);
+    trpc.studioAnalytics.summary.useQuery(queryInput);
   const {data: timeseries} =
-    trpc.orgAnalytics.timeseries.useQuery(queryInput);
-  const {data: topGames} = trpc.orgAnalytics.topGames.useQuery(queryInput);
+    trpc.studioAnalytics.timeseries.useQuery(queryInput);
+  const {data: topGames} = trpc.studioAnalytics.topGames.useQuery(queryInput, {
+    enabled: !selectedGameId,
+  });
+  const {data: topLinks} = trpc.studioAnalytics.topLinks.useQuery(queryInput, {
+    enabled: !!selectedGameId,
+  });
   const {data: referrers} =
-    trpc.orgAnalytics.topReferrers.useQuery(queryInput);
+    trpc.studioAnalytics.topReferrers.useQuery(queryInput);
   const {data: countries} =
-    trpc.orgAnalytics.topCountries.useQuery(queryInput);
+    trpc.studioAnalytics.topCountries.useQuery(queryInput);
   const {data: platforms} =
-    trpc.orgAnalytics.topPlatforms.useQuery(queryInput);
-  const {data: devices} = trpc.orgAnalytics.devices.useQuery(queryInput);
+    trpc.studioAnalytics.topPlatforms.useQuery(queryInput, {
+      enabled: !selectedGameId,
+    });
+  const {data: devices} = trpc.studioAnalytics.devices.useQuery(queryInput);
 
   const summaryData = (summary as SummaryRow[] | undefined)?.[0];
   const timeseriesTyped = timeseries as TimeseriesRow[] | undefined;
   const topGamesTyped = topGames as TopGameRow[] | undefined;
+  const topLinksTyped = topLinks as TopLinkRow[] | undefined;
   const referrersTyped = referrers as ReferrerRow[] | undefined;
   const countriesTyped = countries as CountryRow[] | undefined;
   const platformsTyped = platforms as PlatformRow[] | undefined;
@@ -120,19 +139,30 @@ export function AnalyticsPage() {
   return (
     <PageLayout>
       <PageLayout.Header title="Analytics">
-        <DateRangeSelector>
-          {(['7', '30', '90'] as const).map((d) => (
-            <Button
-              key={d}
-              variant="nav"
-              size="sm"
-              className={days === d ? 'active' : ''}
-              onClick={() => setDays(d)}
-            >
-              {d}d
-            </Button>
-          ))}
-        </DateRangeSelector>
+        <HeaderControls>
+          <GameFilter
+            value={selectedGameId || ''}
+            onChange={(e) => setSelectedGameId(e.target.value || undefined)}
+          >
+            <option value="">All Games</option>
+            {games.map((g: {id: string; title: string}) => (
+              <option key={g.id} value={g.id}>{g.title}</option>
+            ))}
+          </GameFilter>
+          <DateRangeSelector>
+            {(['7', '30', '90'] as const).map((d) => (
+              <Button
+                key={d}
+                variant="nav"
+                size="sm"
+                className={days === d ? 'active' : ''}
+                onClick={() => setDays(d)}
+              >
+                {d}d
+              </Button>
+            ))}
+          </DateRangeSelector>
+        </HeaderControls>
       </PageLayout.Header>
       <PageLayout.Content>
         {!hasData ? (
@@ -181,16 +211,7 @@ export function AnalyticsPage() {
                   <UsersIcon size={20} />
                 </SummaryIcon>
                 <SummaryValue>{totalFollows.toLocaleString()}</SummaryValue>
-                <SummaryLabel>Total Follows</SummaryLabel>
-              </SummaryCard>
-              <SummaryCard>
-                <SummaryIcon>
-                  <UsersIcon size={20} />
-                </SummaryIcon>
-                <SummaryValue>
-                  {totalFollows.toLocaleString()}
-                </SummaryValue>
-                <SummaryLabel>Follows (in range)</SummaryLabel>
+                <SummaryLabel>Follows</SummaryLabel>
               </SummaryCard>
             </SummaryGrid>
 
@@ -238,8 +259,8 @@ export function AnalyticsPage() {
               </Section>
             )}
 
-            {/* Top Games Table */}
-            {topGamesTyped && topGamesTyped.length > 0 && (
+            {/* Top Games Table (global only) */}
+            {!selectedGameId && topGamesTyped && topGamesTyped.length > 0 && (
               <Section>
                 <SectionTitle>Top Games</SectionTitle>
                 <GamesTable>
@@ -264,11 +285,7 @@ export function AnalyticsPage() {
                       return (
                         <GameRow
                           key={game.game_id}
-                          onClick={() =>
-                            navigate(
-                              `/${activeOrganization.slug}/games/${game.game_id}/analytics`,
-                            )
-                          }
+                          onClick={() => setSelectedGameId(game.game_id)}
                         >
                           <Td align="left">
                             <GameTitle>{game.title}</GameTitle>
@@ -288,6 +305,21 @@ export function AnalyticsPage() {
                     })}
                   </tbody>
                 </GamesTable>
+              </Section>
+            )}
+
+            {/* Top Links (game filter only) */}
+            {selectedGameId && topLinksTyped && topLinksTyped.length > 0 && (
+              <Section>
+                <SectionTitle>
+                  <LinkIcon size={16} /> Top Links
+                </SectionTitle>
+                <BreakdownList
+                  items={topLinksTyped.map((l) => ({
+                    name: l.label,
+                    count: l.total,
+                  }))}
+                />
               </Section>
             )}
 
@@ -321,7 +353,7 @@ export function AnalyticsPage() {
                 </Section>
               )}
 
-              {platformsTyped && platformsTyped.length > 0 && (
+              {!selectedGameId && platformsTyped && platformsTyped.length > 0 && (
                 <Section>
                   <SectionTitle>
                     <MousePointerClickIcon size={16} /> Top Platforms
@@ -471,6 +503,27 @@ const ContentGrid = styled.div`
   gap: var(--spacing-6);
 `;
 
+const HeaderControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+`;
+
+const GameFilter = styled.select`
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-muted);
+  background: var(--bg-surface);
+  color: var(--fg);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-primary-500);
+  }
+`;
+
 const DateRangeSelector = styled.div`
   display: flex;
   gap: var(--spacing-1);
@@ -478,7 +531,7 @@ const DateRangeSelector = styled.div`
 
 const SummaryGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--spacing-4);
 `;
 

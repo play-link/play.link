@@ -1,10 +1,10 @@
 import type {SupabaseClient} from '@supabase/supabase-js'
 
 export const AuditAction = {
-  // Organization
-  ORGANIZATION_CREATE: 'organization.create',
-  ORGANIZATION_UPDATE: 'organization.update',
-  ORGANIZATION_DELETE: 'organization.delete',
+  // Studio
+  STUDIO_CREATE: 'studio.create',
+  STUDIO_UPDATE: 'studio.update',
+  STUDIO_DELETE: 'studio.delete',
   // Member
   MEMBER_ADD: 'member.add',
   MEMBER_ROLE_CHANGE: 'member.role_change',
@@ -34,7 +34,7 @@ export interface AuditLogEntry {
   userId: string
   userEmail?: string
   action: AuditActionType
-  organizationId?: string
+  studioId?: string
   targetType?: string
   targetId?: string
   metadata?: Record<string, unknown>
@@ -54,7 +54,7 @@ export async function logAuditEvent(
       user_id: entry.userId,
       user_email: entry.userEmail,
       action: entry.action,
-      organization_id: entry.organizationId || null,
+      studio_id: entry.studioId || null,
       target_type: entry.targetType || null,
       target_id: entry.targetId || null,
       metadata: entry.metadata || {},

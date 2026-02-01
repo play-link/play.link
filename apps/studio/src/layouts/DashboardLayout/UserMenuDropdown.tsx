@@ -1,31 +1,31 @@
 import {
   CheckIcon,
-  CircleIcon,
   FileTextIcon,
   LogOutIcon,
   PlusIcon,
+  ShieldCheckIcon,
   UserIcon,
 } from 'lucide-react';
 import {useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled from 'styled-components';
-import {Avatar, Button, Divider, DropdownMenu, Icon} from '@play/pylon';
-import {CreateOrgDialog} from '@/components/layout/CreateOrgDialog';
+import {Avatar, Button, DropdownMenu, Icon} from '@play/pylon';
+import {CreateStudioDialog} from '@/components/layout/CreateStudioDialog';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {useAuth} from '@/lib/auth';
 
 export function UserMenuDropdown() {
-  const {me, activeOrganization} = useAppContext(
-    ContextLevel.AuthenticatedWithOrg,
+  const {me, activeStudio} = useAppContext(
+    ContextLevel.AuthenticatedWithStudio,
   );
   const {signOut} = useAuth();
   const navigate = useNavigate();
-  const [createOrgOpen, setCreateOrgOpen] = useState(false);
+  const [createStudioOpen, setCreateStudioOpen] = useState(false);
 
   const displayName = me.displayName || me.email.split('@')[0];
 
-  const handleOrgClick = (slug: string) => {
-    if (slug !== activeOrganization.slug) {
+  const handleStudioClick = (slug: string) => {
+    if (slug !== activeStudio.slug) {
       navigate(`/${slug}`);
     }
   };
@@ -66,82 +66,69 @@ export function UserMenuDropdown() {
               </MenuHeaderInfo>
             </MenuHeader>
 
-            <Divider className="my-2" />
+            <MenuDivider />
 
             <MenuSection>
-              <MenuSectionTitle>Switch organization</MenuSectionTitle>
-              {me.organizations.map((org) => (
+              <MenuSectionTitle>Switch studio</MenuSectionTitle>
+              {me.studios.map((studio) => (
                 <Button
-                  key={org.id}
+                  key={studio.id}
                   variant="menu"
-                  onClick={() => handleOrgClick(org.slug)}
+                  onClick={() => handleStudioClick(studio.slug)}
                   className="w-full"
                 >
-                  <MenuItemIcon>
-                    {org.id === activeOrganization.id && (
-                      <Icon icon={CheckIcon} size={16} />
-                    )}
-                  </MenuItemIcon>
-                  <Avatar text={org.name} size="sm" />
-                  <span>{org.name}</span>
+                  {studio.id === activeStudio.id && (
+                    <Icon icon={CheckIcon} size={16} className="mr-3" />
+                  )}
+                  <span>{studio.name}</span>
                 </Button>
               ))}
               <Button
                 variant="menu"
-                onClick={() => setCreateOrgOpen(true)}
+                onClick={() => setCreateStudioOpen(true)}
                 className="w-full text-fg-muted"
               >
-                <MenuItemIcon />
-                <Icon icon={PlusIcon} size={18} />
-                <span>New organization</span>
+                <Icon icon={PlusIcon} size={18} className="mr-3" />
+                <span>New studio</span>
               </Button>
             </MenuSection>
 
-            <Divider className="my-2" />
+            <MenuDivider />
 
             <Button variant="menu" className="w-full">
-              <MenuItemIcon>
-                <Icon icon={UserIcon} size={16} />
-              </MenuItemIcon>
+              <Icon icon={UserIcon} size={16} className="mr-3" />
               <span>Account settings</span>
             </Button>
 
-            <Divider className="my-2" />
+            <MenuDivider />
 
             <Button variant="menu" className="w-full">
-              <MenuItemIcon>
-                <Icon icon={FileTextIcon} size={16} />
-              </MenuItemIcon>
+              <Icon icon={FileTextIcon} size={16} className="mr-3" />
               <span>Terms</span>
             </Button>
 
             <Button variant="menu" className="w-full">
-              <MenuItemIcon>
-                <Icon icon={CircleIcon} size={16} />
-              </MenuItemIcon>
+              <Icon icon={ShieldCheckIcon} size={16} className="mr-3" />
               <span>Privacy</span>
             </Button>
 
-            <Divider className="my-2" />
+            <MenuDivider />
 
             <Button variant="menu" onClick={signOut} className="w-full">
-              <MenuItemIcon>
-                <Icon icon={LogOutIcon} size={16} />
-              </MenuItemIcon>
+              <Icon icon={LogOutIcon} size={16} className="mr-3" />
               <span>Log out</span>
             </Button>
           </MenuContent>
         </DropdownMenu>
       </UserSection>
 
-      <CreateOrgDialog opened={createOrgOpen} setOpened={setCreateOrgOpen} />
+      <CreateStudioDialog opened={createStudioOpen} setOpened={setCreateStudioOpen} />
     </>
   );
 }
 
 const UserSection = styled.div`
   padding: var(--spacing-3);
-  border-top: 1px solid var(--border);
 `;
 
 const UserCardTrigger = styled.div`
@@ -222,10 +209,8 @@ const MenuSectionTitle = styled.p`
   padding: var(--spacing-2) var(--spacing-3);
 `;
 
-const MenuItemIcon = styled.span`
-  width: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+const MenuDivider = styled.div`
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing-1) 0;
 `;

@@ -69,7 +69,7 @@ export function CreditsSection({gameId}: CreditsSectionProps) {
             <CreditRow key={credit.id}>
               <CreditInfo>
                 <CreditName>
-                  {credit.organizations?.name || credit.custom_name}
+                  {credit.studios?.name || credit.custom_name}
                 </CreditName>
                 <CreditRoleBadge>{credit.role.toLowerCase()}</CreditRoleBadge>
               </CreditInfo>
@@ -120,7 +120,7 @@ export function CreditsSection({gameId}: CreditsSectionProps) {
         </AddCreditForm>
       ) : (
         <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
-          <PlusIcon size={16} />
+          <PlusIcon size={16} className="mr-2" />
           Add credit
         </Button>
       )}

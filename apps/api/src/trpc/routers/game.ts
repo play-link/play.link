@@ -1,15 +1,15 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
-import type {OrgRoleType} from '@play/supabase-client'
-import {OrgRole} from '@play/supabase-client'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can edit games
-const EDIT_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN, OrgRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
 // Roles that can delete games
-const DELETE_ROLES: OrgRoleType[] = [OrgRole.OWNER, OrgRole.ADMIN]
+const DELETE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
 
 // Slug validation: lowercase letters, numbers, hyphens only
 const slugSchema = z
@@ -23,32 +23,32 @@ const slugSchema = z
 
 export const gameRouter = router({
   /**
-   * List games for an organization
+   * List games for a studio
    */
   list: protectedProcedure
-    .input(z.object({organizationId: z.string().uuid()}))
+    .input(z.object({studioId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
-      // Check user is member of org
+      // Check user is member of studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('user_id', user.id)
         .single()
 
       if (!member) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'You are not a member of this organization',
+          message: 'You are not a member of this studio',
         })
       }
 
       const {data: games, error} = await supabase
         .from('games')
         .select('*, pages:game_pages(*)')
-        .eq('owner_organization_id', input.organizationId)
+        .eq('owner_studio_id', input.studioId)
         .order('created_at', {ascending: false})
 
       if (error) {
@@ -92,7 +92,7 @@ export const gameRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.string().uuid(),
+        studioId: z.string().uuid(),
         slug: slugSchema,
         title: z.string().min(1).max(200),
         summary: z.string().optional(),
@@ -104,15 +104,15 @@ export const gameRouter = router({
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
 
-      // Check user is member of org
+      // Check user is member of studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', input.organizationId)
+        .eq('studio_id', input.studioId)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !EDIT_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !EDIT_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to create games',
@@ -123,7 +123,7 @@ export const gameRouter = router({
       const {data: game, error: gameError} = await supabase
         .from('games')
         .insert({
-          owner_organization_id: input.organizationId,
+          owner_studio_id: input.studioId,
           title: input.title,
           summary: input.summary || null,
           status: input.status,
@@ -174,7 +174,7 @@ export const gameRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_CREATE,
-        organizationId: input.organizationId,
+        studioId: input.studioId,
         targetType: 'game',
         targetId: game.id,
         metadata: {slug: input.slug, title: game.title},
@@ -230,7 +230,7 @@ export const gameRouter = router({
       // Get the game to check ownership
       const {data: game, error: gameError} = await supabase
         .from('games')
-        .select('owner_organization_id')
+        .select('owner_studio_id')
         .eq('id', id)
         .single()
 
@@ -241,15 +241,15 @@ export const gameRouter = router({
         })
       }
 
-      // Check user is member of owner org
+      // Check user is member of owner studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', game.owner_organization_id)
+        .eq('studio_id', game.owner_studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !EDIT_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !EDIT_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to edit this game',
@@ -303,7 +303,7 @@ export const gameRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_UPDATE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game',
         targetId: id,
         metadata: {changes: dbUpdates},
@@ -323,7 +323,7 @@ export const gameRouter = router({
       // Get the game to check ownership
       const {data: game, error: gameError} = await supabase
         .from('games')
-        .select('owner_organization_id, title')
+        .select('owner_studio_id, title')
         .eq('id', input.id)
         .single()
 
@@ -334,15 +334,15 @@ export const gameRouter = router({
         })
       }
 
-      // Check user is OWNER or ADMIN of owner org
+      // Check user is OWNER or ADMIN of owner studio
       const {data: member} = await supabase
-        .from('organization_members')
+        .from('studio_members')
         .select('role')
-        .eq('organization_id', game.owner_organization_id)
+        .eq('studio_id', game.owner_studio_id)
         .eq('user_id', user.id)
         .single()
 
-      if (!member || !DELETE_ROLES.includes(member.role as OrgRoleType)) {
+      if (!member || !DELETE_ROLES.includes(member.role as StudioRoleType)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not have permission to delete this game',
@@ -362,7 +362,7 @@ export const gameRouter = router({
         userId: user.id,
         userEmail: user.email,
         action: AuditAction.GAME_DELETE,
-        organizationId: game.owner_organization_id,
+        studioId: game.owner_studio_id,
         targetType: 'game',
         targetId: input.id,
         metadata: {title: game.title},

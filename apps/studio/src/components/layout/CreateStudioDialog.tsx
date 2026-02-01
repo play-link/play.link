@@ -5,12 +5,12 @@ import styled, {css, keyframes} from 'styled-components';
 import {Button, Input} from '@play/pylon';
 import {trpc} from '@/lib/trpc';
 
-interface CreateOrgDialogProps {
+interface CreateStudioDialogProps {
   opened: boolean;
   setOpened: (opened: boolean) => void;
 }
 
-export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
+export function CreateStudioDialog({opened, setOpened}: CreateStudioDialogProps) {
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -28,7 +28,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
 
   // Check slug availability
   const {data: slugCheck, isFetching: isCheckingSlug} =
-    trpc.organization.checkSlug.useQuery(
+    trpc.studio.checkSlug.useQuery(
       {slug: debouncedSlug},
       {
         enabled: debouncedSlug.length >= 3,
@@ -36,7 +36,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
       },
     );
 
-  const createOrg = trpc.organization.create.useMutation({
+  const createStudio = trpc.studio.create.useMutation({
     onSuccess: (org) => {
       setOpened(false);
       navigate(`/${org.slug}`);
@@ -68,7 +68,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (canSubmit) {
-      createOrg.mutate({
+      createStudio.mutate({
         name,
         slug,
       });
@@ -87,7 +87,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
     slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
   const isSlugAvailable = slugCheck?.available === true;
   const canSubmit =
-    name.length > 0 && isSlugValid && isSlugAvailable && !createOrg.isPending;
+    name.length > 0 && isSlugValid && isSlugAvailable && !createStudio.isPending;
 
   if (!opened) return null;
 
@@ -100,7 +100,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
 
         <Content>
           <Header>
-            <Title>Create a new organization</Title>
+            <Title>Create a new studio</Title>
             <Subtitle>
               Set up your team's workspace on Play.link Studio
             </Subtitle>
@@ -108,9 +108,9 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
 
           <Form onSubmit={handleSubmit}>
             <FormGroup>
-              <Label htmlFor="org-name">Organization Name</Label>
+              <Label htmlFor="studio-name">Studio Name</Label>
               <Input
-                id="org-name"
+                id="studio-name"
                 type="text"
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
@@ -118,15 +118,15 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
                 size="lg"
                 autoFocus
               />
-              <HelpText>The display name for your organization.</HelpText>
+              <HelpText>The display name for your studio.</HelpText>
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor="org-slug">URL Slug</Label>
+              <Label htmlFor="studio-slug">URL Slug</Label>
               <SlugInputWrapper>
                 <SlugPrefix>studio.play.link/</SlugPrefix>
                 <SlugInput
-                  id="org-slug"
+                  id="studio-slug"
                   type="text"
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
@@ -164,8 +164,8 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
               </HelpText>
             </FormGroup>
 
-            {createOrg.error && (
-              <ErrorMessage>{createOrg.error.message}</ErrorMessage>
+            {createStudio.error && (
+              <ErrorMessage>{createStudio.error.message}</ErrorMessage>
             )}
 
             <Actions>
@@ -173,7 +173,7 @@ export function CreateOrgDialog({opened, setOpened}: CreateOrgDialogProps) {
                 Cancel
               </Button>
               <Button type="submit" variant="primary" disabled={!canSubmit}>
-                {createOrg.isPending ? 'Creating...' : 'Create Organization'}
+                {createStudio.isPending ? 'Creating...' : 'Create Studio'}
               </Button>
             </Actions>
           </Form>

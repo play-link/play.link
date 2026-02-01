@@ -10,14 +10,14 @@ export function OnboardingPage() {
             Welcome to Play.link!
           </h1>
           <p className="text-gray-200">
-            Let's create your first organization to get started.
+            Let's create your first studio to get started.
           </p>
         </div>
 
         <OnboardingForm />
 
         <p className="text-center text-gray-600 text-sm mt-6">
-          You can always create more organizations later.
+          You can always create more studios later.
         </p>
       </div>
     </div>
