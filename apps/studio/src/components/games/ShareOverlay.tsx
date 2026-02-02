@@ -1,4 +1,4 @@
-import {CopyIcon, ExternalLinkIcon, ShareIcon, XIcon} from 'lucide-react';
+import {CopyIcon, ShareIcon, XIcon} from 'lucide-react';
 import {useState} from 'react';
 import styled from 'styled-components';
 
@@ -44,15 +44,6 @@ export function ShareOverlay({gameUrl, gameTitle, onClose}: ShareOverlayProps) {
           <Action type="button" onClick={handleCopy}>
             <CopyIcon size={18} />
             {copied ? 'Copied!' : 'Copy link'}
-          </Action>
-          <Action
-            as="a"
-            href={gameUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLinkIcon size={18} />
-            Open in browser
           </Action>
           {typeof navigator.share === 'function' && (
             <Action type="button" onClick={handleNativeShare}>

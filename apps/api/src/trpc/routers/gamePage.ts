@@ -19,7 +19,7 @@ const slugSchema = z
 async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
   const {data: page} = await supabase
     .from('game_pages')
-    .select('id, game_id, slug, visibility')
+    .select('id, game_id, slug, visibility, page_config')
     .eq('id', pageId)
     .single()
 
@@ -192,16 +192,23 @@ export const gamePageRouter = router({
             linkColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
           })
           .optional(),
+        redirectUrl: z.string().url().nullish(),
       }),
     }))
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
       const {page, game} = await verifyPageAccess(supabase, user.id, input.pageId)
 
+      const existingConfig = (page.page_config && typeof page.page_config === 'object' && !Array.isArray(page.page_config))
+        ? page.page_config as Record<string, unknown>
+        : {}
+
+      const mergedConfig = {...existingConfig, ...input.pageConfig}
+
       const {data: updated, error} = await supabase
         .from('game_pages')
         .update({
-          page_config: input.pageConfig,
+          page_config: mergedConfig,
           updated_at: new Date().toISOString(),
         })
         .eq('id', input.pageId)
