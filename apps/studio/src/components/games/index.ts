@@ -4,6 +4,7 @@ export {GameEditor} from './game-editor';
 export {GameSettings} from './game-settings';
 export {GameCard, type GameCardProps} from './GameCard';
 export {GameOverview} from './GameOverview';
+export {GamePressKit} from './GamePressKit';
 export {GamePreview} from './GamePreview';
 export {GameUpdateDetail} from './GameUpdateDetail';
 export {GameUpdates} from './GameUpdates';

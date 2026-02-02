@@ -9,7 +9,7 @@ import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'updates' | 'settings';
+type Tab = 'overview' | 'updates' | 'press-kit' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
@@ -17,6 +17,7 @@ function useActiveTab(): Tab {
   const segment = parts[parts.length - 1];
   const parentSegment = parts[parts.length - 2];
   if (segment === 'settings') return 'settings';
+  if (segment === 'press-kit') return 'press-kit';
   if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
 }
@@ -73,8 +74,8 @@ export function GamePage() {
       <TopBar>
         <BackLink to={`/${activeStudio.slug}/games`}>
           <ArrowLeftIcon size={20} />
-          Back to Games
         </BackLink>
+        <GameTitle>{game.title}</GameTitle>
       </TopBar>
 
       <TabNav>
@@ -97,6 +98,14 @@ export function GamePage() {
         <Button
           variant="nav"
           size="sm"
+          className={activeTab === 'press-kit' ? 'active' : ''}
+          onClick={() => navigate(`${basePath}/press-kit`)}
+        >
+          Press kit
+        </Button>
+        <Button
+          variant="nav"
+          size="sm"
           className={activeTab === 'settings' ? 'active' : ''}
           onClick={() => navigate(`${basePath}/settings`)}
         >
@@ -113,8 +122,6 @@ export function GamePage() {
 
 const Container = styled.div`
   padding: var(--spacing-8);
-  max-width: 64rem;
-  margin: 0 auto;
 `;
 
 const LoadingContainer = styled.div`
@@ -125,20 +132,29 @@ const LoadingContainer = styled.div`
 `;
 
 const TopBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
   margin-bottom: var(--spacing-4);
 `;
 
 const BackLink = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
+  justify-content: center;
   color: var(--fg-muted);
-  font-size: var(--text-sm);
   transition: color 0.15s;
 
   &:hover {
     color: var(--fg);
   }
+`;
+
+const GameTitle = styled.h1`
+  font-size: var(--text-5xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--fg);
+  margin: 0;
 `;
 
 const TabNav = styled.div`

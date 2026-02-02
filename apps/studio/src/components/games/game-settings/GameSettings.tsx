@@ -1,151 +1,121 @@
-import {useEffect} from 'react';
-import {FormProvider, useForm} from 'react-hook-form';
+import {useState} from 'react';
 import {useOutletContext} from 'react-router';
-import type {AppRouter} from '@play/api/trpc';
-import type {inferRouterOutputs} from '@trpc/server';
 import styled from 'styled-components';
-import {Button, useSnackbar} from '@play/pylon';
-import {trpc} from '@/lib/trpc';
+import {Button, Input, useSnackbar} from '@play/pylon';
+import type {Tables} from '@play/supabase-client';
 import type {GameOutletContext} from '@/pages/GamePage';
-import {BasicInfoSection} from './BasicInfoSection';
-import {CreditsSection} from './CreditsSection';
+import {trpc} from '@/lib/trpc';
 import {DangerZoneSection} from './DangerZoneSection';
-import {GenresSection} from './GenresSection';
-import {IdentitySection} from './IdentitySection';
-import {MediaAssetsSection} from './MediaAssetsSection';
-import {OwnershipSection} from './OwnershipSection';
-import {PlatformsSection} from './PlatformsSection';
-import {StatusReleaseSection} from './StatusReleaseSection';
-import type {GameSettingsFormValues} from './types';
-
-type Game = inferRouterOutputs<AppRouter>['game']['get'];
-
-function gameToFormValues(game: Game): GameSettingsFormValues {
-  return {
-    title: game.title,
-    summary: game.summary || '',
-    description:
-      typeof game.description === 'string'
-        ? game.description
-        : game.description
-          ? JSON.stringify(game.description)
-          : '',
-    status: game.status,
-    releaseDate: game.release_date || '',
-    genres: game.genres || [],
-    platforms: Array.isArray(game.platforms)
-      ? (game.platforms as string[])
-      : [],
-    coverUrl: game.cover_url || '',
-    headerUrl: game.header_url || '',
-    trailerUrl: game.trailer_url || '',
-  };
-}
+import {RedirectSection} from './RedirectSection';
 
 export function GameSettings() {
   const game = useOutletContext<GameOutletContext>();
   const {showSnackbar} = useSnackbar();
-  const utils = trpc.useUtils();
 
-  const methods = useForm<GameSettingsFormValues>({
-    defaultValues: gameToFormValues(game),
-  });
+  const pages = (game.pages ?? []) as Tables<'game_pages'>[];
+  const primaryPage = pages.find((p) => p.is_primary);
 
-  const {
-    handleSubmit,
-    reset,
-    formState: {isDirty, isSubmitting},
-  } = methods;
+  // Identity fields
+  const [title, setTitle] = useState(game.title);
+  const [slug, setSlug] = useState(primaryPage?.slug ?? '');
+  const titleDirty = title !== game.title;
+  const slugDirty = primaryPage ? slug !== primaryPage.slug : false;
+  const identityDirty = titleDirty || slugDirty;
 
-  // Reset form when game data changes (e.g. after refetch)
-  useEffect(() => {
-    reset(gameToFormValues(game));
-  }, [game, reset]);
-
-  const updateGame = trpc.game.update.useMutation({
+  const createChangeRequest = trpc.changeRequest.create.useMutation({
     onSuccess: () => {
-      utils.game.get.invalidate({id: game.id});
-      showSnackbar({message: 'Settings saved', severity: 'success'});
+      showSnackbar({message: 'Change request submitted', severity: 'success'});
     },
     onError: (error) => {
       showSnackbar({message: error.message, severity: 'error'});
     },
   });
 
-  const onSubmit = (values: GameSettingsFormValues) => {
-    updateGame.mutate({
-      id: game.id,
-      title: values.title,
-      summary: values.summary || null,
-      description: values.description || null,
-      status: values.status,
-      releaseDate: values.releaseDate || null,
-      genres: values.genres,
-      platforms: values.platforms,
-      coverUrl: values.coverUrl || null,
-      headerUrl: values.headerUrl || null,
-      trailerUrl: values.trailerUrl || null,
-    });
+  const handleRequestChange = () => {
+    if (titleDirty && title.trim()) {
+      createChangeRequest.mutate({
+        entityType: 'game',
+        entityId: game.id,
+        fieldName: 'name',
+        requestedValue: title.trim(),
+      });
+    }
+    if (slugDirty && slug.trim() && primaryPage) {
+      createChangeRequest.mutate({
+        entityType: 'game_page',
+        entityId: primaryPage.id,
+        fieldName: 'slug',
+        requestedValue: slug.trim(),
+      });
+    }
   };
 
-  const saving = isSubmitting || updateGame.isPending;
-
   return (
-    <FormProvider {...methods}>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <StickyHeader>
-          <HeaderTitle>Game Settings</HeaderTitle>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={!isDirty || saving}
-          >
-            {saving ? 'Saving...' : 'Save changes'}
-          </Button>
-        </StickyHeader>
+    <Container>
+      <Header>
+        <HeaderTitle>Settings</HeaderTitle>
+      </Header>
 
-        <Sections>
-          <Card>
-            <IdentitySection disabled={saving} />
-          </Card>
-          <Card>
-            <BasicInfoSection disabled={saving} />
-          </Card>
-          <Card>
-            <StatusReleaseSection disabled={saving} />
-          </Card>
-          <Card>
-            <GenresSection disabled={saving} />
-          </Card>
-          <Card>
-            <PlatformsSection disabled={saving} />
-          </Card>
-          <Card>
-            <MediaAssetsSection disabled={saving} />
-          </Card>
-          <Card>
-            <CreditsSection gameId={game.id} />
-          </Card>
-          <Card>
-            <OwnershipSection />
-          </Card>
-          <DangerZoneSection gameId={game.id} gameTitle={game.title} />
-        </Sections>
-      </Form>
-    </FormProvider>
+      <Sections>
+        {/* Identity */}
+        <Card>
+          <SectionTitle>Identity</SectionTitle>
+          <Hint>Changes to game name and URL require approval.</Hint>
+          <Field>
+            <FieldLabel>Game Title</FieldLabel>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Game title"
+            />
+          </Field>
+          <Field>
+            <FieldLabel>Slug / URL</FieldLabel>
+            {primaryPage ? (
+              <SlugInputRow>
+                <SlugPrefix>play.link/</SlugPrefix>
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="your-game"
+                />
+              </SlugInputRow>
+            ) : (
+              <Muted>No page configured</Muted>
+            )}
+          </Field>
+          {identityDirty && (
+            <div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleRequestChange}
+                disabled={createChangeRequest.isPending}
+              >
+                {createChangeRequest.isPending ? 'Submitting...' : 'Request Change'}
+              </Button>
+            </div>
+          )}
+        </Card>
+
+        {/* Redirect */}
+        <Card>
+          <RedirectSection />
+        </Card>
+
+        {/* Delete */}
+        <DangerZoneSection gameId={game.id} gameTitle={game.title} />
+      </Sections>
+    </Container>
   );
 }
 
-const Form = styled.form`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
-const StickyHeader = styled.div`
-  position: sticky;
-  top: 0;
-  z-index: 10;
+const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -170,4 +140,49 @@ const Card = styled.div`
   border: 1px solid var(--border-muted);
   border-radius: var(--radius-xl);
   padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+`;
+
+const SectionTitle = styled.h3`
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--fg);
+  margin: 0;
+`;
+
+const Hint = styled.p`
+  font-size: var(--text-sm);
+  color: var(--fg-subtle);
+  margin: 0;
+`;
+
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+`;
+
+const FieldLabel = styled.label`
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+`;
+
+const SlugInputRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+`;
+
+const SlugPrefix = styled.span`
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+  white-space: nowrap;
+`;
+
+const Muted = styled.p`
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+  margin: 0;
 `;

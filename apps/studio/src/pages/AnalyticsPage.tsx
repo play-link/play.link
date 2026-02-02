@@ -10,6 +10,7 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import {useState} from 'react';
+import {useSearchParams} from 'react-router';
 import styled from 'styled-components';
 import {Button, Loading} from '@play/pylon';
 import {PageLayout} from '@/components/layout';
@@ -75,7 +76,19 @@ export function AnalyticsPage() {
   );
   const [days, setDays] = useState<DateRange>('30');
   const [chartMetric, setChartMetric] = useState<ChartMetric>('page_views');
-  const [selectedGameId, setSelectedGameId] = useState<string | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedGameId, setSelectedGameIdState] = useState<string | undefined>(
+    searchParams.get('gameId') ?? undefined,
+  );
+
+  const setSelectedGameId = (id: string | undefined) => {
+    setSelectedGameIdState(id);
+    if (id) {
+      setSearchParams({gameId: id}, {replace: true});
+    } else {
+      setSearchParams({}, {replace: true});
+    }
+  };
 
   const {data: games = []} = trpc.game.list.useQuery({
     studioId: activeStudio.id,

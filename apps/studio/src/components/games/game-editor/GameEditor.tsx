@@ -1,4 +1,4 @@
-import {ArrowLeftIcon, PencilIcon} from 'lucide-react';
+import {ArrowLeftIcon} from 'lucide-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate, useOutletContext} from 'react-router';
 import styled from 'styled-components';
@@ -8,7 +8,7 @@ import type {GameOutletContext} from '@/pages/GamePage';
 import {trpc} from '@/lib/trpc';
 import {EditorPreview} from './EditorPreview';
 import {EditorSidebar} from './EditorSidebar';
-import type {EditableLink, EditableMedia, PageConfig} from './EditorSidebar';
+import type {EditableLink, EditableMedia, GameMetadata, PageConfig} from './EditorSidebar';
 
 type GameLink = Tables<'game_links'>;
 type GameMedia = Tables<'game_media'>;
@@ -56,6 +56,20 @@ export function GameEditor() {
   const initialDescription = (game.description as string) ?? '';
   const [description, setDescription] = useState(initialDescription);
 
+  // Game metadata state
+  const initialMetadata = useMemo<GameMetadata>(() => ({
+    title: game.title,
+    summary: (game.summary as string) || '',
+    status: game.status,
+    releaseDate: (game.release_date as string) || '',
+    genres: Array.isArray(game.genres) ? game.genres : [],
+    platforms: Array.isArray(game.platforms) ? (game.platforms as string[]) : [],
+    coverUrl: (game.cover_url as string) || '',
+    headerUrl: (game.header_url as string) || '',
+    trailerUrl: (game.trailer_url as string) || '',
+  }), [game]);
+  const [gameMetadata, setGameMetadata] = useState<GameMetadata>(initialMetadata);
+
   // Local links state — initialized from server, only saved on "Save changes"
   const initialLinksRef = useRef<EditableLink[]>([]);
   const [editLinks, setEditLinks] = useState<EditableLink[]>([]);
@@ -86,10 +100,12 @@ export function GameEditor() {
 
   const linksDirty = JSON.stringify(editLinks) !== JSON.stringify(initialLinksRef.current);
   const mediaDirty = JSON.stringify(editMedia) !== JSON.stringify(initialMediaRef.current);
+  const metadataDirty = JSON.stringify(gameMetadata) !== JSON.stringify(initialMetadata);
 
   const isDirty =
     JSON.stringify(pageConfig) !== JSON.stringify(initialConfig) ||
     description !== initialDescription ||
+    metadataDirty ||
     linksDirty ||
     mediaDirty;
 
@@ -126,9 +142,21 @@ export function GameEditor() {
           updatePageConfig.mutateAsync({pageId: primaryPage.id, pageConfig}),
         );
       }
-      if (description !== initialDescription) {
+      if (description !== initialDescription || metadataDirty) {
         promises.push(
-          updateGame.mutateAsync({id: game.id, description}),
+          updateGame.mutateAsync({
+            id: game.id,
+            description,
+            title: gameMetadata.title,
+            summary: gameMetadata.summary || null,
+            status: gameMetadata.status,
+            releaseDate: gameMetadata.releaseDate || null,
+            genres: gameMetadata.genres,
+            platforms: gameMetadata.platforms,
+            coverUrl: gameMetadata.coverUrl || null,
+            headerUrl: gameMetadata.headerUrl || null,
+            trailerUrl: gameMetadata.trailerUrl || null,
+          }),
         );
       }
 
@@ -235,7 +263,7 @@ export function GameEditor() {
         severity: 'error',
       });
     }
-  }, [primaryPage, pageConfig, initialConfig, description, initialDescription, linksDirty, editLinks, mediaDirty, editMedia, updatePageConfig, updateGame, createLink, updateLink, deleteLink, createMedia, updateMedia, deleteMedia, game.id, utils, showSnackbar]);
+  }, [primaryPage, pageConfig, initialConfig, description, initialDescription, gameMetadata, metadataDirty, linksDirty, editLinks, mediaDirty, editMedia, updatePageConfig, updateGame, createLink, updateLink, deleteLink, createMedia, updateMedia, deleteMedia, game.id, utils, showSnackbar]);
 
   const handleClose = useCallback(() => {
     if (isDirty) {
@@ -272,22 +300,18 @@ export function GameEditor() {
             </Button>
           </SidebarToolbar>
 
-          <SidebarHeader>
-            <EditorBadge>
-              <PencilIcon size={14} />
-              Page Editor
-            </EditorBadge>
-          </SidebarHeader>
-
           <EditorSidebar
             pageConfig={pageConfig}
             description={description}
             links={editLinks}
             media={editMedia}
+            gameMetadata={gameMetadata}
+            gameId={game.id}
             onChange={setPageConfig}
             onDescriptionChange={setDescription}
             onLinksChange={setEditLinks}
             onMediaChange={setEditMedia}
+            onGameMetadataChange={setGameMetadata}
           />
         </Sidebar>
 
@@ -314,7 +338,7 @@ const Fullscreen = styled.div`
 
 const Layout = styled.div`
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 420px 1fr;
   height: 100%;
 `;
 
@@ -337,24 +361,6 @@ const SidebarToolbar = styled.div`
   button {
     gap: var(--spacing-2);
   }
-`;
-
-const SidebarHeader = styled.div`
-  display: flex;
-  align-items: center;
-  padding: var(--spacing-4) var(--spacing-4) 0;
-`;
-
-const EditorBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  background: var(--bg-muted);
-  border-radius: 9999px;
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--fg-muted);
 `;
 
 const PreviewArea = styled.div`

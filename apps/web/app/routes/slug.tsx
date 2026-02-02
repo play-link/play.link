@@ -81,6 +81,17 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
 
   const {page, game} = result;
 
+  // Check for page-level redirect (temporary redirect to external URL)
+  const pageConfig = (page.page_config && typeof page.page_config === 'object' && !Array.isArray(page.page_config))
+    ? (page.page_config as {redirectUrl?: string})
+    : {};
+  if (pageConfig.redirectUrl) {
+    return new Response(null, {
+      status: 302,
+      headers: {Location: pageConfig.redirectUrl},
+    }) as any;
+  }
+
   const supabase = createAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
   const [{data: links}, {data: media}, {data: updates}] = await Promise.all([
