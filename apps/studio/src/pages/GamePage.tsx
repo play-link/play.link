@@ -1,4 +1,3 @@
-import {ArrowLeftIcon} from 'lucide-react';
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router';
 import type {AppRouter} from '@play/api/trpc';
 import type {inferRouterOutputs} from '@trpc/server';
@@ -9,7 +8,7 @@ import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'updates' | 'press-kit' | 'settings';
+type Tab = 'overview' | 'updates' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
@@ -17,7 +16,6 @@ function useActiveTab(): Tab {
   const segment = parts[parts.length - 1];
   const parentSegment = parts[parts.length - 2];
   if (segment === 'settings') return 'settings';
-  if (segment === 'press-kit') return 'press-kit';
   if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
 }
@@ -72,9 +70,6 @@ export function GamePage() {
   return (
     <Container>
       <TopBar>
-        <BackLink to={`/${activeStudio.slug}/games`}>
-          <ArrowLeftIcon size={20} />
-        </BackLink>
         <GameTitle>{game.title}</GameTitle>
       </TopBar>
 
@@ -94,14 +89,6 @@ export function GamePage() {
           onClick={() => navigate(`${basePath}/updates`)}
         >
           Updates
-        </Button>
-        <Button
-          variant="nav"
-          size="sm"
-          className={activeTab === 'press-kit' ? 'active' : ''}
-          onClick={() => navigate(`${basePath}/press-kit`)}
-        >
-          Press kit
         </Button>
         <Button
           variant="nav"
@@ -136,18 +123,6 @@ const TopBar = styled.div`
   align-items: center;
   gap: var(--spacing-3);
   margin-bottom: var(--spacing-4);
-`;
-
-const BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--fg-muted);
-  transition: color 0.15s;
-
-  &:hover {
-    color: var(--fg);
-  }
 `;
 
 const GameTitle = styled.h1`

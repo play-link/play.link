@@ -63,7 +63,8 @@ export function GameOverview() {
   const pages = (game.pages ?? []) as Tables<'game_pages'>[];
   const primaryPage = pages.find((p) => p.is_primary);
   const isPublished = primaryPage?.visibility === 'PUBLISHED';
-  const gameUrl = primaryPage ? `https://play.link/${primaryPage.slug}` : '';
+  const playLinkBase = import.meta.env.VITE_PLAY_LINK_URL || 'https://play.link';
+  const gameUrl = primaryPage ? `${playLinkBase}/${primaryPage.slug}` : '';
 
   const utils = trpc.useUtils();
 
@@ -229,6 +230,18 @@ export function GameOverview() {
             <PreviewButton onClick={() => navigate('preview', {relative: 'path'})}>
               <ExternalLinkIcon size={16} />
               Preview page
+            </PreviewButton>
+          )}
+
+          {primaryPage && (
+            <PreviewButton
+              as="a"
+              href={`${playLinkBase}/${primaryPage.slug}/press-kit`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLinkIcon size={16} />
+              View press kit
             </PreviewButton>
           )}
 

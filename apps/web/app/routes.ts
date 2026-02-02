@@ -6,5 +6,6 @@ export default [
   route('api/track', 'routes/api.track.ts'),
   route('api/subscribe', 'routes/api.subscribe.ts'),
   route('unsubscribe', 'routes/unsubscribe.tsx'),
+  route(':slug/press-kit', 'routes/press-kit.tsx'),
   route(':slug', 'routes/slug.tsx'),
 ] satisfies RouteConfig;

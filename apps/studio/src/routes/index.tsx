@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
-import {GameEditor, GameOverview, GamePressKit, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
+import {GameEditor, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
 import {
   AdminPage,
   AnalyticsPage,
@@ -77,11 +77,7 @@ export const router = createBrowserRouter([
                 path: 'updates/:updateId',
                 element: <GameUpdateDetail />,
               },
-              {
-                path: 'press-kit',
-                element: <GamePressKit />,
-              },
-              {
+{
                 path: 'settings',
                 element: <GameSettings />,
               },
