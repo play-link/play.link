@@ -1,10 +1,10 @@
 import {useState} from 'react';
 import {useOutletContext} from 'react-router';
+import type {Tables} from '@play/supabase-client';
 import styled from 'styled-components';
 import {Button, Input, useSnackbar} from '@play/pylon';
-import type {Tables} from '@play/supabase-client';
-import type {GameOutletContext} from '@/pages/GamePage';
 import {trpc} from '@/lib/trpc';
+import type {GameOutletContext} from '@/pages/GamePage';
 import {DangerZoneSection} from './DangerZoneSection';
 import {RedirectSection} from './RedirectSection';
 
@@ -52,10 +52,6 @@ export function GameSettings() {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Settings</HeaderTitle>
-      </Header>
-
       <Sections>
         {/* Identity */}
         <Card>
@@ -92,7 +88,9 @@ export function GameSettings() {
                 onClick={handleRequestChange}
                 disabled={createChangeRequest.isPending}
               >
-                {createChangeRequest.isPending ? 'Submitting...' : 'Request Change'}
+                {createChangeRequest.isPending
+                  ? 'Submitting...'
+                  : 'Request Change'}
               </Button>
             </div>
           )}
@@ -113,26 +111,16 @@ export function GameSettings() {
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-`;
-
-const Header = styled.div`
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-4) 0;
-`;
-
-const HeaderTitle = styled.h2`
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--fg);
-  margin: 0;
+  width: 100%;
 `;
 
 const Sections = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
+  width: 100%;
+  max-width: var(--container-2xl);
 `;
 
 const Card = styled.div`
