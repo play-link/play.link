@@ -1,11 +1,11 @@
-import {useState} from 'react';
 import {FileTextIcon, PlusIcon} from 'lucide-react';
+import {useState} from 'react';
 import {useNavigate, useOutletContext} from 'react-router';
 import styled from 'styled-components';
 import {Button, Loading} from '@play/pylon';
-import type {GameOutletContext} from '@/pages/GamePage';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
+import type {GameOutletContext} from '@/pages/GamePage';
 import {CreateGameUpdate} from './CreateGameUpdate';
 
 export function GameUpdates() {
@@ -32,18 +32,13 @@ export function GameUpdates() {
   return (
     <Container>
       <Header>
-        <Title>Updates</Title>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setShowCreate(true)}
-        >
+        <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
           <PlusIcon size={16} className="mr-2" />
-          New Update
+          New update
         </Button>
       </Header>
 
-      {(!updates || updates.length === 0) ? (
+      {!updates || updates.length === 0 ? (
         <EmptyState>
           <FileTextIcon size={40} strokeWidth={1.5} />
           <EmptyText>No updates yet</EmptyText>

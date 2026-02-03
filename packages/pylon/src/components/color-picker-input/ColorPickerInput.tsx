@@ -24,7 +24,7 @@ export function ColorPickerInput({value, onChange, disabled}: ColorPickerInputPr
   );
 
   return (
-    <Wrapper>
+    <InputWrapper $disabled={disabled}>
       <Swatch
         ref={swatchRef}
         type="button"
@@ -68,20 +68,32 @@ export function ColorPickerInput({value, onChange, disabled}: ColorPickerInputPr
           </DropdownHexRow>
         </PickerDropdown>
       </Overlay>
-    </Wrapper>
+    </InputWrapper>
   );
 }
 
-const Wrapper = styled.div`
+const InputWrapper = styled.div<{$disabled?: boolean}>`
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-2);
+  background: var(--input-bg, transparent);
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--control-radius-sm);
+  transition: border-color 0.15s;
+  opacity: ${(p) => (p.$disabled ? 0.5 : 1)};
+
+  &:focus-within {
+    border-color: var(--input-outline-color);
+    outline: 1px solid var(--input-outline-color);
+  }
 `;
 
 const Swatch = styled.button<{$color: string}>`
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: var(--radius-full);
   border: 2px solid var(--border);
   background: ${(p) => p.$color || '#000'};
@@ -94,29 +106,23 @@ const Swatch = styled.button<{$color: string}>`
   }
 
   &:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
   }
 `;
 
 const HexInput = styled.input`
-  width: 5.5rem;
-  height: var(--control-height-sm);
-  padding: 0 var(--spacing-2);
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
   background: transparent;
-  border: 1px solid var(--input-border-color);
-  border-radius: var(--control-radius-sm);
+  border: none;
   color: var(--fg);
   font-size: var(--text-sm);
   font-family: monospace;
-
-  &:focus {
-    border-color: var(--input-outline-color);
-    outline: 1px solid var(--input-outline-color);
-  }
+  outline: none;
 
   &:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
   }
 `;

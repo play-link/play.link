@@ -1,37 +1,45 @@
-import {ArrowLeftIcon} from 'lucide-react';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate, useOutletContext} from 'react-router';
 import styled from 'styled-components';
-import {Button, useSnackbar} from '@play/pylon';
-import type {Tables} from '@play/supabase-client';
-import type {GameOutletContext} from '@/pages/GamePage';
+import {useSnackbar} from '@play/pylon';
 import {trpc} from '@/lib/trpc';
+import type {GameOutletContext} from '@/pages/GamePage';
 import {EditorPreview} from './EditorPreview';
 import {EditorSidebar} from './EditorSidebar';
-import type {EditableLink, EditableMedia, GameMetadata, PageConfig} from './EditorSidebar';
+import {EditorPreviewContainer} from './components/EditorPreviewContainer';
+import {EditorToolbar} from './components/EditorToolbar';
+import {useEditableCollection} from './hooks/use-editable-collection';
+import {useEditorShortcuts} from './hooks/use-editor-shortcuts';
+import type {
+  EditableLink,
+  EditableMedia,
+  EditorSnapshot,
+  GameMetadata,
+  PageConfig,
+} from './types';
+import {diffEditableItems, hashValue, toEditableLinks, toEditableMedia} from './utils';
+import {useUndoRedo} from './use-undo-redo';
 
-type GameLink = Tables<'game_links'>;
-type GameMedia = Tables<'game_media'>;
+type LinkCategory = 'store' | 'community' | 'media' | 'other' | 'platform';
 
-function toEditableLinks(links: GameLink[]): EditableLink[] {
-  return links.map((l) => ({
-    id: l.id,
-    type: l.type,
-    category: l.category,
-    label: l.label,
-    url: l.url,
-    position: l.position,
-  }));
+function toLinkMutationInput(link: EditableLink) {
+  return {
+    category: link.category as LinkCategory,
+    type: link.type as any,
+    label: link.label,
+    url: link.url || null,
+    position: link.position,
+    comingSoon: link.comingSoon,
+  };
 }
 
-function toEditableMedia(items: GameMedia[]): EditableMedia[] {
-  return items.map((m) => ({
-    id: m.id,
-    type: m.type as 'image' | 'video',
-    url: m.url,
-    thumbnailUrl: m.thumbnail_url || m.url,
-    position: m.position,
-  }));
+function toMediaMutationInput(item: EditableMedia) {
+  return {
+    type: item.type as 'image' | 'video',
+    url: item.url,
+    thumbnailUrl: item.thumbnailUrl || null,
+    position: item.position,
+  };
 }
 
 export function GameEditor() {
@@ -40,74 +48,106 @@ export function GameEditor() {
   const {showSnackbar} = useSnackbar();
   const utils = trpc.useUtils();
 
-  const pages = (game.pages ?? []) as Tables<'game_pages'>[];
-  const primaryPage = pages.find((p) => p.is_primary);
+  const pages = (game.pages ?? []) as {id: string; is_primary: boolean; page_config: unknown}[];
+  const primaryPage = pages.find((page) => page.is_primary);
 
-  const {data: serverLinks = []} = trpc.gameLink.list.useQuery({gameId: game.id});
-  const {data: serverMedia = []} = trpc.gameMedia.list.useQuery({gameId: game.id});
+  const linksQuery = trpc.gameLink.list.useQuery({gameId: game.id});
+  const mediaQuery = trpc.gameMedia.list.useQuery({gameId: game.id});
 
   const initialConfig = useMemo<PageConfig>(
     () => (primaryPage?.page_config as PageConfig) ?? {},
     [primaryPage],
   );
+  const initialDescription = (game.description as string) ?? '';
+  const initialMetadata = useMemo<GameMetadata>(
+    () => ({
+      title: game.title,
+      coverUrl: (game.cover_url as string) || '',
+      headerUrl: (game.header_url as string) || '',
+      trailerUrl: (game.trailer_url as string) || '',
+    }),
+    [game.cover_url, game.header_url, game.title, game.trailer_url],
+  );
+
+  const initialConfigRef = useRef<PageConfig>(initialConfig);
+  const initialDescriptionRef = useRef(initialDescription);
+  const initialMetadataRef = useRef<GameMetadata>(initialMetadata);
 
   const [pageConfig, setPageConfig] = useState<PageConfig>(initialConfig);
-
-  const initialDescription = (game.description as string) ?? '';
   const [description, setDescription] = useState(initialDescription);
-
-  // Game metadata state
-  const initialMetadata = useMemo<GameMetadata>(() => ({
-    title: game.title,
-    summary: (game.summary as string) || '',
-    status: game.status,
-    releaseDate: (game.release_date as string) || '',
-    genres: Array.isArray(game.genres) ? game.genres : [],
-    platforms: Array.isArray(game.platforms) ? (game.platforms as string[]) : [],
-    coverUrl: (game.cover_url as string) || '',
-    headerUrl: (game.header_url as string) || '',
-    trailerUrl: (game.trailer_url as string) || '',
-  }), [game]);
   const [gameMetadata, setGameMetadata] = useState<GameMetadata>(initialMetadata);
 
-  // Local links state — initialized from server, only saved on "Save changes"
-  const initialLinksRef = useRef<EditableLink[]>([]);
-  const [editLinks, setEditLinks] = useState<EditableLink[]>([]);
-  const [linksInitialized, setLinksInitialized] = useState(false);
+  const {
+    items: editLinks,
+    setItems: setEditLinks,
+    initialRef: initialLinksRef,
+    setInitial: setInitialLinks,
+  } = useEditableCollection({
+    scopeKey: game.id,
+    source: linksQuery.data ?? [],
+    isFetched: linksQuery.isFetched,
+    toEditable: toEditableLinks,
+  });
+
+  const {
+    items: editMedia,
+    setItems: setEditMedia,
+    initialRef: initialMediaRef,
+    setInitial: setInitialMedia,
+  } = useEditableCollection({
+    scopeKey: game.id,
+    source: mediaQuery.data ?? [],
+    isFetched: mediaQuery.isFetched,
+    toEditable: toEditableMedia,
+  });
+
+  const restoreSnapshot = useCallback((snapshot: EditorSnapshot) => {
+    setPageConfig(snapshot.pageConfig);
+    setDescription(snapshot.description);
+    setGameMetadata(snapshot.gameMetadata);
+    setEditLinks(snapshot.editLinks);
+    setEditMedia(snapshot.editMedia);
+  }, [setEditLinks, setEditMedia]);
+
+  const currentSnapshot = useMemo<EditorSnapshot>(
+    () => ({pageConfig, description, gameMetadata, editLinks, editMedia}),
+    [description, editLinks, editMedia, gameMetadata, pageConfig],
+  );
+
+  const {canUndo, canRedo, undo, redo, pushHistory} = useUndoRedo(
+    currentSnapshot,
+    restoreSnapshot,
+  );
 
   useEffect(() => {
-    if (serverLinks.length > 0 || !linksInitialized) {
-      const editable = toEditableLinks(serverLinks);
-      initialLinksRef.current = editable;
-      setEditLinks(editable);
-      setLinksInitialized(true);
-    }
-  }, [serverLinks, linksInitialized]);
+    pushHistory(currentSnapshot);
+  }, [currentSnapshot, pushHistory]);
 
-  // Local media state — same pattern as links
-  const initialMediaRef = useRef<EditableMedia[]>([]);
-  const [editMedia, setEditMedia] = useState<EditableMedia[]>([]);
-  const [mediaInitialized, setMediaInitialized] = useState(false);
+  const currentHashes = useMemo(
+    () => ({
+      pageConfig: hashValue(pageConfig),
+      metadata: hashValue(gameMetadata),
+      links: hashValue(editLinks),
+      media: hashValue(editMedia),
+    }),
+    [editLinks, editMedia, gameMetadata, pageConfig],
+  );
 
-  useEffect(() => {
-    if (serverMedia.length > 0 || !mediaInitialized) {
-      const editable = toEditableMedia(serverMedia);
-      initialMediaRef.current = editable;
-      setEditMedia(editable);
-      setMediaInitialized(true);
-    }
-  }, [serverMedia, mediaInitialized]);
+  const baselineHashes = {
+    pageConfig: hashValue(initialConfigRef.current),
+    metadata: hashValue(initialMetadataRef.current),
+    links: hashValue(initialLinksRef.current),
+    media: hashValue(initialMediaRef.current),
+    description: initialDescriptionRef.current,
+  };
 
-  const linksDirty = JSON.stringify(editLinks) !== JSON.stringify(initialLinksRef.current);
-  const mediaDirty = JSON.stringify(editMedia) !== JSON.stringify(initialMediaRef.current);
-  const metadataDirty = JSON.stringify(gameMetadata) !== JSON.stringify(initialMetadata);
+  const pageConfigDirty = currentHashes.pageConfig !== baselineHashes.pageConfig;
+  const descriptionDirty = description !== baselineHashes.description;
+  const metadataDirty = currentHashes.metadata !== baselineHashes.metadata;
+  const linksDirty = currentHashes.links !== baselineHashes.links;
+  const mediaDirty = currentHashes.media !== baselineHashes.media;
 
-  const isDirty =
-    JSON.stringify(pageConfig) !== JSON.stringify(initialConfig) ||
-    description !== initialDescription ||
-    metadataDirty ||
-    linksDirty ||
-    mediaDirty;
+  const isDirty = pageConfigDirty || descriptionDirty || metadataDirty || linksDirty || mediaDirty;
 
   const updatePageConfig = trpc.gamePage.updatePageConfig.useMutation({
     onError: (error) => {
@@ -129,30 +169,36 @@ export function GameEditor() {
   const updateMedia = trpc.gameMedia.update.useMutation();
   const deleteMedia = trpc.gameMedia.delete.useMutation();
 
-  const isSaving = updatePageConfig.isPending || updateGame.isPending;
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+
+  const isSaving =
+    updatePageConfig.isPending
+    || updateGame.isPending
+    || createLink.isPending
+    || updateLink.isPending
+    || deleteLink.isPending
+    || createMedia.isPending
+    || updateMedia.isPending
+    || deleteMedia.isPending;
 
   const handleSave = useCallback(async () => {
-    if (!primaryPage) return;
+    if (!primaryPage || !isDirty) return;
 
     try {
-      const promises: Promise<unknown>[] = [];
+      const tasks: Promise<unknown>[] = [];
 
-      if (JSON.stringify(pageConfig) !== JSON.stringify(initialConfig)) {
-        promises.push(
+      if (pageConfigDirty) {
+        tasks.push(
           updatePageConfig.mutateAsync({pageId: primaryPage.id, pageConfig}),
         );
       }
-      if (description !== initialDescription || metadataDirty) {
-        promises.push(
+
+      if (descriptionDirty || metadataDirty) {
+        tasks.push(
           updateGame.mutateAsync({
             id: game.id,
             description,
             title: gameMetadata.title,
-            summary: gameMetadata.summary || null,
-            status: gameMetadata.status,
-            releaseDate: gameMetadata.releaseDate || null,
-            genres: gameMetadata.genres,
-            platforms: gameMetadata.platforms,
             coverUrl: gameMetadata.coverUrl || null,
             headerUrl: gameMetadata.headerUrl || null,
             trailerUrl: gameMetadata.trailerUrl || null,
@@ -160,102 +206,74 @@ export function GameEditor() {
         );
       }
 
-      // Diff links: find creates, updates, deletes
       if (linksDirty) {
-        const initial = initialLinksRef.current;
-        const initialIds = new Set(initial.map((l) => l.id));
-        const currentIds = new Set(editLinks.map((l) => l.id));
+        const linkChanges = diffEditableItems(initialLinksRef.current, editLinks);
 
-        for (const link of initial) {
-          if (!currentIds.has(link.id)) {
-            promises.push(deleteLink.mutateAsync({id: link.id, gameId: game.id}));
-          }
+        for (const link of linkChanges.deleted) {
+          tasks.push(deleteLink.mutateAsync({id: link.id, gameId: game.id}));
         }
 
-        for (const link of editLinks) {
-          if (link.id.startsWith('new-')) {
-            promises.push(
-              createLink.mutateAsync({
-                gameId: game.id,
-                category: link.category as 'store' | 'community' | 'media' | 'other',
-                type: link.type as 'steam' | 'itch' | 'epic' | 'discord' | 'youtube' | 'website' | 'demo',
-                label: link.label,
-                url: link.url,
-                position: link.position,
-              }),
-            );
-          }
+        for (const link of linkChanges.created) {
+          tasks.push(
+            createLink.mutateAsync({
+              gameId: game.id,
+              ...toLinkMutationInput(link),
+            }),
+          );
         }
 
-        for (const link of editLinks) {
-          if (link.id.startsWith('new-')) continue;
-          if (!initialIds.has(link.id)) continue;
-          const prev = initial.find((l) => l.id === link.id);
-          if (prev && JSON.stringify(prev) !== JSON.stringify(link)) {
-            promises.push(
-              updateLink.mutateAsync({
-                id: link.id,
-                gameId: game.id,
-                category: link.category as 'store' | 'community' | 'media' | 'other',
-                type: link.type as 'steam' | 'itch' | 'epic' | 'discord' | 'youtube' | 'website' | 'demo',
-                label: link.label,
-                url: link.url,
-                position: link.position,
-              }),
-            );
-          }
+        for (const link of linkChanges.updated) {
+          tasks.push(
+            updateLink.mutateAsync({
+              id: link.id,
+              gameId: game.id,
+              ...toLinkMutationInput(link),
+            }),
+          );
         }
       }
 
-      // Diff media: find creates, updates, deletes
       if (mediaDirty) {
-        const initial = initialMediaRef.current;
-        const initialIds = new Set(initial.map((m) => m.id));
-        const currentIds = new Set(editMedia.map((m) => m.id));
+        const mediaChanges = diffEditableItems(initialMediaRef.current, editMedia);
 
-        for (const item of initial) {
-          if (!currentIds.has(item.id)) {
-            promises.push(deleteMedia.mutateAsync({id: item.id, gameId: game.id}));
-          }
+        for (const item of mediaChanges.deleted) {
+          tasks.push(deleteMedia.mutateAsync({id: item.id, gameId: game.id}));
         }
 
-        for (const item of editMedia) {
-          if (item.id.startsWith('new-')) {
-            promises.push(
-              createMedia.mutateAsync({
-                gameId: game.id,
-                type: item.type as 'image' | 'video',
-                url: item.url,
-                thumbnailUrl: item.thumbnailUrl || null,
-                position: item.position,
-              }),
-            );
-          }
+        for (const item of mediaChanges.created) {
+          tasks.push(
+            createMedia.mutateAsync({
+              gameId: game.id,
+              ...toMediaMutationInput(item),
+            }),
+          );
         }
 
-        for (const item of editMedia) {
-          if (item.id.startsWith('new-')) continue;
-          if (!initialIds.has(item.id)) continue;
-          const prev = initial.find((m) => m.id === item.id);
-          if (prev && JSON.stringify(prev) !== JSON.stringify(item)) {
-            promises.push(
-              updateMedia.mutateAsync({
-                id: item.id,
-                gameId: game.id,
-                type: item.type as 'image' | 'video',
-                url: item.url,
-                thumbnailUrl: item.thumbnailUrl || null,
-                position: item.position,
-              }),
-            );
-          }
+        for (const item of mediaChanges.updated) {
+          tasks.push(
+            updateMedia.mutateAsync({
+              id: item.id,
+              gameId: game.id,
+              ...toMediaMutationInput(item),
+            }),
+          );
         }
       }
 
-      await Promise.all(promises);
-      utils.game.get.invalidate({id: game.id});
-      utils.gameLink.list.invalidate({gameId: game.id});
-      utils.gameMedia.list.invalidate({gameId: game.id});
+      await Promise.all(tasks);
+
+      await Promise.all([
+        utils.game.get.invalidate({id: game.id}),
+        utils.gameLink.list.invalidate({gameId: game.id}),
+        utils.gameMedia.list.invalidate({gameId: game.id}),
+      ]);
+
+      initialConfigRef.current = pageConfig;
+      initialDescriptionRef.current = description;
+      initialMetadataRef.current = gameMetadata;
+      setInitialLinks(editLinks);
+      setInitialMedia(editMedia);
+
       showSnackbar({message: 'Page saved', severity: 'success'});
     } catch (error) {
       showSnackbar({
@@ -263,7 +281,37 @@ export function GameEditor() {
         severity: 'error',
       });
     }
-  }, [primaryPage, pageConfig, initialConfig, description, initialDescription, gameMetadata, metadataDirty, linksDirty, editLinks, mediaDirty, editMedia, updatePageConfig, updateGame, createLink, updateLink, deleteLink, createMedia, updateMedia, deleteMedia, game.id, utils, showSnackbar]);
+  }, [
+    createLink,
+    createMedia,
+    deleteLink,
+    deleteMedia,
+    description,
+    descriptionDirty,
+    editLinks,
+    editMedia,
+    game.id,
+    gameMetadata,
+    isDirty,
+    initialLinksRef,
+    initialMediaRef,
+    linksDirty,
+    mediaDirty,
+    metadataDirty,
+    pageConfig,
+    pageConfigDirty,
+    primaryPage,
+    setInitialLinks,
+    setInitialMedia,
+    showSnackbar,
+    updateGame,
+    updateLink,
+    updateMedia,
+    updatePageConfig,
+    utils.game.get,
+    utils.gameLink.list,
+    utils.gameMedia.list,
+  ]);
 
   const handleClose = useCallback(() => {
     if (isDirty) {
@@ -273,32 +321,34 @@ export function GameEditor() {
     navigate('..', {relative: 'path'});
   }, [isDirty, navigate]);
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') handleClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleClose]);
+  const handleTogglePreviewMode = useCallback(() => {
+    setPreviewMode((mode) => (mode === 'desktop' ? 'mobile' : 'desktop'));
+  }, []);
+
+  useEditorShortcuts({
+    onClose: handleClose,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+  });
 
   return (
     <Fullscreen>
       <Layout>
         <Sidebar>
-          <SidebarToolbar>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <ArrowLeftIcon size={16} />
-              Back to game
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSave}
-              disabled={!isDirty || isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save changes'}
-            </Button>
-          </SidebarToolbar>
+          <EditorToolbar
+            isDirty={isDirty}
+            isSaving={isSaving}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            previewMode={previewMode}
+            onClose={handleClose}
+            onUndo={undo}
+            onRedo={redo}
+            onTogglePreviewMode={handleTogglePreviewMode}
+            onSave={handleSave}
+          />
 
           <EditorSidebar
             pageConfig={pageConfig}
@@ -306,7 +356,6 @@ export function GameEditor() {
             links={editLinks}
             media={editMedia}
             gameMetadata={gameMetadata}
-            gameId={game.id}
             onChange={setPageConfig}
             onDescriptionChange={setDescription}
             onLinksChange={setEditLinks}
@@ -315,15 +364,16 @@ export function GameEditor() {
           />
         </Sidebar>
 
-        <PreviewArea>
+        <EditorPreviewContainer previewMode={previewMode}>
           <EditorPreview
             game={game}
-            links={editLinks as unknown as GameLink[]}
-            media={editMedia as unknown as GameMedia[]}
+            gameMetadata={gameMetadata}
+            links={editLinks}
+            media={editMedia}
             pageConfig={pageConfig}
             description={description}
           />
-        </PreviewArea>
+        </EditorPreviewContainer>
       </Layout>
     </Fullscreen>
   );
@@ -338,7 +388,7 @@ const Fullscreen = styled.div`
 
 const Layout = styled.div`
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 28rem 1fr;
   height: 100%;
 `;
 
@@ -348,23 +398,4 @@ const Sidebar = styled.div`
   border-right: 1px solid var(--border-muted);
   overflow-y: auto;
   background: var(--bg-surface);
-`;
-
-const SidebarToolbar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--border-muted);
-  flex-shrink: 0;
-
-  button {
-    gap: var(--spacing-2);
-  }
-`;
-
-const PreviewArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 `;

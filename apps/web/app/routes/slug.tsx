@@ -209,13 +209,28 @@ export default function SlugPage({loaderData}: Route.ComponentProps) {
     return <StudioProfileView profile={d.profile} />;
   }
 
+  const themeConfig = (d.page.page_config as Record<string, unknown> | null)?.theme as
+    | Record<string, string>
+    | undefined;
+  const font = themeConfig?.fontFamily;
+  const fontFamily = font ? font.replace(/ /g, '+') : null;
+
   return (
-    <GamePageView
-      game={d.game}
-      page={d.page}
-      links={d.links}
-      media={d.media}
-      updates={d.updates}
-    />
+    <>
+      {fontFamily && (
+        <>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${fontFamily}:wght@400;600;700&display=swap`} />
+        </>
+      )}
+      <GamePageView
+        game={d.game}
+        page={d.page}
+        links={d.links}
+        media={d.media}
+        updates={d.updates}
+      />
+    </>
   );
 }

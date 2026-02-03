@@ -3,6 +3,7 @@ export {CreateGameUpdate} from './CreateGameUpdate';
 export {GameEditor} from './game-editor';
 export {GameSettings} from './game-settings';
 export {GameCard, type GameCardProps} from './GameCard';
+export {GameInfo} from './GameInfo';
 export {GameOverview} from './GameOverview';
 export {GamePreview} from './GamePreview';
 export {GameUpdateDetail} from './GameUpdateDetail';

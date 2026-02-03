@@ -190,6 +190,10 @@ export const gamePageRouter = router({
             bgColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
             textColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
             linkColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+            secondaryColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
+            buttonStyle: z.enum(['glass', 'solid', 'outline']).optional(),
+            buttonRadius: z.enum(['sm', 'md', 'lg', 'full']).optional(),
+            fontFamily: z.string().max(50).optional(),
           })
           .optional(),
         redirectUrl: z.string().url().nullish(),

@@ -33,10 +33,51 @@ function getYouTubeId(url: string): string | null {
   return match?.[1] ?? null;
 }
 
+export type ButtonStyle = 'glass' | 'solid' | 'outline';
+export type ButtonRadius = 'sm' | 'md' | 'lg' | 'full';
+
 export interface GamePageTheme {
   bgColor: string;
   textColor: string;
   linkColor: string;
+  buttonStyle?: ButtonStyle;
+  buttonRadius?: ButtonRadius;
+  secondaryColor?: string;
+  fontFamily?: string;
+}
+
+const BUTTON_RADIUS_MAP: Record<ButtonRadius, string> = {
+  sm: '0',
+  md: '0.5rem',
+  lg: '0.75rem',
+  full: '9999px',
+};
+
+function getButtonStyles(textColor: string, style: ButtonStyle = 'glass', secondaryColor?: string): React.CSSProperties {
+  const bg = secondaryColor || textColor;
+  switch (style) {
+    case 'solid':
+      return {
+        background: bg,
+        borderColor: 'transparent',
+        color: textColor,
+      };
+    case 'outline':
+      return {
+        background: 'transparent',
+        borderColor: `color-mix(in srgb, ${textColor} 30%, transparent)`,
+        color: textColor,
+      };
+    case 'glass':
+    default:
+      return {
+        background: `color-mix(in srgb, ${bg} 8%, transparent)`,
+        borderColor: `color-mix(in srgb, ${bg} 15%, transparent)`,
+        color: textColor,
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      };
+  }
 }
 
 export interface GamePageGame {
@@ -59,6 +100,8 @@ export interface GamePageContentProps {
   children?: ReactNode;
   /** Called when a link is clicked */
   onLinkClick?: (linkId: string) => void;
+  /** When true, uses min-height: 100vh (for standalone pages). Default false (for embedded editor preview). */
+  fullScreen?: boolean;
 }
 
 export function GamePageContent({
@@ -70,12 +113,20 @@ export function GamePageContent({
   headerActions,
   children,
   onLinkClick,
+  fullScreen,
 }: GamePageContentProps) {
-  const {bgColor, textColor, linkColor} = theme;
+  const {bgColor, textColor, linkColor, buttonStyle, buttonRadius, secondaryColor, fontFamily} = theme;
+  const badgeStyles = getButtonStyles(textColor, buttonStyle, secondaryColor);
+  const badgeRadius = BUTTON_RADIUS_MAP[buttonRadius || 'full'];
+  const fontStyle: React.CSSProperties = fontFamily
+    ? {fontFamily: `'${fontFamily}', sans-serif`, ...(fontFamily === 'Bebas Neue' ? {letterSpacing: '2px'} : {})}
+    : {};
 
   const description = descriptionOverride ?? (game.description as string | null);
+  const platformLinks = links.filter((l) => l.category === 'platform');
   const storeBadges = links.filter((l) => l.category === 'store');
-  const hasLinks = links.length > 0;
+  const otherLinks = links.filter((l) => l.category !== 'platform');
+  const hasLinks = otherLinks.length > 0;
   const hasDescription = !!description;
   const hasMedia = media.length > 0;
 
@@ -129,15 +180,18 @@ export function GamePageContent({
   }, [lightboxIndex, closeLightbox, goNext, goPrev]);
 
   return (
-    <Page style={{background: bgColor, color: textColor}}>
-      {game.header_url && (
-        <HeaderBanner style={{'--fade-color': bgColor} as React.CSSProperties}>
-          <img src={game.header_url} alt={`${game.title} header`} />
-          <HeaderFade />
-        </HeaderBanner>
-      )}
+    <Page $fullScreen={!!fullScreen} style={{background: bgColor, color: textColor, ...fontStyle}}>
+      <HeroSection
+        style={{
+          '--fade-color': bgColor,
+          ...(game.header_url ? {backgroundImage: `url(${game.header_url})`} : {}),
+        } as React.CSSProperties}
+        $hasImage={!!game.header_url}
+      >
+        <HeroFade $hasImage={!!game.header_url} />
+      </HeroSection>
 
-      <Content>
+      <Content $hasHeader={!!game.header_url}>
         {headerActions ? (
           <TitleRow>
             <Title>{game.title}</Title>
@@ -153,7 +207,7 @@ export function GamePageContent({
           </Summary>
         )}
 
-        {storeBadges.length > 0 && (
+        {(storeBadges.length > 0 || platformLinks.length > 0) && (
           <PlatformBadges>
             {storeBadges.map((link) => {
               const Icon = LINK_ICON_MAP[link.type] || LinkIcon;
@@ -165,14 +219,28 @@ export function GamePageContent({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => onLinkClick?.(link.id)}
-                  style={{
-                    background: `color-mix(in srgb, ${textColor} 10%, transparent)`,
-                    borderColor: `color-mix(in srgb, ${textColor} 15%, transparent)`,
-                    color: textColor,
-                  }}
+                  style={{...badgeStyles, borderRadius: badgeRadius}}
                 >
                   <Icon size={14} />
                   {link.label}
+                </PlatformBadge>
+              );
+            })}
+            {platformLinks.map((link) => {
+              const linkAny = link as Record<string, unknown>;
+              const comingSoon = linkAny.coming_soon || linkAny.comingSoon;
+              const label = `${link.label}${comingSoon ? ' - Coming soon' : ''}`;
+              const Tag = link.url ? 'a' : 'span';
+              return (
+                <PlatformBadge
+                  key={link.id}
+                  as={Tag}
+                  {...(link.url ? {href: link.url, target: '_blank', rel: 'noopener noreferrer'} : {})}
+                  onClick={() => link.url && onLinkClick?.(link.id)}
+                  style={{...badgeStyles, borderRadius: badgeRadius}}
+                >
+                  <Gamepad2Icon size={14} />
+                  {label}
                 </PlatformBadge>
               );
             })}
@@ -216,7 +284,7 @@ export function GamePageContent({
           <TwoColumns>
             {hasLinks && (
               <LeftColumn>
-                {links.map((link) => {
+                {otherLinks.map((link) => {
                   const Icon = LINK_ICON_MAP[link.type] || LinkIcon;
                   return (
                     <LinkRow
@@ -232,9 +300,11 @@ export function GamePageContent({
                       </LinkIconWrap>
                       <LinkInfo>
                         <LinkLabel style={{color: textColor}}>{link.label}</LinkLabel>
-                        <LinkUrl style={{color: textColor, opacity: 0.4}}>
-                          {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                        </LinkUrl>
+                        {link.url && (
+                          <LinkUrl style={{color: textColor, opacity: 0.4}}>
+                            {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                          </LinkUrl>
+                        )}
                       </LinkInfo>
                     </LinkRow>
                   );
@@ -309,43 +379,41 @@ export function GamePageContent({
   );
 }
 
-const Page = styled.div`
-  min-height: 100%;
+const Page = styled.div<{$fullScreen?: boolean}>`
+  min-height: ${(p) => (p.$fullScreen ? '100vh' : '100%')};
 `;
 
-const HeaderBanner = styled.div`
-  width: 100%;
-  height: 24rem;
+const HeroSection = styled.div<{$hasImage: boolean}>`
   position: relative;
-  overflow: hidden;
+  width: 100%;
+  height: ${(p) => (p.$hasImage ? '24rem' : '6rem')};
+  background-size: cover;
+  background-position: center;
 
   @media (min-width: 768px) {
-    height: 31rem;
-  }
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: ${(p) => (p.$hasImage ? '31rem' : '6rem')};
   }
 `;
 
-const HeaderFade = styled.div`
+const HeroFade = styled.div<{$hasImage: boolean}>`
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, transparent, var(--fade-color));
+  height: ${(p) => (p.$hasImage ? '50%' : '100%')};
+  background: ${(p) =>
+    p.$hasImage
+      ? 'linear-gradient(to bottom, transparent, var(--fade-color))'
+      : 'var(--fade-color)'};
   pointer-events: none;
 `;
 
-const Content = styled.div`
+const Content = styled.div<{$hasHeader: boolean}>`
   position: relative;
   max-width: 56rem;
   margin: 0 auto;
   padding: 2rem 1rem;
-  margin-top: -12rem;
+  margin-top: ${(p) => (p.$hasHeader ? '-12rem' : '-4rem')};
   z-index: 1;
 `;
 
@@ -444,9 +512,9 @@ const MediaScrollArrow = styled.button<{$side: 'left' | 'right'}>`
 
 const MediaStripItem = styled.div`
   flex-shrink: 0;
-  width: 17.5rem;
+  width: 13.125rem;
   aspect-ratio: 16 / 9;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
   position: relative;

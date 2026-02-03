@@ -216,8 +216,9 @@ CREATE TABLE public.game_links (
     category TEXT NOT NULL,
     type TEXT NOT NULL,
     label TEXT NOT NULL,
-    url TEXT NOT NULL,
+    url TEXT,
     position INT DEFAULT 0 NOT NULL,
+    coming_soon BOOLEAN DEFAULT false NOT NULL,
 
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );

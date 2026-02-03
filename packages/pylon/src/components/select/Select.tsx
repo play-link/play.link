@@ -419,7 +419,7 @@ export function Select({
             className="ml-1"
           />
         )}
-        <Icon icon={ChevronDownIcon} size={15} className="arrow-icon" strokeWidth={2} />
+        <Icon icon={ChevronDownIcon} size={15} className="arrow-icon ml-auto" strokeWidth={2} />
       </SelectButton>
       <Overlay
         ref={overlayRef}

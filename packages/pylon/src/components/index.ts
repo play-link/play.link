@@ -30,6 +30,7 @@ export * from './segmented-controls';
 export * from './select';
 export * from './snackbar';
 export * from './switch';
+export * from './tab-nav';
 export * from './table';
 export * from './textarea';
 export * from './time-picker-input';

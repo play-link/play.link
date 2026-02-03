@@ -104,6 +104,7 @@ export default function PressKitPage({loaderData}: Route.ComponentProps) {
   const description = game.description as string | null;
   const genres = Array.isArray(game.genres) ? (game.genres as string[]) : [];
   const platforms = Array.isArray(game.platforms) ? (game.platforms as string[]) : [];
+  const platformLinks = links.filter((l) => l.category === 'platform');
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -231,7 +232,36 @@ export default function PressKitPage({loaderData}: Route.ComponentProps) {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 mt-0">
                   Platforms:
                 </h3>
-                <p className="text-sm m-0">{platforms.join(', ')}</p>
+                <p className="text-sm m-0">
+                  {platforms.join(', ')}
+                </p>
+              </div>
+            )}
+
+            {platformLinks.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 mt-0">
+                  Available on:
+                </h3>
+                <div className="flex flex-col gap-1">
+                  {platformLinks.map((link) => (
+                    link.url ? (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <span key={link.id} className="text-sm text-gray-600">
+                        {link.label}{(link as unknown as Record<string, unknown>).coming_soon ? ' (Coming soon)' : ''}
+                      </span>
+                    )
+                  ))}
+                </div>
               </div>
             )}
           </aside>

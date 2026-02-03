@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import styled from 'styled-components';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -7,6 +8,7 @@ interface PageLayoutProps {
 interface PageLayoutHeaderProps {
   title: string;
   subtitle?: string;
+  tabNav?: ReactNode;
   children?: ReactNode;
 }
 
@@ -29,21 +31,24 @@ interface PageLayoutContentProps {
  * </PageLayout>
  */
 export function PageLayout({children}: PageLayoutProps) {
-  return <div className="flex flex-col min-h-full p-10">{children}</div>;
+  return <StyledPageLayout>{children}</StyledPageLayout>;
 }
 
 /**
  * Page header with title, optional subtitle, and action slot.
  */
-function Header({title, subtitle, children}: PageLayoutHeaderProps) {
+function Header({title, subtitle, tabNav, children}: PageLayoutHeaderProps) {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <div>
-        <h1 className="text-4xl font-bold text-(--fg)">{title}</h1>
-        {subtitle && <p className="text-(--fg-subtle) mt-1">{subtitle}</p>}
-      </div>
-      {children && <div className="flex items-center gap-3">{children}</div>}
-    </div>
+    <StyledHeader>
+      <StyledHeaderTop $hasTabNav={!!tabNav}>
+        <div>
+          <StyledTitle>{title}</StyledTitle>
+          {subtitle && <StyledSubtitle>{subtitle}</StyledSubtitle>}
+        </div>
+        {children && <StyledActions>{children}</StyledActions>}
+      </StyledHeaderTop>
+      {tabNav}
+    </StyledHeader>
   );
 }
 
@@ -51,8 +56,47 @@ function Header({title, subtitle, children}: PageLayoutHeaderProps) {
  * Main content area of the page.
  */
 function Content({children}: PageLayoutContentProps) {
-  return <div className="flex-1">{children}</div>;
+  return <StyledContent>{children}</StyledContent>;
 }
 
 PageLayout.Header = Header;
 PageLayout.Content = Content;
+
+const StyledPageLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: var(--spacing-8);
+`;
+
+const StyledHeader = styled.div`
+  margin-bottom: var(--spacing-8);
+`;
+
+const StyledHeaderTop = styled.div<{$hasTabNav: boolean}>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: ${({$hasTabNav}) => ($hasTabNav ? 'var(--spacing-2)' : '0')};
+`;
+
+const StyledTitle = styled.h1`
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+`;
+
+const StyledSubtitle = styled.p`
+  color: var(--fg-subtle);
+  margin: var(--spacing-1) 0 0;
+`;
+
+const StyledActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+`;
+
+const StyledContent = styled.div`
+  flex: 1;
+`;

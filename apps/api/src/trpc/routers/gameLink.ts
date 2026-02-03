@@ -3,6 +3,23 @@ import {z} from 'zod'
 import {protectedProcedure, router} from '../index'
 import {verifyGameAccess} from '../lib/verify-access'
 
+const linkTypeEnum = z.enum([
+  'steam',
+  'itch',
+  'epic',
+  'discord',
+  'youtube',
+  'website',
+  'demo',
+  'nintendo-switch',
+  'playstation',
+  'xbox',
+  'app-store',
+  'google-play',
+])
+
+const linkCategoryEnum = z.enum(['store', 'community', 'media', 'other', 'platform'])
+
 export const gameLinkRouter = router({
   list: protectedProcedure
     .input(z.object({gameId: z.string().uuid()}))
@@ -30,19 +47,12 @@ export const gameLinkRouter = router({
     .input(
       z.object({
         gameId: z.string().uuid(),
-        category: z.enum(['store', 'community', 'media', 'other']),
-        type: z.enum([
-          'steam',
-          'itch',
-          'epic',
-          'discord',
-          'youtube',
-          'website',
-          'demo',
-        ]),
+        category: linkCategoryEnum,
+        type: linkTypeEnum,
         label: z.string().min(1).max(100),
-        url: z.string().url(),
+        url: z.string().url().optional().nullable(),
         position: z.number().int().min(0).default(0),
+        comingSoon: z.boolean().optional(),
       }),
     )
     .mutation(async ({ctx, input}) => {
@@ -56,8 +66,9 @@ export const gameLinkRouter = router({
           category: input.category,
           type: input.type,
           label: input.label,
-          url: input.url,
+          url: input.url || null,
           position: input.position,
+          coming_soon: input.comingSoon ?? false,
         })
         .select()
         .single()
@@ -77,28 +88,23 @@ export const gameLinkRouter = router({
       z.object({
         id: z.string().uuid(),
         gameId: z.string().uuid(),
-        category: z.enum(['store', 'community', 'media', 'other']).optional(),
-        type: z
-          .enum([
-            'steam',
-            'itch',
-            'epic',
-            'discord',
-            'youtube',
-            'website',
-            'demo',
-          ])
-          .optional(),
+        category: linkCategoryEnum.optional(),
+        type: linkTypeEnum.optional(),
         label: z.string().min(1).max(100).optional(),
-        url: z.string().url().optional(),
+        url: z.string().url().optional().nullable(),
         position: z.number().int().min(0).optional(),
+        comingSoon: z.boolean().optional(),
       }),
     )
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
       await verifyGameAccess(supabase, user.id, input.gameId)
 
-      const {id, gameId: _, ...updates} = input
+      const {id, gameId: _, comingSoon, ...rest} = input
+      const updates: Record<string, unknown> = {...rest}
+      if (comingSoon !== undefined) {
+        updates.coming_soon = comingSoon
+      }
 
       if (Object.keys(updates).length === 0) {
         throw new TRPCError({code: 'BAD_REQUEST', message: 'Nothing to update'})

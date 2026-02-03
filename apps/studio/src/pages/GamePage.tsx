@@ -1,14 +1,14 @@
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router';
 import type {AppRouter} from '@play/api/trpc';
 import type {inferRouterOutputs} from '@trpc/server';
-import styled from 'styled-components';
-import {Button, Loading} from '@play/pylon';
+import {Button, Loading, TabNav, TabNavItem} from '@play/pylon';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
+import {PageLayout} from '@/components/layout';
 import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'updates' | 'settings';
+type Tab = 'overview' | 'updates' | 'info' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
@@ -16,6 +16,7 @@ function useActiveTab(): Tab {
   const segment = parts[parts.length - 1];
   const parentSegment = parts[parts.length - 2];
   if (segment === 'settings') return 'settings';
+  if (segment === 'info') return 'info';
   if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
 }
@@ -46,20 +47,22 @@ export function GamePage() {
 
   if (isLoading) {
     return (
-      <LoadingContainer>
-        <Loading size="lg" />
-      </LoadingContainer>
+      <PageLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loading size="lg" />
+        </div>
+      </PageLayout>
     );
   }
 
   if (!game) {
     return (
-      <Container>
+      <PageLayout>
         <p>Game not found</p>
         <Link to={`/${activeStudio.slug}/games`}>
           <Button variant="ghost">Back to Games</Button>
         </Link>
-      </Container>
+      </PageLayout>
     );
   }
 
@@ -68,76 +71,41 @@ export function GamePage() {
   }
 
   return (
-    <Container>
-      <TopBar>
-        <GameTitle>{game.title}</GameTitle>
-      </TopBar>
-
-      <TabNav>
-        <Button
-          variant="nav"
-          size="sm"
-          className={activeTab === 'overview' ? 'active' : ''}
-          onClick={() => navigate(basePath)}
-        >
-          Overview
-        </Button>
-        <Button
-          variant="nav"
-          size="sm"
-          className={activeTab === 'updates' ? 'active' : ''}
-          onClick={() => navigate(`${basePath}/updates`)}
-        >
-          Updates
-        </Button>
-        <Button
-          variant="nav"
-          size="sm"
-          className={activeTab === 'settings' ? 'active' : ''}
-          onClick={() => navigate(`${basePath}/settings`)}
-        >
-          Settings
-        </Button>
-      </TabNav>
-
-      <Content>
+    <PageLayout>
+      <PageLayout.Header
+        title={game.title}
+        tabNav={
+          <TabNav bleeding={10}>
+            <TabNavItem
+              active={activeTab === 'overview'}
+              onClick={() => navigate(basePath)}
+            >
+              Overview
+            </TabNavItem>
+            <TabNavItem
+              active={activeTab === 'updates'}
+              onClick={() => navigate(`${basePath}/updates`)}
+            >
+              Updates
+            </TabNavItem>
+            <TabNavItem
+              active={activeTab === 'info'}
+              onClick={() => navigate(`${basePath}/info`)}
+            >
+              Info
+            </TabNavItem>
+            <TabNavItem
+              active={activeTab === 'settings'}
+              onClick={() => navigate(`${basePath}/settings`)}
+            >
+              Settings
+            </TabNavItem>
+          </TabNav>
+        }
+      />
+      <PageLayout.Content>
         <Outlet context={game} />
-      </Content>
-    </Container>
+      </PageLayout.Content>
+    </PageLayout>
   );
 }
-
-const Container = styled.div`
-  padding: var(--spacing-8);
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 16rem;
-`;
-
-const TopBar = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
-`;
-
-const GameTitle = styled.h1`
-  font-size: var(--text-5xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--fg);
-  margin: 0;
-`;
-
-const TabNav = styled.div`
-  display: flex;
-  gap: var(--spacing-1);
-  margin-bottom: var(--spacing-6);
-`;
-
-const Content = styled.div`
-  min-height: 24rem;
-`;

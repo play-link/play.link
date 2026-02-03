@@ -1,49 +1,11 @@
-import {ChevronRightIcon, ImageIcon, PlayIcon, PlusIcon, Trash2Icon, TrashIcon, VideoIcon, XIcon} from 'lucide-react';
-import {useCallback, useState} from 'react';
-import {DateTime} from 'luxon';
+import {ChevronRightIcon, FileTextIcon, GalleryHorizontalEndIcon, GamepadIcon, ImageIcon, LinkIcon, PaletteIcon, PlayIcon, PlusIcon, SwatchBookIcon, Trash2Icon, VideoIcon, XIcon} from 'lucide-react';
+import type {LucideIcon} from 'lucide-react';
+import {useCallback, useEffect, useState} from 'react';
 import styled from 'styled-components';
-import {Button, ColorPickerInput, Fieldset, IconButton, ImageInput, Input, Select, SingleDatePickerInput, Textarea, useSnackbar} from '@play/pylon';
-import type {EasyCropResp, ImageAspectRatio, SingleDateValue} from '@play/pylon';
-import type {CreditRoleType} from '@play/supabase-client';
+import {Button, ColorPickerInput, IconButton, ImageInput, Input, Select, Textarea, useSnackbar} from '@play/pylon';
+import type {EasyCropResp, ImageAspectRatio} from '@play/pylon';
 import {uploadImage} from '@/lib/upload';
-import {trpc} from '@/lib/trpc';
-
-export interface PageConfig {
-  theme?: {
-    bgColor?: string;
-    textColor?: string;
-    linkColor?: string;
-  };
-}
-
-export interface EditableLink {
-  id: string;
-  type: string;
-  category: string;
-  label: string;
-  url: string;
-  position: number;
-}
-
-export interface EditableMedia {
-  id: string;
-  type: 'image' | 'video';
-  url: string;
-  thumbnailUrl: string;
-  position: number;
-}
-
-export interface GameMetadata {
-  title: string;
-  summary: string;
-  status: string;
-  releaseDate: string;
-  genres: string[];
-  platforms: string[];
-  coverUrl: string;
-  headerUrl: string;
-  trailerUrl: string;
-}
+import type {EditableLink, EditableMedia, GameMetadata, PageConfig} from './types';
 
 function getYouTubeId(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=))([^&?#]+)/);
@@ -76,75 +38,58 @@ const LINK_CATEGORIES: Record<string, string> = {
   demo: 'other',
 };
 
-const STATUS_OPTIONS = [
-  {label: 'In Development', value: 'IN_DEVELOPMENT'},
-  {label: 'Upcoming', value: 'UPCOMING'},
-  {label: 'Early Access', value: 'EARLY_ACCESS'},
-  {label: 'Released', value: 'RELEASED'},
-  {label: 'Cancelled', value: 'CANCELLED'},
+const PLATFORM_LINK_TYPE_OPTIONS = [
+  {label: 'Steam', value: 'steam'},
+  {label: 'itch.io', value: 'itch'},
+  {label: 'Epic Games', value: 'epic'},
+  {label: 'Nintendo Switch', value: 'nintendo-switch'},
+  {label: 'PlayStation', value: 'playstation'},
+  {label: 'Xbox', value: 'xbox'},
+  {label: 'App Store', value: 'app-store'},
+  {label: 'Google Play', value: 'google-play'},
 ];
 
-const GENRE_OPTIONS = [
-  {label: 'Action', value: 'Action'},
-  {label: 'Adventure', value: 'Adventure'},
-  {label: 'RPG', value: 'RPG'},
-  {label: 'Strategy', value: 'Strategy'},
-  {label: 'Simulation', value: 'Simulation'},
-  {label: 'Puzzle', value: 'Puzzle'},
-  {label: 'Platformer', value: 'Platformer'},
-  {label: 'Shooter', value: 'Shooter'},
-  {label: 'Racing', value: 'Racing'},
-  {label: 'Sports', value: 'Sports'},
-  {label: 'Horror', value: 'Horror'},
-  {label: 'Survival', value: 'Survival'},
-  {label: 'Sandbox', value: 'Sandbox'},
-  {label: 'Fighting', value: 'Fighting'},
-  {label: 'Roguelike', value: 'Roguelike'},
-  {label: 'Visual Novel', value: 'Visual Novel'},
-  {label: 'Metroidvania', value: 'Metroidvania'},
-  {label: 'Card Game', value: 'Card Game'},
-  {label: 'Tower Defense', value: 'Tower Defense'},
-  {label: 'Indie', value: 'Indie'},
+const FONT_OPTIONS = [
+  // Sci-fi / Tech
+  {value: 'Space Grotesk', label: 'Space Grotesk'},
+  {value: 'Oxanium', label: 'Oxanium'},
+  {value: 'Orbitron', label: 'Orbitron'},
+  {value: 'Exo 2', label: 'Exo 2'},
+  // Bold / Display
+  {value: 'Bebas Neue', label: 'Bebas Neue'},
+  {value: 'Anton', label: 'Anton'},
+  {value: 'Teko', label: 'Teko'},
+  {value: 'Archivo Black', label: 'Archivo Black'},
+  // Rounded / Friendly
+  {value: 'Nunito', label: 'Nunito'},
+  {value: 'Rubik', label: 'Rubik'},
+  {value: 'Baloo 2', label: 'Baloo 2'},
+  // Geometric
+  {value: 'Outfit', label: 'Outfit'},
+  {value: 'Sora', label: 'Sora'},
+  {value: 'Syne', label: 'Syne'},
+  {value: 'Chakra Petch', label: 'Chakra Petch'},
 ];
 
-const PLATFORM_OPTIONS = [
-  {label: 'PC', value: 'PC'},
-  {label: 'Mac', value: 'Mac'},
-  {label: 'Linux', value: 'Linux'},
-  {label: 'PS5', value: 'PS5'},
-  {label: 'Xbox Series', value: 'Xbox Series'},
-  {label: 'Switch', value: 'Switch'},
-  {label: 'iOS', value: 'iOS'},
-  {label: 'Android', value: 'Android'},
-];
+const GOOGLE_FONTS_URL = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
+  (f) => `family=${f.value.replace(/ /g, '+')}:wght@400;600;700`,
+).join('&')}&display=swap`;
 
-const CREDIT_ROLE_OPTIONS = [
-  {label: 'Developer', value: 'DEVELOPER'},
-  {label: 'Publisher', value: 'PUBLISHER'},
-  {label: 'Porting', value: 'PORTING'},
-  {label: 'Marketing', value: 'MARKETING'},
-  {label: 'Support', value: 'SUPPORT'},
-];
-
-function stringToDateTime(value: string): SingleDateValue {
-  if (!value) return undefined;
-  const dt = DateTime.fromISO(value);
-  return dt.isValid ? dt : undefined;
-}
-
-function dateTimeToString(value: SingleDateValue): string {
-  if (!value) return '';
-  return value.toISODate() ?? '';
-}
+const PLATFORM_LINK_LABELS: Record<string, string> = Object.fromEntries(
+  PLATFORM_LINK_TYPE_OPTIONS.map((o) => [o.value, o.label]),
+);
 
 /* ── Collapsible Section ── */
 
-function CollapsibleSection({title, children}: {title: string; children: React.ReactNode}) {
+function CollapsibleSection({title, icon: Icon, children}: {title: string; icon: LucideIcon; children: React.ReactNode}) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <SectionHeader onClick={() => setOpen(!open)}>
-        <SectionTitle>{title}</SectionTitle>
+        <SectionTitleRow>
+          <Icon size={16} strokeWidth={2} />
+          <SectionTitle>{title}</SectionTitle>
+        </SectionTitleRow>
         <ChevronIcon $open={open}><ChevronRightIcon size={14} /></ChevronIcon>
       </SectionHeader>
       {open && <SectionContent>{children}</SectionContent>}
@@ -220,98 +165,6 @@ function AssetImageField({
   );
 }
 
-/* ── Credits Section (self-contained) ── */
-
-function CreditsContent({gameId}: {gameId: string}) {
-  const {showSnackbar} = useSnackbar();
-  const [adding, setAdding] = useState(false);
-  const [newRole, setNewRole] = useState<CreditRoleType>('DEVELOPER');
-  const [newCustomName, setNewCustomName] = useState('');
-
-  const utils = trpc.useUtils();
-  const {data: credits = []} = trpc.gameCredit.list.useQuery({gameId});
-
-  const createCredit = trpc.gameCredit.create.useMutation({
-    onSuccess: () => {
-      utils.gameCredit.list.invalidate({gameId});
-      setAdding(false);
-      setNewCustomName('');
-      setNewRole('DEVELOPER');
-    },
-    onError: (error) => {
-      showSnackbar({message: error.message, severity: 'error'});
-    },
-  });
-
-  const deleteCredit = trpc.gameCredit.delete.useMutation({
-    onSuccess: () => {
-      utils.gameCredit.list.invalidate({gameId});
-    },
-    onError: (error) => {
-      showSnackbar({message: error.message, severity: 'error'});
-    },
-  });
-
-  const handleAdd = () => {
-    if (!newCustomName.trim()) return;
-    createCredit.mutate({gameId, customName: newCustomName.trim(), role: newRole});
-  };
-
-  return (
-    <>
-      {credits.map((credit) => (
-        <CreditRow key={credit.id}>
-          <CreditInfo>
-            <CreditName>{credit.studios?.name || credit.custom_name}</CreditName>
-            <CreditRoleBadge>{credit.role.toLowerCase()}</CreditRoleBadge>
-          </CreditInfo>
-          <IconButton
-            variant="ghost"
-            size="xs"
-            onClick={() => deleteCredit.mutate({id: credit.id})}
-            disabled={deleteCredit.isPending}
-          >
-            <TrashIcon size={12} />
-          </IconButton>
-        </CreditRow>
-      ))}
-      {adding ? (
-        <AddCreditForm>
-          <Fieldset label="Name">
-            <Input
-              value={newCustomName}
-              onChange={(e) => setNewCustomName(e.target.value)}
-              placeholder="Studio or person name"
-              size="sm"
-            />
-          </Fieldset>
-          <Fieldset label="Role">
-            <Select
-              options={CREDIT_ROLE_OPTIONS}
-              value={newRole}
-              onChange={(e) => setNewRole(e.target.value as CreditRoleType)}
-              size="sm"
-            />
-          </Fieldset>
-          <AddCreditActions>
-            <Button variant="primary" size="sm" onClick={handleAdd} disabled={!newCustomName.trim() || createCredit.isPending}>
-              Add
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setAdding(false)}>
-              Cancel
-            </Button>
-          </AddCreditActions>
-        </AddCreditForm>
-      ) : (
-        <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
-          <PlusIcon size={14} className="mr-2" />
-          Add credit
-        </Button>
-      )}
-    </>
-  );
-}
-
 /* ── Main Sidebar ── */
 
 interface EditorSidebarProps {
@@ -320,7 +173,6 @@ interface EditorSidebarProps {
   links: EditableLink[];
   media: EditableMedia[];
   gameMetadata: GameMetadata;
-  gameId: string;
   onChange: (config: PageConfig) => void;
   onDescriptionChange: (description: string) => void;
   onLinksChange: (links: EditableLink[]) => void;
@@ -334,7 +186,6 @@ export function EditorSidebar({
   links,
   media,
   gameMetadata,
-  gameId,
   onChange,
   onDescriptionChange,
   onLinksChange,
@@ -346,8 +197,25 @@ export function EditorSidebar({
   const [uploading, setUploading] = useState(false);
   const [showVideoInput, setShowVideoInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+  // Load all Google Fonts eagerly so they're ready when selected
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  useEffect(() => {
+    const id = 'editor-google-fonts';
+    if (!document.getElementById(id)) {
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = GOOGLE_FONTS_URL;
+      link.onload = () => {
+        document.fonts.ready.then(() => setFontsLoaded(true));
+      };
+      document.head.appendChild(link);
+    } else {
+      document.fonts.ready.then(() => setFontsLoaded(true));
+    }
+  }, []);
 
-  const updateThemeColor = (key: keyof typeof DEFAULTS, color: string) => {
+  const updateThemeColor = (key: string, color: string) => {
     onChange({
       ...pageConfig,
       theme: {
@@ -387,6 +255,40 @@ export function EditorSidebar({
   };
 
   const handleDeleteLink = (id: string) => {
+    onLinksChange(links.filter((l) => l.id !== id));
+  };
+
+  // Platform links (category='platform') stored in game_links
+  const platformLinks = links.filter((l) => l.category === 'platform');
+  const nonPlatformLinks = links.filter((l) => l.category !== 'platform');
+
+  const handleAddPlatformLink = () => {
+    const newLink: EditableLink = {
+      id: `new-${Date.now()}`,
+      type: 'steam',
+      category: 'platform',
+      label: PLATFORM_LINK_LABELS.steam || 'Steam',
+      url: '',
+      position: links.length,
+      comingSoon: false,
+    };
+    onLinksChange([...links, newLink]);
+  };
+
+  const handleUpdatePlatformLink = (id: string, field: string, value: string | boolean) => {
+    onLinksChange(
+      links.map((l) => {
+        if (l.id !== id) return l;
+        const updated = {...l, [field]: value};
+        if (field === 'type') {
+          updated.label = PLATFORM_LINK_LABELS[value as string] || (value as string);
+        }
+        return updated;
+      }),
+    );
+  };
+
+  const handleDeletePlatformLink = (id: string) => {
     onLinksChange(links.filter((l) => l.id !== id));
   };
 
@@ -439,27 +341,9 @@ export function EditorSidebar({
 
   return (
     <Container>
-      {/* General */}
-      <CollapsibleSection title="General">
+      {/* Description */}
+      <CollapsibleSection title="Description" icon={FileTextIcon}>
         <Field>
-          <FieldLabel>Title</FieldLabel>
-          <Input
-            value={gameMetadata.title}
-            onChange={(e) => updateMetadata({title: e.target.value})}
-            placeholder="Game title"
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Summary</FieldLabel>
-          <Textarea
-            value={gameMetadata.summary}
-            onChange={(e) => updateMetadata({summary: e.target.value})}
-            placeholder="A short description of your game"
-            rows={3}
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Description</FieldLabel>
           <Textarea
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
@@ -469,87 +353,80 @@ export function EditorSidebar({
         </Field>
       </CollapsibleSection>
 
-      {/* Status & Release */}
-      <CollapsibleSection title="Status & Release">
-        <Field>
-          <FieldLabel>Status</FieldLabel>
-          <Select
-            options={STATUS_OPTIONS}
-            value={gameMetadata.status}
-            onChange={(e) => updateMetadata({status: (e.target as HTMLSelectElement).value})}
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Release date</FieldLabel>
-          <SingleDatePickerInput
-            value={stringToDateTime(gameMetadata.releaseDate)}
-            onChange={(date) => updateMetadata({releaseDate: dateTimeToString(date)})}
-            placeholder="Select release date"
-            fullWidth
-          />
-        </Field>
-      </CollapsibleSection>
-
-      {/* Genres & Platforms */}
-      <CollapsibleSection title="Genres & Platforms">
-        <Field>
-          <FieldLabel>Genres</FieldLabel>
-          <Select
-            options={GENRE_OPTIONS}
-            value={gameMetadata.genres}
-            onChange={(e) => updateMetadata({genres: (e.target as unknown as HTMLSelectElement).value as unknown as string[]})}
-            multiple
-            searchable
-            placeholder="Select genres..."
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Platforms</FieldLabel>
-          <Select
-            options={PLATFORM_OPTIONS}
-            value={gameMetadata.platforms}
-            onChange={(e) => updateMetadata({platforms: (e.target as unknown as HTMLSelectElement).value as unknown as string[]})}
-            multiple
-            placeholder="Select platforms..."
-          />
-        </Field>
-      </CollapsibleSection>
-
       {/* Theme */}
-      <CollapsibleSection title="Theme">
+      <CollapsibleSection title="Theme" icon={PaletteIcon}>
+        <ColorRow>
+          <Field>
+            <FieldLabel>Background</FieldLabel>
+            <ColorPickerInput
+              value={theme.bgColor || DEFAULTS.bgColor}
+              onChange={(c) => updateThemeColor('bgColor', c)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel>Text</FieldLabel>
+            <ColorPickerInput
+              value={theme.textColor || DEFAULTS.textColor}
+              onChange={(c) => updateThemeColor('textColor', c)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel>Secondary</FieldLabel>
+            <ColorPickerInput
+              value={theme.secondaryColor || DEFAULTS.textColor}
+              onChange={(c) => updateThemeColor('secondaryColor', c)}
+            />
+          </Field>
+        </ColorRow>
         <Field>
-          <FieldLabel>Background</FieldLabel>
-          <ColorPickerInput
-            value={theme.bgColor || DEFAULTS.bgColor}
-            onChange={(c) => updateThemeColor('bgColor', c)}
-          />
+          <FieldLabel>Button style</FieldLabel>
+          <SegmentedControl>
+            {(['glass', 'solid', 'outline'] as const).map((style) => (
+              <SegmentedOption
+                key={style}
+                $active={( theme.buttonStyle || 'glass') === style}
+                onClick={() => onChange({...pageConfig, theme: {...theme, buttonStyle: style}})}
+              >
+                {style.charAt(0).toUpperCase() + style.slice(1)}
+              </SegmentedOption>
+            ))}
+          </SegmentedControl>
         </Field>
         <Field>
-          <FieldLabel>Text</FieldLabel>
-          <ColorPickerInput
-            value={theme.textColor || DEFAULTS.textColor}
-            onChange={(c) => updateThemeColor('textColor', c)}
-          />
+          <FieldLabel>Button corners</FieldLabel>
+          <SegmentedControl>
+            {([
+              {value: 'sm', label: 'Sharp'},
+              {value: 'md', label: 'Round'},
+              {value: 'lg', label: 'Rounder'},
+              {value: 'full', label: 'Pill'},
+            ] as const).map((opt) => (
+              <SegmentedOption
+                key={opt.value}
+                $active={(theme.buttonRadius || 'full') === opt.value}
+                onClick={() => onChange({...pageConfig, theme: {...theme, buttonRadius: opt.value}})}
+              >
+                {opt.label}
+              </SegmentedOption>
+            ))}
+          </SegmentedControl>
         </Field>
         <Field>
-          <FieldLabel>Links</FieldLabel>
-          <ColorPickerInput
-            value={theme.linkColor || DEFAULTS.linkColor}
-            onChange={(c) => updateThemeColor('linkColor', c)}
+          <FieldLabel>Font</FieldLabel>
+          <Select
+            value={theme.fontFamily || ''}
+            options={[{value: '', label: 'System default'}, ...FONT_OPTIONS.map((f) => ({...f, label: fontsLoaded ? f.label : `${f.label} ...`}))]}
+            disabled={!fontsLoaded}
+            onChange={(e) => {
+              const val = (e.target as HTMLSelectElement).value;
+              onChange({...pageConfig, theme: {...theme, fontFamily: val || undefined}});
+            }}
           />
         </Field>
       </CollapsibleSection>
 
       {/* Assets */}
-      <CollapsibleSection title="Assets">
-        <AssetHint>Source images used across listings, embeds, and previews.</AssetHint>
-        <AssetImageField
-          label="Cover image"
-          value={gameMetadata.coverUrl}
-          onChange={(url) => updateMetadata({coverUrl: url})}
-          folder="games/covers"
-          aspectFn={() => 16 / 9}
-        />
+      <CollapsibleSection title="Assets" icon={SwatchBookIcon}>
         <AssetImageField
           label="Header image"
           value={gameMetadata.headerUrl}
@@ -568,7 +445,7 @@ export function EditorSidebar({
       </CollapsibleSection>
 
       {/* Media (page gallery) */}
-      <CollapsibleSection title="Media">
+      <CollapsibleSection title="Media" icon={GalleryHorizontalEndIcon}>
         {media.length > 0 && (
           <MediaGrid>
             {media.map((item) => (
@@ -637,8 +514,8 @@ export function EditorSidebar({
       </CollapsibleSection>
 
       {/* Links */}
-      <CollapsibleSection title="Links">
-        {links.map((link) => (
+      <CollapsibleSection title="Links" icon={LinkIcon}>
+        {nonPlatformLinks.map((link) => (
           <LinkEntry key={link.id}>
             <LinkEntryHeader>
               <Select
@@ -678,10 +555,56 @@ export function EditorSidebar({
         </Button>
       </CollapsibleSection>
 
-      {/* Credits */}
-      <CollapsibleSection title="Credits">
-        <CreditsContent gameId={gameId} />
+      {/* Platform Links */}
+      <CollapsibleSection title="Platform Links" icon={GamepadIcon}>
+        {platformLinks.map((link) => (
+          <LinkEntry key={link.id}>
+            <LinkEntryHeader>
+              <Select
+                size="sm"
+                fullWidth
+                value={link.type}
+                options={PLATFORM_LINK_TYPE_OPTIONS}
+                onChange={(e) => handleUpdatePlatformLink(link.id, 'type', (e.target as HTMLSelectElement).value as string)}
+              />
+              <IconButton
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeletePlatformLink(link.id)}
+              >
+                <Trash2Icon size={14} />
+              </IconButton>
+            </LinkEntryHeader>
+            <Input
+              value={link.label}
+              onChange={(e) => handleUpdatePlatformLink(link.id, 'label', e.target.value)}
+              placeholder="Label"
+            />
+            <Input
+              value={link.url}
+              onChange={(e) => handleUpdatePlatformLink(link.id, 'url', e.target.value)}
+              placeholder="https://... (optional)"
+            />
+            <CheckboxLabel>
+              <input
+                type="checkbox"
+                checked={link.comingSoon || false}
+                onChange={(e) => handleUpdatePlatformLink(link.id, 'comingSoon', e.target.checked)}
+              />
+              Coming soon
+            </CheckboxLabel>
+          </LinkEntry>
+        ))}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleAddPlatformLink}
+        >
+          <PlusIcon size={14} className="mr-2" />
+          Add platform link
+        </Button>
       </CollapsibleSection>
+
     </Container>
   );
 }
@@ -710,6 +633,13 @@ const SectionHeader = styled.button`
   &:hover {
     background: var(--bg-hover);
   }
+`;
+
+const SectionTitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--fg);
 `;
 
 const SectionTitle = styled.h3`
@@ -751,10 +681,49 @@ const FieldLabel = styled.label`
   color: var(--fg-muted);
 `;
 
-const AssetHint = styled.p`
+const ColorRow = styled.div`
+  display: flex;
+  gap: var(--spacing-2);
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+`;
+
+const SegmentedControl = styled.div`
+  display: flex;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+`;
+
+const SegmentedOption = styled.button<{$active: boolean}>`
+  flex: 1;
+  padding: var(--spacing-1) var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
   font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: ${(p) => (p.$active ? 'var(--bg-surface)' : 'transparent')};
+  color: ${(p) => (p.$active ? 'var(--fg)' : 'var(--fg-muted)')};
+  box-shadow: ${(p) => (p.$active ? '0 1px 2px rgba(0,0,0,0.1)' : 'none')};
+
+  &:hover {
+    color: var(--fg);
+  }
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--text-sm);
   color: var(--fg-muted);
-  margin: 0;
+  cursor: pointer;
 `;
 
 const AssetPreview = styled.div`
@@ -861,47 +830,3 @@ const MediaActions = styled.div`
   gap: var(--spacing-2);
 `;
 
-/* ── Credits ── */
-
-const CreditRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-2) var(--spacing-3);
-  background: var(--bg-muted);
-  border-radius: var(--radius-md);
-`;
-
-const CreditInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-`;
-
-const CreditName = styled.span`
-  font-size: var(--text-sm);
-  color: var(--fg);
-  font-weight: var(--font-weight-medium);
-`;
-
-const CreditRoleBadge = styled.span`
-  font-size: var(--text-xs);
-  color: var(--fg-muted);
-  background: var(--bg-surface);
-  padding: var(--spacing-0-5) var(--spacing-2);
-  border-radius: var(--radius-md);
-`;
-
-const AddCreditForm = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3);
-  background: var(--bg-muted);
-  border-radius: var(--radius-md);
-`;
-
-const AddCreditActions = styled.div`
-  display: flex;
-  gap: var(--spacing-2);
-`;

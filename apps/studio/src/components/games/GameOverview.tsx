@@ -45,7 +45,7 @@ function computePageCompleteness(game: GameOutletContext) {
     {label: 'Header image', done: !!game.header_url},
     {label: 'Trailer', done: !!game.trailer_url},
     {label: 'Genres', done: Array.isArray(game.genres) && game.genres.length > 0},
-    {label: 'Platforms', done: Array.isArray(game.platforms) && (game.platforms as string[]).length > 0},
+    {label: 'Platforms', done: Array.isArray(game.platforms) && game.platforms.length > 0},
   ];
   const completed = checks.filter((c) => c.done);
   const missing = checks.filter((c) => !c.done);
@@ -223,7 +223,7 @@ export function GameOverview() {
         <RightColumn>
           <DesignButton onClick={() => navigate('design', {relative: 'path'})}>
             <PencilIcon size={18} />
-            Edit page
+            Design page
           </DesignButton>
 
           {!isPublished && (
@@ -246,7 +246,7 @@ export function GameOverview() {
           )}
 
           <Card>
-            <CardTitle>Page completeness</CardTitle>
+            <CardTitle>Launch readiness</CardTitle>
             <PercentageRow>
               <PercentageLabel>{completeness.percentage}%</PercentageLabel>
             </PercentageRow>
