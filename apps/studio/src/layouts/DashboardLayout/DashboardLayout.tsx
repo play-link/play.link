@@ -72,7 +72,7 @@ export function DashboardLayout({
                     end={item.path === ''}
                     className="w-full"
                   >
-                    <Icon icon={item.icon} size={20} className="mr-3" />
+                    <Icon icon={item.icon} size={18} className="mr-3" />
                     {item.label}
                   </Button>
                 </li>
@@ -86,7 +86,7 @@ export function DashboardLayout({
                 onClick={() => setSettingsExpanded(!settingsExpanded)}
                 className="w-full"
               >
-                <Icon icon={SettingsIcon} size={20} className="mr-3" />
+                <Icon icon={SettingsIcon} size={18} className="mr-3" />
                 Settings
                 <SettingsChevron $expanded={settingsExpanded}>
                   <Icon icon={ChevronDownIcon} size={16} />
@@ -130,11 +130,12 @@ const Root = styled.div`
 
 const Sidebar = styled.aside`
   background: var(--bg-surface);
-  border-right: 1px solid var(--border-muted);
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
+  margin: 0.75rem;
+  border-radius: var(--radius-2xl);
 `;
 
 const LogoSection = styled.div`

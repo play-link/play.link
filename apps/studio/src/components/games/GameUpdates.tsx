@@ -113,13 +113,6 @@ const Header = styled.div`
   justify-content: space-between;
 `;
 
-const Title = styled.h2`
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--fg);
-  margin: 0;
-`;
-
 const UpdatesList = styled.div`
   display: flex;
   flex-direction: column;

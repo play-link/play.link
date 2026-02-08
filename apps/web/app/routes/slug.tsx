@@ -3,6 +3,7 @@ import {createAdminClient} from '@play/supabase-client/server';
 import type {Tables} from '@play/supabase-client';
 import {trackEvent} from '../lib/analytics.server';
 import {trackCampaignClick} from '../lib/campaign.server';
+import {isPlayLinkDomain, lookupCustomDomain} from '../lib/custom-domain.server';
 import {getGamePageBySlug} from '../lib/game.server';
 import {getStudioProfile} from '../lib/studio.server';
 import type {StudioProfile} from '../lib/studio.server';
@@ -49,7 +50,19 @@ type LoaderData =
 export async function loader({params, context, request}: Route.LoaderArgs) {
   const cf = context as unknown as CloudflareLoadContext;
   const env = cf.cloudflare.env;
-  const slug = params.slug;
+  let slug = params.slug;
+
+  // Check for custom domain routing
+  const url = new URL(request.url);
+  const hostname = url.hostname;
+
+  if (!isPlayLinkDomain(hostname)) {
+    const lookup = await lookupCustomDomain(env, hostname);
+    if (lookup) {
+      // Use the canonical path from the custom domain lookup
+      slug = lookup.canonicalPath;
+    }
+  }
 
   if (!slug) {
     throw data('Not Found', {status: 404});
@@ -118,7 +131,6 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
     trackEvent(env, {gameId: game.id, eventType: 'page_view', request}),
   );
 
-  const url = new URL(request.url);
   const campaignSlug = url.searchParams.get('c');
   if (campaignSlug) {
     const {data: campaign} = await supabase

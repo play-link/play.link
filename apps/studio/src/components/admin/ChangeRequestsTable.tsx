@@ -3,12 +3,13 @@ import type {TableColumn} from '@play/pylon';
 import {trpc} from '@/lib';
 
 interface ChangeRequest {
-  id: string;
+  id: number;
   entity_type: string;
   field_name: string;
   current_value: string;
   requested_value: string;
   status: string;
+  reviewed_at: string | null;
 }
 
 interface ChangeRequestsTableProps {
@@ -53,40 +54,48 @@ export function ChangeRequestsTable({
     {
       title: 'Actions',
       accessor: 'actions',
-      renderContent: ({d}) => (
-        <div className="flex gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => approveMutation.mutate({id: d.id})}
-            disabled={approveMutation.isPending}
-          >
-            Approve
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              // eslint-disable-next-line no-alert
-              const notes = prompt('Rejection reason:');
-              if (notes) {
-                rejectMutation.mutate({id: d.id, notes});
-              }
-            }}
-            disabled={rejectMutation.isPending}
-          >
-            Reject
-          </Button>
-        </div>
-      ),
+      renderContent: ({d}) => {
+        if (d.status !== 'pending') {
+          return (
+            <span className="text-sm text-gray-400">
+              {d.reviewed_at
+                ? new Date(d.reviewed_at).toLocaleDateString()
+                : '-'}
+            </span>
+          );
+        }
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => approveMutation.mutate({id: d.id})}
+              disabled={approveMutation.isPending}
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                // eslint-disable-next-line no-alert
+                const notes = prompt('Rejection reason:');
+                if (notes) {
+                  rejectMutation.mutate({id: d.id, notes});
+                }
+              }}
+              disabled={rejectMutation.isPending}
+            >
+              Reject
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
   return (
-    <div>
-      <h1>Admin</h1>
-      <Card>
-        <Table columns={columns} data={changeRequests} propertyForKey="id" />
-      </Card>
-    </div>
+    <Card>
+      <Table columns={columns} data={changeRequests} propertyForKey="id" />
+    </Card>
   );
 }

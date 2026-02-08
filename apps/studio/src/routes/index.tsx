@@ -12,6 +12,7 @@ import {
   DomainsSettingsPage,
   GamePage,
   GamesPage,
+  InviteAcceptPage,
   LoginPage,
   OnboardingPage,
   StudioSettingsPage,
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
   {
     path: '/auth/callback',
     element: <AuthCallbackPage />,
+  },
+  {
+    path: '/invite/:token',
+    element: <InviteAcceptPage />,
   },
   {
     element: <ProtectedRoute />,

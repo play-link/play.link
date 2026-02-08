@@ -2,7 +2,7 @@ import {TRPCError} from '@trpc/server'
 import type {StudioRoleType} from '@play/supabase-client'
 import {StudioRole} from '@play/supabase-client'
 
-const ALL_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
+const ALL_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER, StudioRole.VIEWER]
 
 /**
  * Verify user has access to a game via studio membership.

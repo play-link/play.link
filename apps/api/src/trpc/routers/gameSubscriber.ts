@@ -1,7 +1,12 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {verifyGameAccess} from '../lib/verify-access'
+
+// Viewer cannot see subscriber data (contains emails)
+const VIEW_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 export const gameSubscriberRouter = router({
   list: protectedProcedure
@@ -14,7 +19,7 @@ export const gameSubscriberRouter = router({
     )
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyGameAccess(supabase, user.id, input.gameId)
+      await verifyGameAccess(supabase, user.id, input.gameId, VIEW_ROLES)
 
       const {data: subscribers, error, count} = await supabase
         .from('game_subscribers')
@@ -37,7 +42,7 @@ export const gameSubscriberRouter = router({
     .input(z.object({gameId: z.string().uuid()}))
     .query(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyGameAccess(supabase, user.id, input.gameId)
+      await verifyGameAccess(supabase, user.id, input.gameId, VIEW_ROLES)
 
       const {count, error} = await supabase
         .from('game_subscribers')

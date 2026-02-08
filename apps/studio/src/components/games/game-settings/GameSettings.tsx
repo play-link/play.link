@@ -2,6 +2,7 @@ import {useOutletContext} from 'react-router';
 import styled from 'styled-components';
 import type {GameOutletContext} from '@/pages/GamePage';
 import {DangerZoneSection} from './DangerZoneSection';
+import {DomainsSection} from './DomainsSection';
 import {RedirectSection} from './RedirectSection';
 
 export function GameSettings() {
@@ -10,6 +11,11 @@ export function GameSettings() {
   return (
     <Container>
       <Sections>
+        {/* Custom Domain */}
+        <Card>
+          <DomainsSection />
+        </Card>
+
         {/* Redirect */}
         <Card>
           <RedirectSection />

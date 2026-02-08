@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Navigate} from 'react-router';
+import {Navigate, useSearchParams} from 'react-router-dom';
 import {Button} from '@play/pylon';
 import {useAppContext} from '@/lib/app-context';
 import {useAuth} from '@/lib/auth';
@@ -13,6 +13,8 @@ export function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const {signInWithMagicLink, verifyOtp} = useAuth();
   const {me, isLoading} = useAppContext();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -23,9 +25,9 @@ export function LoginPage() {
     );
   }
 
-  // Redirect to home if already authenticated
+  // Redirect to returnTo or home if already authenticated
   if (me) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={returnTo || '/'} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,4 +1,4 @@
-import {ImageIcon, Trash2Icon} from 'lucide-react';
+import {AlertCircleIcon, ImageIcon, Trash2Icon, XIcon} from 'lucide-react';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {
@@ -15,7 +15,7 @@ import type {EasyCropResp, ImageAspectRatio} from '@play/pylon';
 import {trpc} from '@/lib';
 import {uploadImage} from '@/lib/upload';
 
-type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+type MemberRole = 'OWNER' | 'MEMBER' | 'VIEWER';
 
 interface Studio {
   id: string;
@@ -29,6 +29,7 @@ interface Studio {
   bio: string | null;
   social_links: Record<string, string> | null;
   role: MemberRole;
+  is_verified: boolean;
 }
 
 interface StudioSettingsFormProps {
@@ -131,34 +132,72 @@ function ImageField({label, value, onChange, folder, aspectFn}: ImageFieldProps)
 
 export function StudioSettingsForm({studio}: StudioSettingsFormProps) {
   const {showSnackbar} = useSnackbar();
+  const utils = trpc.useUtils();
 
-  // ---- Identity form (change request) ------------------------------------
-  const identityForm = useForm({
+  // ---- Name form (direct update, always free) -----------------------------
+  const nameForm = useForm({
     defaultValues: {
       name: studio.name,
-      slug: studio.slug,
     },
   });
 
-  const createChangeRequest = trpc.changeRequest.create.useMutation({
+  const updateStudioName = trpc.studio.update.useMutation({
     onSuccess: () => {
-      showSnackbar({message: 'Change request submitted', severity: 'success'});
+      showSnackbar({message: 'Studio name updated', severity: 'success'});
+      utils.studio.list.invalidate();
     },
     onError: (err) => {
       showSnackbar({message: err.message, severity: 'error'});
     },
   });
 
-  const onIdentitySubmit = (data: {name: string; slug: string}) => {
+  const onNameSubmit = (data: {name: string}) => {
     if (data.name && data.name !== studio.name) {
-      createChangeRequest.mutate({
-        entityType: 'studio',
-        entityId: studio.id,
-        fieldName: 'name',
-        requestedValue: data.name,
+      updateStudioName.mutate({
+        id: studio.id,
+        name: data.name,
       });
     }
+  };
 
+  // ---- Slug form (change request, always requires approval) ---------------
+  const slugForm = useForm({
+    defaultValues: {
+      slug: studio.slug,
+    },
+  });
+
+  // Query for pending slug change requests
+  const {data: myRequests = []} = trpc.changeRequest.myRequests.useQuery({
+    entityType: 'studio',
+    entityId: studio.id,
+  });
+
+  const pendingSlugRequest = myRequests.find(
+    (r) => r.field_name === 'slug' && r.status === 'pending',
+  );
+
+  const createChangeRequest = trpc.changeRequest.create.useMutation({
+    onSuccess: () => {
+      showSnackbar({message: 'Change request submitted', severity: 'success'});
+      utils.changeRequest.myRequests.invalidate();
+    },
+    onError: (err) => {
+      showSnackbar({message: err.message, severity: 'error'});
+    },
+  });
+
+  const cancelChangeRequest = trpc.changeRequest.cancel.useMutation({
+    onSuccess: () => {
+      showSnackbar({message: 'Change request cancelled', severity: 'success'});
+      utils.changeRequest.myRequests.invalidate();
+    },
+    onError: (err) => {
+      showSnackbar({message: err.message, severity: 'error'});
+    },
+  });
+
+  const onSlugSubmit = (data: {slug: string}) => {
     if (data.slug && data.slug !== studio.slug) {
       createChangeRequest.mutate({
         entityType: 'studio',
@@ -222,30 +261,76 @@ export function StudioSettingsForm({studio}: StudioSettingsFormProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Section 1: Identity */}
+      {/* Section 1: Studio Name (free update) */}
       <Card>
-        <form onSubmit={identityForm.handleSubmit(onIdentitySubmit)}>
-          <h2 className="text-lg font-semibold mb-4">Identity</h2>
+        <form onSubmit={nameForm.handleSubmit(onNameSubmit)}>
+          <h2 className="text-lg font-semibold mb-4">Studio Name</h2>
           <p className="text-sm text-(--fg-subtle) mb-4">
-            Changes to studio name and handle require approval.
+            This is the display name for your studio on play.link.
           </p>
           <div className="flex flex-col gap-4">
-            <Fieldset label="Studio Name">
-              <Input {...identityForm.register('name')} />
+            <Fieldset label="Name">
+              <Input {...nameForm.register('name', {required: true, maxLength: 100})} />
+              <p className="text-xs text-(--fg-subtle) mt-1">Max 100 characters.</p>
             </Fieldset>
-            <Fieldset label="Studio Handle">
+            <div>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={updateStudioName.isPending}
+              >
+                {updateStudioName.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </Card>
+
+      {/* Section 2: Studio Handle (requires change request) */}
+      <Card>
+        <form onSubmit={slugForm.handleSubmit(onSlugSubmit)}>
+          <h2 className="text-lg font-semibold mb-4">Studio Handle</h2>
+          <p className="text-sm text-(--fg-subtle) mb-4">
+            Your studio's unique URL on play.link. Handle changes require approval.
+          </p>
+          {pendingSlugRequest && (
+            <div className="flex items-center justify-between gap-4 p-3 mb-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div className="flex items-center gap-2 text-amber-500">
+                <AlertCircleIcon size={16} />
+                <span className="text-sm">
+                  Your handle change request to <strong>@{pendingSlugRequest.requested_value}</strong> is under review.
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => cancelChangeRequest.mutate({id: pendingSlugRequest.id})}
+                disabled={cancelChangeRequest.isPending}
+              >
+                <XIcon size={14} />
+                Cancel
+              </Button>
+            </div>
+          )}
+          <div className="flex flex-col gap-4">
+            <Fieldset label="Handle">
               <div className="flex items-center gap-1">
-                <span className="text-sm text-(--fg-muted)">@</span>
-                <Input {...identityForm.register('slug')} className="flex-1" />
+                <span className="text-sm text-(--fg-muted)">play.link/@</span>
+                <Input
+                  {...slugForm.register('slug', {required: true})}
+                  className="flex-1"
+                  disabled={!!pendingSlugRequest}
+                />
               </div>
             </Fieldset>
             <div>
               <Button
                 type="submit"
                 variant="primary"
-                disabled={createChangeRequest.isPending}
+                disabled={createChangeRequest.isPending || !!pendingSlugRequest}
               >
-                Request Change
+                {createChangeRequest.isPending ? 'Submitting...' : 'Request Change'}
               </Button>
             </div>
           </div>

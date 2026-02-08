@@ -1,3 +1,4 @@
+import { redirect} from 'react-router';
 import type {MetaFunction} from 'react-router';
 import type {ReactNode} from 'react';
 import {
@@ -22,7 +23,37 @@ import {
 } from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import {useEffect, useRef, useState} from 'react';
-import {motion, useInView, useScroll, useTransform, AnimatePresence} from 'framer-motion';
+import {AnimatePresence, motion, useInView, useScroll, useTransform} from 'framer-motion';
+import {isPlayLinkDomain, lookupCustomDomain} from '../lib/custom-domain.server';
+import type {Route} from './+types/home';
+
+interface CloudflareLoadContext {
+  cloudflare: {
+    env: {
+      SUPABASE_URL: string;
+      SUPABASE_SERVICE_ROLE_KEY: string;
+    };
+  };
+}
+
+// Handle custom domain routing - if accessing from a custom domain, redirect to the canonical path
+export async function loader({request, context}: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const hostname = url.hostname;
+
+  if (!isPlayLinkDomain(hostname)) {
+    const cf = context as unknown as CloudflareLoadContext;
+    if (cf?.cloudflare?.env) {
+      const lookup = await lookupCustomDomain(cf.cloudflare.env, hostname);
+      if (lookup) {
+        // Redirect to the slug route with the canonical path
+        throw redirect(`/${lookup.canonicalPath}`);
+      }
+    }
+  }
+
+  return null;
+}
 
 export const meta: MetaFunction = () => [
   {title: 'Play.link — Landing pages for your games'},
@@ -581,20 +612,31 @@ function Pricing() {
   );
 }
 
-// ─── Final CTA ─────────────────────────────────────────────────────
+// ─── Final CTA + Footer ───────────────────────────────────────────
 function FinalCTA() {
   return (
-    <section className="py-[60px] sm:py-[80px] px-5">
+    <section className="px-5 sm:px-10 pb-0 pt-[60px] sm:pt-[80px]">
       <FadeUp>
-        <div className="max-w-[700px] mx-auto rounded-2xl px-8 py-14 sm:px-14 sm:py-16 text-center relative overflow-hidden bg-gradient-to-br from-[#141418] to-[#0f0f14] border border-white/[0.06]">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-[#00beff] rounded-full blur-[100px] opacity-[0.1] pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-[28px] sm:text-[36px] font-bold mb-4 leading-[1.15]">Ready to launch your<br />game page?</h2>
-            <p className="text-[15px] text-[#8a8ba7] mb-8 max-w-[380px] mx-auto">Join hundreds of game creators already using Play.link to showcase their work.</p>
-            <a href="/signup" className="inline-flex items-center gap-2.5 text-[15px] font-semibold text-white bg-[#00beff] hover:bg-[#009dd6] px-8 py-3.5 rounded-full no-underline transition-colors duration-200">
-              Claim your game link <ArrowRightIcon size={16} />
-            </a>
-            <p className="mt-4 text-[12px] text-[#8a8ba7]">No credit card required</p>
+        <div className="max-w-[1200px] mx-auto rounded-3xl bg-[#00beff] relative overflow-hidden px-8 py-14 sm:px-14 sm:py-16">
+          {/* Decorative icon */}
+          <div className="absolute -top-6 left-10 sm:left-14 text-[64px] sm:text-[80px] leading-none select-none pointer-events-none opacity-80">🎮</div>
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative z-10 pt-10 sm:pt-8">
+            <div>
+              <h2 className="text-[28px] sm:text-[36px] font-bold text-white leading-[1.15] mb-2">Claim your game link now</h2>
+              <p className="text-[16px] text-white/70">Free forever. No credit card required.</p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex text-white/90 text-[16px] tracking-wide">★★★★★</div>
+                <span className="text-[13px] text-white/60">on Trustpilot</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
+              <a href="/signup" className="inline-flex items-center gap-2.5 text-[16px] font-semibold text-[#00beff] bg-white hover:bg-white/90 px-10 py-4 rounded-2xl no-underline transition-colors duration-200 shadow-lg shadow-black/10">
+                Claim your game link
+              </a>
+              <a href="#features" className="text-[14px] text-white/70 no-underline hover:text-white transition-colors duration-200 flex items-center gap-1.5">
+                🎁 It&apos;s free
+              </a>
+            </div>
           </div>
         </div>
       </FadeUp>
@@ -602,18 +644,48 @@ function FinalCTA() {
   );
 }
 
-// ─── Footer ────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="py-10 px-5 border-t border-white/[0.06]">
-      <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <a href="/" className="text-[16px] font-bold text-white no-underline">Play<span className="text-[#00beff]">.link</span></a>
-        <div className="flex items-center gap-6">
-          <a href="#features" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Features</a>
-          <a href="#pricing" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Pricing</a>
-          <a href="#testimonials" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Testimonials</a>
+    <footer className="pt-16 pb-10 px-5 sm:px-10">
+      <div className="max-w-[1200px] mx-auto grid grid-cols-2 sm:grid-cols-4 gap-10 sm:gap-8">
+        {/* Brand */}
+        <div className="col-span-2 sm:col-span-1">
+          <a href="/" className="text-[20px] font-bold text-white no-underline tracking-tight inline-block mb-3">
+            Play<span className="text-[#00beff]">.link</span>
+          </a>
+          <p className="text-[12px] text-[#5a5b73]">© {new Date().getFullYear()} Play.link.<br />All rights reserved.</p>
         </div>
-        <p className="text-[12px] text-[#5a5b73]">© {new Date().getFullYear()} Play.link</p>
+
+        {/* Navigation */}
+        <div>
+          <h4 className="text-[13px] font-semibold text-white mb-4">Navigation</h4>
+          <ul className="space-y-2.5 list-none p-0 m-0">
+            <li><a href="/" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Home</a></li>
+            <li><a href="#features" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Features</a></li>
+            <li><a href="#pricing" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Pricing</a></li>
+            <li><a href="/login" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Login</a></li>
+            <li><a href="/signup" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Sign up</a></li>
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h4 className="text-[13px] font-semibold text-white mb-4">Contact</h4>
+          <ul className="space-y-2.5 list-none p-0 m-0">
+            <li><a href="mailto:hello@play.link" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200 flex items-center gap-2"><MailIcon size={14} className="shrink-0" /> hello@play.link</a></li>
+            <li><a href="#" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200 flex items-center gap-2">𝕏 Twitter</a></li>
+            <li><a href="#" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200 flex items-center gap-2">Discord</a></li>
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h4 className="text-[13px] font-semibold text-white mb-4">Legal</h4>
+          <ul className="space-y-2.5 list-none p-0 m-0">
+            <li><a href="#" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Privacy Policy</a></li>
+            <li><a href="#" className="text-[13px] text-[#8a8ba7] no-underline hover:text-white transition-colors duration-200">Terms of Service</a></li>
+          </ul>
+        </div>
       </div>
     </footer>
   );

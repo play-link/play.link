@@ -1,6 +1,6 @@
 import {createContext} from 'react';
 
-export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type MemberRole = 'OWNER' | 'MEMBER' | 'VIEWER';
 
 export type Studio = {
   id: string;
@@ -14,6 +14,7 @@ export type Studio = {
   bio: string | null;
   social_links: Record<string, string> | null;
   role: MemberRole;
+  is_verified: boolean;
 };
 
 export type Me = {
