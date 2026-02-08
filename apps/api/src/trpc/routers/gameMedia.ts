@@ -1,7 +1,12 @@
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
+import type {StudioRoleType} from '@play/supabase-client'
+import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {verifyGameAccess} from '../lib/verify-access'
+
+// Roles that can edit media (Viewer can only view)
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 export const gameMediaRouter = router({
   list: protectedProcedure
@@ -38,7 +43,7 @@ export const gameMediaRouter = router({
     )
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyGameAccess(supabase, user.id, input.gameId)
+      await verifyGameAccess(supabase, user.id, input.gameId, EDIT_ROLES)
 
       const {data: item, error} = await supabase
         .from('game_media')
@@ -75,7 +80,7 @@ export const gameMediaRouter = router({
     )
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyGameAccess(supabase, user.id, input.gameId)
+      await verifyGameAccess(supabase, user.id, input.gameId, EDIT_ROLES)
 
       const {id, gameId: _, ...rest} = input
 
@@ -110,7 +115,7 @@ export const gameMediaRouter = router({
     .input(z.object({id: z.string().uuid(), gameId: z.string().uuid()}))
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
-      await verifyGameAccess(supabase, user.id, input.gameId)
+      await verifyGameAccess(supabase, user.id, input.gameId, EDIT_ROLES)
 
       const {error} = await supabase
         .from('game_media')

@@ -27,14 +27,14 @@ export type Member = Omit<RawMember, 'profiles'> & {
 
 const ROLE_OPTIONS = [
   {label: 'Owner', value: 'OWNER'},
-  {label: 'Admin', value: 'ADMIN'},
   {label: 'Member', value: 'MEMBER'},
+  {label: 'Viewer', value: 'VIEWER'},
 ];
 
 const ROLE_BADGE_INTENT: Record<StudioRoleType, 'info' | 'success' | 'warning'> = {
   OWNER: 'success',
-  ADMIN: 'warning',
-  MEMBER: 'info',
+  MEMBER: 'warning',
+  VIEWER: 'info',
 };
 
 interface MembersTableProps {
@@ -132,19 +132,14 @@ export function MembersTable({
         accessor: 'role',
         width: 150,
         renderContent: ({d}) => {
+          // Only owners can change roles
           const canChangeRole =
-            canManage &&
-            d.user_id !== currentUserId &&
-            (isOwner || d.role !== 'OWNER');
+            isOwner && d.user_id !== currentUserId;
 
           if (canChangeRole) {
             return (
               <Select
-                options={
-                  isOwner
-                    ? ROLE_OPTIONS
-                    : ROLE_OPTIONS.filter((r) => r.value !== 'OWNER')
-                }
+                options={ROLE_OPTIONS}
                 value={d.role}
                 onChange={(e) =>
                   handleRoleChange(d.user_id, e.target.value as StudioRoleType)

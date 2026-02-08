@@ -6,7 +6,8 @@ import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
 // Roles that can manage members
-const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+// Only owners can manage members (invite, remove, change roles)
+const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER]
 
 export const memberRouter = router({
   /**
@@ -68,7 +69,7 @@ export const memberRouter = router({
       z.object({
         studioId: z.string().uuid(),
         userId: z.string().uuid(),
-        role: z.enum(['OWNER', 'ADMIN', 'MEMBER']).default('MEMBER'),
+        role: z.enum(['OWNER', 'MEMBER', 'VIEWER']).default('MEMBER'),
       }),
     )
     .mutation(async ({ctx, input}) => {
@@ -159,7 +160,7 @@ export const memberRouter = router({
       z.object({
         studioId: z.string().uuid(),
         userId: z.string().uuid(),
-        role: z.enum(['OWNER', 'ADMIN', 'MEMBER']),
+        role: z.enum(['OWNER', 'MEMBER', 'VIEWER']),
       }),
     )
     .mutation(async ({ctx, input}) => {

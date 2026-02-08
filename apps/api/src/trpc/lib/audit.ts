@@ -13,10 +13,16 @@ export const AuditAction = {
   INVITE_CREATE: 'invite.create',
   INVITE_ACCEPT: 'invite.accept',
   INVITE_REVOKE: 'invite.revoke',
+  // Studio Verification
+  STUDIO_VERIFY: 'studio.verify',
+  STUDIO_UNVERIFY: 'studio.unverify',
   // Game
   GAME_CREATE: 'game.create',
   GAME_UPDATE: 'game.update',
   GAME_DELETE: 'game.delete',
+  // Game Verification
+  GAME_VERIFY: 'game.verify',
+  GAME_UNVERIFY: 'game.unverify',
   // Game Credit
   GAME_CREDIT_ADD: 'game_credit.add',
   GAME_CREDIT_UPDATE: 'game_credit.update',
@@ -26,6 +32,10 @@ export const AuditAction = {
   CHANGE_REQUEST_APPROVE: 'change_request.approve',
   CHANGE_REQUEST_REJECT: 'change_request.reject',
   CHANGE_REQUEST_CANCEL: 'change_request.cancel',
+  // Custom Domain
+  CUSTOM_DOMAIN_ADD: 'custom_domain.add',
+  CUSTOM_DOMAIN_VERIFY: 'custom_domain.verify',
+  CUSTOM_DOMAIN_REMOVE: 'custom_domain.remove',
 } as const
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction]

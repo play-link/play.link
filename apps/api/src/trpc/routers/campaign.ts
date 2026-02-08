@@ -4,7 +4,7 @@ import type {StudioRoleType} from '@play/supabase-client'
 import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 
-const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 async function verifyGameAccess(
   supabase: any,

@@ -7,9 +7,9 @@ import {AuditAction, logAuditEvent} from '../lib/audit'
 import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can edit games
-const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
-// Roles that can delete games
-const DELETE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
+// Only owners can delete games
+const DELETE_ROLES: StudioRoleType[] = [StudioRole.OWNER]
 
 // Slug validation: lowercase letters, numbers, hyphens only
 const slugSchema = z

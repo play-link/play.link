@@ -6,7 +6,7 @@ import {adminProcedure, protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
 // Roles that can create change requests
-const REQUEST_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+const REQUEST_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 // Cooldown period for non-verified entities (24 hours in ms)
 const COOLDOWN_MS = 24 * 60 * 60 * 1000

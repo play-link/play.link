@@ -5,8 +5,8 @@
 
 export const StudioRole = {
   OWNER: 'OWNER',
-  ADMIN: 'ADMIN',
   MEMBER: 'MEMBER',
+  VIEWER: 'VIEWER',
 } as const
 
 export const GameStatus = {
@@ -31,8 +31,22 @@ export const CreditRole = {
   SUPPORT: 'SUPPORT',
 } as const
 
+export const DomainTargetType = {
+  STUDIO: 'studio',
+  GAME: 'game',
+} as const
+
+export const DomainStatus = {
+  PENDING: 'pending',
+  VERIFYING: 'verifying',
+  VERIFIED: 'verified',
+  FAILED: 'failed',
+} as const
+
 // Type helpers derived from constants
 export type StudioRoleType = (typeof StudioRole)[keyof typeof StudioRole]
 export type GameStatusType = (typeof GameStatus)[keyof typeof GameStatus]
 export type PageVisibilityType = (typeof PageVisibility)[keyof typeof PageVisibility]
 export type CreditRoleType = (typeof CreditRole)[keyof typeof CreditRole]
+export type DomainTargetTypeType = (typeof DomainTargetType)[keyof typeof DomainTargetType]
+export type DomainStatusType = (typeof DomainStatus)[keyof typeof DomainStatus]

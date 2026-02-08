@@ -1,11 +1,18 @@
 import {PageLayout} from '@/components/layout';
+import {DomainsSection} from '@/components/settings/DomainsSection';
+import {ContextLevel, useAppContext} from '@/lib/app-context';
 
 export function DomainsSettingsPage() {
+  const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
+
   return (
     <PageLayout>
-      <PageLayout.Header title="Domains" />
+      <PageLayout.Header
+        title="Domains"
+        subtitle={`Configure custom domains for ${activeStudio.name}`}
+      />
       <PageLayout.Content>
-        <p className="text-fg-muted">Domains settings coming soon...</p>
+        <DomainsSection studioId={activeStudio.id} studioSlug={activeStudio.slug} />
       </PageLayout.Content>
     </PageLayout>
   );

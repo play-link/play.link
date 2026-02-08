@@ -6,7 +6,7 @@ import type {StudioRoleType} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {verifyGameAccess} from '../lib/verify-access'
 
-const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 async function generateUnsubscribeToken(secret: string, gameId: string, email: string): Promise<string> {
   const payload = `${gameId}:${email}`

@@ -1,3 +1,4 @@
+import {Resend} from 'resend'
 import {TRPCError} from '@trpc/server'
 import {z} from 'zod'
 import type {StudioRoleType} from '@play/supabase-client'
@@ -10,8 +11,8 @@ import {
   isRateLimited,
 } from '../lib/rate-limit'
 
-// Roles that can manage invites
-const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+// Only owners can manage invites
+const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER]
 
 export const inviteRouter = router({
   /**
@@ -62,11 +63,11 @@ export const inviteRouter = router({
       z.object({
         studioId: z.string().uuid(),
         email: z.string().email(),
-        role: z.enum(['OWNER', 'ADMIN', 'MEMBER']).default('MEMBER'),
+        role: z.enum(['OWNER', 'MEMBER', 'VIEWER']).default('MEMBER'),
       }),
     )
     .mutation(async ({ctx, input}) => {
-      const {user, supabase} = ctx
+      const {user, supabase, env} = ctx
 
       // Rate limit invite creation
       if (
@@ -171,7 +172,61 @@ export const inviteRouter = router({
         metadata: {invitedEmail: input.email, role: input.role},
       })
 
-      // TODO: Send email with invite link containing token
+      // Send invitation email
+      if (env.RESEND_API_KEY) {
+        // Get studio info for email
+        const {data: studio} = await supabase
+          .from('studios')
+          .select('name, slug')
+          .eq('id', input.studioId)
+          .single()
+
+        // Get inviter's profile
+        const {data: inviterProfile} = await supabase
+          .from('profiles')
+          .select('display_name, email')
+          .eq('user_id', user.id)
+          .single()
+
+        const resend = new Resend(env.RESEND_API_KEY)
+        const studioUrl = env.STUDIO_URL || 'https://studio.play.link'
+        const acceptUrl = `${studioUrl}/invite/${invite.token}`
+        const inviterName =
+          inviterProfile?.display_name || inviterProfile?.email || 'A team member'
+        const studioName = studio?.name || 'a studio'
+
+        await resend.emails.send({
+          from: 'Play.link <invites@play.link>',
+          to: [input.email],
+          subject: `You've been invited to join ${studioName} on Play.link`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; background: #0f172a;">
+              <h1 style="color: #ffffff; font-size: 28px; font-weight: bold; text-align: center; margin: 0 0 24px;">
+                You're Invited!
+              </h1>
+              <p style="color: #cbd5e1; font-size: 16px; line-height: 24px; margin: 0 0 16px;">
+                ${inviterName} has invited you to join <strong style="color: #ffffff">${studioName}</strong> as a <strong style="color: #ffffff">${input.role.toLowerCase()}</strong> on Play.link.
+              </p>
+              <p style="color: #cbd5e1; font-size: 16px; line-height: 24px; margin: 0 0 16px;">
+                Click the button below to accept the invitation:
+              </p>
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${acceptUrl}" style="background-color: #8b5cf6; border-radius: 8px; color: #ffffff; font-size: 16px; font-weight: 500; padding: 12px 24px; text-decoration: none; display: inline-block;">
+                  Accept Invitation
+                </a>
+              </div>
+              <p style="color: #64748b; font-size: 14px; margin-top: 32px;">
+                This invitation expires in 7 days. If you didn't expect this email, you can safely ignore it.
+              </p>
+              <p style="color: #64748b; font-size: 14px;">
+                — The Play.link Team
+              </p>
+            </div>
+          `,
+        })
+      } else {
+        console.warn('[invite.create] RESEND_API_KEY not set, skipping email')
+      }
 
       return invite
     }),

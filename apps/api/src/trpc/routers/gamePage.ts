@@ -5,7 +5,7 @@ import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
-const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN, StudioRole.MEMBER]
+const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 const slugSchema = z
   .string()
@@ -29,13 +29,19 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
 
   const {data: game} = await supabase
     .from('games')
-    .select('owner_studio_id')
+    .select('owner_studio_id, is_verified')
     .eq('id', page.game_id)
     .single()
 
   if (!game) {
     throw new TRPCError({code: 'NOT_FOUND', message: 'Game not found'})
   }
+
+  const {data: studio} = await supabase
+    .from('studios')
+    .select('is_verified')
+    .eq('id', game.owner_studio_id)
+    .single()
 
   const {data: member} = await supabase
     .from('studio_members')
@@ -48,7 +54,13 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
     throw new TRPCError({code: 'FORBIDDEN', message: 'No access to this game page'})
   }
 
-  return {page, game}
+  return {
+    page,
+    game: {
+      ...game,
+      studioIsVerified: studio?.is_verified ?? false,
+    },
+  }
 }
 
 export const gamePageRouter = router({
@@ -69,6 +81,21 @@ export const gamePageRouter = router({
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
       const {page, game} = await verifyPageAccess(supabase, user.id, input.pageId)
+
+      // Check verification status before publishing
+      if (!game.studioIsVerified) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Your studio must be verified before publishing. Please contact support.',
+        })
+      }
+
+      if (!game.is_verified) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This game must be verified before publishing. Please contact support.',
+        })
+      }
 
       const {data: updated, error} = await supabase
         .from('game_pages')

@@ -6,6 +6,7 @@ export {CampaignDetailPage} from './CampaignDetailPage';
 export {CampaignsPage} from './CampaignsPage';
 export {GamePage} from './GamePage';
 export {GamesPage} from './GamesPage';
+export {InviteAcceptPage} from './InviteAcceptPage';
 export {LoginPage} from './LoginPage';
 export {OnboardingPage} from './OnboardingPage';
 export {

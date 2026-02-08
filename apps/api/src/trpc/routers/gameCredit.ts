@@ -7,7 +7,7 @@ import {AuditAction, logAuditEvent} from '../lib/audit'
 import {verifyGameAccess} from '../lib/verify-access'
 
 // Roles that can manage game credits
-const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+const MANAGE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 // Credit role enum matching DB
 const CREDIT_ROLES = [

@@ -31,8 +31,10 @@ DROP TYPE IF EXISTS credit_role CASCADE;
 -- 2. ENUMS
 CREATE TYPE game_status AS ENUM ('IN_DEVELOPMENT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED');
 CREATE TYPE page_visibility AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
-CREATE TYPE studio_role AS ENUM ('OWNER', 'ADMIN', 'MEMBER');
+CREATE TYPE studio_role AS ENUM ('OWNER', 'MEMBER', 'VIEWER');
 CREATE TYPE credit_role AS ENUM ('DEVELOPER', 'PUBLISHER', 'PORTING', 'MARKETING', 'SUPPORT');
+CREATE TYPE domain_target_type AS ENUM ('studio', 'game');
+CREATE TYPE domain_status AS ENUM ('pending', 'verifying', 'verified', 'failed');
 
 -- ============================================================
 -- 3. TABLAS PRINCIPALES
@@ -109,6 +111,9 @@ CREATE TABLE public.games (
 
     -- Change request cooldowns
     last_name_change TIMESTAMPTZ,
+
+    -- Verification
+    is_verified BOOLEAN DEFAULT false NOT NULL,
 
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ
@@ -314,6 +319,23 @@ CREATE TABLE public.game_media (
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
+-- P. CUSTOM DOMAINS
+CREATE TABLE public.custom_domains (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    studio_id UUID NOT NULL REFERENCES public.studios(id) ON DELETE CASCADE,
+    hostname TEXT NOT NULL UNIQUE,
+    target_type domain_target_type NOT NULL,
+    target_id UUID NOT NULL,
+    status domain_status NOT NULL DEFAULT 'pending',
+    verification_token TEXT NOT NULL,
+    cf_hostname_id TEXT,
+    cf_ssl_status TEXT,
+    verified_at TIMESTAMPTZ,
+    error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- ============================================================
 -- 4. INDEXES
 -- ============================================================
@@ -364,6 +386,15 @@ CREATE UNIQUE INDEX idx_analytics_events_dedup_pv
     ON public.analytics_events (game_id, visitor_hash, (date_trunc('day', created_at AT TIME ZONE 'UTC')))
     WHERE event_type = 'page_view';
 
+-- Games verification index
+CREATE INDEX idx_games_is_verified ON public.games(is_verified);
+
+-- Custom domains indexes
+CREATE INDEX idx_custom_domains_studio_id ON public.custom_domains(studio_id);
+CREATE INDEX idx_custom_domains_hostname ON public.custom_domains(hostname);
+CREATE INDEX idx_custom_domains_target ON public.custom_domains(target_type, target_id);
+CREATE INDEX idx_custom_domains_status ON public.custom_domains(status);
+
 -- ============================================================
 -- 5. ROW LEVEL SECURITY (Zero Trust)
 -- ============================================================
@@ -384,6 +415,7 @@ ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaign_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_updates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_media ENABLE ROW LEVEL SECURITY;
+ALTER TABLE custom_domains ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "No public access" ON profiles FOR ALL USING (false);
 CREATE POLICY "No public access" ON studios FOR ALL USING (false);
@@ -401,6 +433,7 @@ CREATE POLICY "No public access" ON campaigns FOR ALL USING (false);
 CREATE POLICY "No public access" ON campaign_events FOR ALL USING (false);
 CREATE POLICY "Service role full access on game_updates" ON public.game_updates FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "No public access" ON game_media FOR ALL USING (false);
+CREATE POLICY "No public access" ON custom_domains FOR ALL USING (false);
 
 -- ============================================================
 -- 6. FUNCTIONS
@@ -977,3 +1010,31 @@ AS $$
         COUNT(*) FILTER (WHERE gs.created_at >= p_from AND gs.created_at < p_to) DESC,
         COUNT(*) FILTER (WHERE gs.unsubscribed_at IS NULL) DESC;
 $$;
+
+-- ============================================================
+-- 11. CUSTOM DOMAIN FUNCTIONS
+-- ============================================================
+
+-- Function to lookup a custom domain by hostname
+CREATE OR REPLACE FUNCTION public.lookup_custom_domain(p_hostname TEXT)
+RETURNS TABLE (
+    target_type domain_target_type,
+    target_id UUID,
+    canonical_path TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        cd.target_type,
+        cd.target_id,
+        CASE
+            WHEN cd.target_type = 'studio' THEN
+                '@' || (SELECT slug FROM studios WHERE id = cd.target_id)
+            WHEN cd.target_type = 'game' THEN
+                (SELECT gp.slug FROM game_pages gp WHERE gp.game_id = cd.target_id AND gp.is_primary = true LIMIT 1)
+        END AS canonical_path
+    FROM public.custom_domains cd
+    WHERE cd.hostname = lower(p_hostname)
+      AND cd.status = 'verified';
+END;
+$$ LANGUAGE plpgsql STABLE;

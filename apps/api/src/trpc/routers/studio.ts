@@ -6,7 +6,7 @@ import {protectedProcedure, publicProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
 
 // Roles that can update a studio
-const UPDATE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.ADMIN]
+const UPDATE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
 // Slug validation: lowercase letters, numbers, hyphens only
 const slugSchema = z
@@ -184,7 +184,7 @@ export const studioRouter = router({
       // Get current studio state
       const {data: studio} = await supabase
         .from('studios')
-        .select('is_verified, slug, name, last_slug_change, last_name_change')
+        .select('is_verified, slug, name, last_slug_change')
         .eq('id', input.id)
         .single()
 
@@ -198,44 +198,32 @@ export const studioRouter = router({
       const COOLDOWN_MS = 24 * 60 * 60 * 1000 // 24 hours
       const now = Date.now()
 
-      // Handle protected fields (slug, name)
-      const protectedChanges: Array<{field: string; value: string}> = []
-      if (input.slug && input.slug !== studio.slug) {
-        protectedChanges.push({field: 'slug', value: input.slug})
-      }
-      if (input.name && input.name !== studio.name) {
-        protectedChanges.push({field: 'name', value: input.name})
-      }
+      // Handle protected fields (only slug is protected)
+      const isSlugChanging = input.slug && input.slug !== studio.slug
 
-      // If verified, protected fields require change request
-      if (studio.is_verified && protectedChanges.length > 0) {
+      // If verified, slug changes require change request
+      if (studio.is_verified && isSlugChanging) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'This studio is verified. Slug and name changes require approval. Use changeRequest.create instead.',
+            'This studio is verified. Slug changes require approval. Use changeRequest.create instead.',
         })
       }
 
-      // If not verified, check cooldowns for protected fields
-      if (!studio.is_verified && protectedChanges.length > 0) {
-        for (const change of protectedChanges) {
-          const lastChange =
-            change.field === 'slug'
-              ? studio.last_slug_change
-              : studio.last_name_change
-          if (
-            lastChange &&
-            now - new Date(lastChange).getTime() < COOLDOWN_MS
-          ) {
-            const hoursLeft = Math.ceil(
-              (COOLDOWN_MS - (now - new Date(lastChange).getTime())) /
-                (60 * 60 * 1000),
-            )
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: `You can change ${change.field} again in ${hoursLeft} hours`,
-            })
-          }
+      // If not verified, check cooldown for slug changes
+      if (!studio.is_verified && isSlugChanging) {
+        if (
+          studio.last_slug_change &&
+          now - new Date(studio.last_slug_change).getTime() < COOLDOWN_MS
+        ) {
+          const hoursLeft = Math.ceil(
+            (COOLDOWN_MS - (now - new Date(studio.last_slug_change).getTime())) /
+              (60 * 60 * 1000),
+          )
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `You can change slug again in ${hoursLeft} hours`,
+          })
         }
       }
 
@@ -245,9 +233,8 @@ export const studioRouter = router({
         updates.slug = input.slug
         updates.last_slug_change = new Date().toISOString()
       }
-      if (input.name && input.name !== studio.name) {
+      if (input.name !== undefined && input.name !== studio.name) {
         updates.name = input.name
-        updates.last_name_change = new Date().toISOString()
       }
       if (input.avatarUrl !== undefined) updates.avatar_url = input.avatarUrl
       if (input.coverUrl !== undefined) updates.cover_url = input.coverUrl
