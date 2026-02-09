@@ -206,7 +206,7 @@ const menuDestructive: VariantStyleFn = (params) => css`
 const nav: VariantStyleFn = (params) => css`
   ${baseStyles(params)}
   border-radius: var(--radius-lg);
-  color: var(--fg);
+  color: var(--fg-subtle);
   flex-shrink: 0;
   justify-content: flex-start;
   padding: 0 var(--spacing-3);
@@ -223,6 +223,8 @@ const nav: VariantStyleFn = (params) => css`
   &.active,
   &.opened {
     background: var(--bg-selected);
+    color: var(--fg);
+    font-weight: var(--font-weight-medium);
   }
 `;
 

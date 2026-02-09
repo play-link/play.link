@@ -26,7 +26,7 @@ export function ThemeProvider({children}: ThemeProviderProps) {
     return 'system';
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
 
   // Calculate resolved theme based on current theme setting
   useEffect(() => {

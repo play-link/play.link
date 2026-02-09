@@ -152,3 +152,65 @@
   --segmented-selected-bg: var(--bg);
   --segmented-selected-text: var(--fg);
 }
+
+/* ========================================
+ * LIGHT THEME
+ * Activated via [data-theme='light'] on html/body
+ * ======================================== */
+[data-theme='light'] {
+  /* ----- FOREGROUND (Text) ----- */
+  --fg: var(--color-gray-900);
+  --fg-subtle: var(--color-gray-600);
+  --fg-muted: var(--color-gray-500);
+  --fg-placeholder: var(--color-gray-400);
+  --fg-disabled: var(--color-gray-300);
+
+  --fg-warning: var(--color-amber-600);
+  --fg-success: var(--color-green-600);
+  --fg-error: var(--color-red-600);
+
+  /* ----- BACKGROUND ----- */
+  --bg: var(--white);
+  --bg-subtle: var(--color-gray-100);
+  --bg-muted: var(--color-gray-200);
+
+  --bg-surface: var(--white);
+  --bg-overlay: var(--white);
+
+  /* Interactive states */
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --bg-press: rgba(0, 0, 0, 0.08);
+  --bg-selected: rgba(0, 0, 0, 0.1);
+
+  /* ----- BORDERS ----- */
+  --border: var(--color-gray-300);
+  --border-subtle: var(--color-gray-200);
+  --border-muted: var(--color-gray-100);
+  --border-focus: var(--primary);
+
+  /* ----- SCROLLBAR ----- */
+  --scroll-track-color: rgba(0, 0, 0, 0.05);
+  --scroll-thumb-color: rgba(0, 0, 0, 0.2);
+
+  /* ----- INPUT OVERRIDES ----- */
+  --input-bg: var(--white);
+  --input-border-color: var(--border);
+
+  /* ----- COMPONENT-SPECIFIC ----- */
+  --segmented-selected-bg: var(--white);
+  --segmented-selected-text: var(--color-gray-900);
+
+  /* ----- STATE COLORS ----- */
+  --info: var(--color-gray-100);
+  --info-contrast-text: var(--color-gray-700);
+  --info-outline: var(--color-gray-300);
+
+  --error: var(--color-red-50);
+  --error-contrast-text: var(--color-red-700);
+
+  --warning: var(--color-amber-50);
+  --warning-contrast-text: var(--color-amber-700);
+
+  --success: var(--color-green-50);
+  --success-contrast-text: var(--color-green-700);
+}
