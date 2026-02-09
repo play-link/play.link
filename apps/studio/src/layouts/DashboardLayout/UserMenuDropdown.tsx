@@ -60,11 +60,11 @@ export function UserMenuDropdown() {
           }}
           closeOnClickSelectors={['[data-close-menu]']}
         >
-          <UserCardTrigger className="">
+          <UserCardTrigger>
             <Avatar
               text={displayName}
               src={me.avatarUrl ?? undefined}
-              size="md"
+              size="sm"
             />
             <UserInfo>
               <UserName>{displayName}</UserName>
@@ -171,11 +171,10 @@ export function UserMenuDropdown() {
 const UserCardTrigger = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: var(--spacing-2);
   width: 100%;
-  padding: var(--spacing-3);
+  padding: var(--spacing-2);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--bg-hover) 50%, transparent);
   text-align: left;
   cursor: pointer;
   transition: background-color 0.15s;
