@@ -2,23 +2,41 @@ import {
   CheckIcon,
   FileTextIcon,
   LogOutIcon,
+  MonitorIcon,
+  MoonIcon,
   PlusIcon,
   ShieldCheckIcon,
+  SunIcon,
   UserIcon,
 } from 'lucide-react';
 import {useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled from 'styled-components';
-import {Avatar, Button, DropdownMenu, Icon} from '@play/pylon';
+import {
+  Avatar,
+  Button,
+  DropdownMenu,
+  Icon,
+  SegmentedControls,
+  useTheme,
+} from '@play/pylon';
+import type {Theme} from '@play/pylon';
 import {CreateStudioDialog} from '@/components/layout/CreateStudioDialog';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {useAuth} from '@/lib/auth';
+
+const themeItems = [
+  {value: 'light', icon: <SunIcon size={14} />},
+  {value: 'system', icon: <MonitorIcon size={14} />},
+  {value: 'dark', icon: <MoonIcon size={14} />},
+];
 
 export function UserMenuDropdown() {
   const {me, activeStudio} = useAppContext(
     ContextLevel.AuthenticatedWithStudio,
   );
   const {signOut} = useAuth();
+  const {theme, setTheme} = useTheme();
   const navigate = useNavigate();
   const [createStudioOpen, setCreateStudioOpen] = useState(false);
 
@@ -32,7 +50,7 @@ export function UserMenuDropdown() {
 
   return (
     <>
-      <UserSection>
+      <div>
         <DropdownMenu
           overlayPosition={{
             verticalAlign: 'top',
@@ -40,6 +58,7 @@ export function UserMenuDropdown() {
             noVerticalOverlap: true,
             verticalOffset: 8,
           }}
+          closeOnClickSelectors={['[data-close-menu]']}
         >
           <UserCardTrigger className="">
             <Avatar
@@ -76,6 +95,7 @@ export function UserMenuDropdown() {
                   variant="menu"
                   onClick={() => handleStudioClick(studio.slug)}
                   className="w-full"
+                  data-close-menu
                 >
                   {studio.id === activeStudio.id && (
                     <Icon icon={CheckIcon} size={16} className="mr-3" />
@@ -87,6 +107,7 @@ export function UserMenuDropdown() {
                 variant="menu"
                 onClick={() => setCreateStudioOpen(true)}
                 className="w-full text-fg-muted"
+                data-close-menu
               >
                 <Icon icon={PlusIcon} size={18} className="mr-3" />
                 <span>New studio</span>
@@ -95,41 +116,57 @@ export function UserMenuDropdown() {
 
             <MenuDivider />
 
-            <Button variant="menu" className="w-full">
+            <Button variant="menu" className="w-full" data-close-menu>
               <Icon icon={UserIcon} size={16} className="mr-3" />
               <span>Account settings</span>
             </Button>
 
             <MenuDivider />
 
-            <Button variant="menu" className="w-full">
+            <ThemeSection>
+              <ThemeLabel>Theme</ThemeLabel>
+              <SegmentedControls
+                items={themeItems}
+                value={theme}
+                onChange={(item) => setTheme(item.value as Theme)}
+                size="sm"
+              />
+            </ThemeSection>
+
+            <MenuDivider />
+
+            <Button variant="menu" className="w-full" data-close-menu>
               <Icon icon={FileTextIcon} size={16} className="mr-3" />
               <span>Terms</span>
             </Button>
 
-            <Button variant="menu" className="w-full">
+            <Button variant="menu" className="w-full" data-close-menu>
               <Icon icon={ShieldCheckIcon} size={16} className="mr-3" />
               <span>Privacy</span>
             </Button>
 
             <MenuDivider />
 
-            <Button variant="menu" onClick={signOut} className="w-full">
+            <Button
+              variant="menu"
+              onClick={signOut}
+              className="w-full"
+              data-close-menu
+            >
               <Icon icon={LogOutIcon} size={16} className="mr-3" />
               <span>Log out</span>
             </Button>
           </MenuContent>
         </DropdownMenu>
-      </UserSection>
+      </div>
 
-      <CreateStudioDialog opened={createStudioOpen} setOpened={setCreateStudioOpen} />
+      <CreateStudioDialog
+        opened={createStudioOpen}
+        setOpened={setCreateStudioOpen}
+      />
     </>
   );
 }
-
-const UserSection = styled.div`
-  padding: var(--spacing-3);
-`;
 
 const UserCardTrigger = styled.div`
   display: flex;
@@ -156,7 +193,7 @@ const UserInfo = styled.div`
 const UserName = styled.p`
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--white);
+  color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -213,4 +250,16 @@ const MenuDivider = styled.div`
   height: 1px;
   background: var(--border);
   margin: var(--spacing-1) 0;
+`;
+
+const ThemeSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-3);
+`;
+
+const ThemeLabel = styled.span`
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
 `;

@@ -1,10 +1,10 @@
 import type {LucideIcon} from 'lucide-react';
 import {
   BuildingIcon,
-  ChartBarIcon,
+  ChartLineIcon,
   ChevronDownIcon,
   CreditCardIcon,
-  GamepadIcon,
+  Gamepad2Icon,
   GlobeIcon,
   MailIcon,
   MegaphoneIcon,
@@ -26,10 +26,10 @@ export interface NavItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  {label: 'Games', path: '', icon: GamepadIcon},
+  {label: 'Games', path: '', icon: Gamepad2Icon},
   {label: 'Campaigns', path: 'campaigns', icon: MegaphoneIcon},
   {label: 'Audience', path: 'audience', icon: MailIcon},
-  {label: 'Analytics', path: 'analytics', icon: ChartBarIcon},
+  {label: 'Analytics', path: 'analytics', icon: ChartLineIcon},
 ];
 
 const settingsItems: NavItem[] = [
@@ -54,12 +54,6 @@ export function DashboardLayout({
   return (
     <Root>
       <Sidebar>
-        <LogoSection>
-          <Logo>
-            Play.link <LogoAccent>Studio</LogoAccent>
-          </Logo>
-        </LogoSection>
-
         <Nav>
           <NavList>
             {navItems.map((item) => {
@@ -72,7 +66,12 @@ export function DashboardLayout({
                     end={item.path === ''}
                     className="w-full"
                   >
-                    <Icon icon={item.icon} size={18} className="mr-3" />
+                    <Icon
+                      icon={item.icon}
+                      size={16}
+                      strokeWidth={2}
+                      className="mr-3"
+                    />
                     {item.label}
                   </Button>
                 </li>
@@ -86,7 +85,12 @@ export function DashboardLayout({
                 onClick={() => setSettingsExpanded(!settingsExpanded)}
                 className="w-full"
               >
-                <Icon icon={SettingsIcon} size={18} className="mr-3" />
+                <Icon
+                  icon={SettingsIcon}
+                  size={16}
+                  strokeWidth={2}
+                  className="mr-3"
+                />
                 Settings
                 <SettingsChevron $expanded={settingsExpanded}>
                   <Icon icon={ChevronDownIcon} size={16} />
@@ -101,7 +105,12 @@ export function DashboardLayout({
                       <li key={item.path}>
                         <Button variant="nav" to={to} className="w-full">
                           <div className="flex items-center pl-7">
-                            <Icon icon={item.icon} size={18} className="mr-3" />
+                            <Icon
+                              icon={item.icon}
+                              size={16}
+                              strokeWidth={2}
+                              className="mr-3"
+                            />
                             {item.label}
                           </div>
                         </Button>
@@ -129,36 +138,20 @@ const Root = styled.div`
 `;
 
 const Sidebar = styled.aside`
-  background: var(--bg-surface);
+  background: var(--bg-subtle);
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
   margin: 0.75rem;
   border-radius: var(--radius-2xl);
-`;
-
-const LogoSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-`;
-
-const Logo = styled.h1`
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--white);
-  padding: 0 var(--spacing-2);
-`;
-
-const LogoAccent = styled.span`
-  color: var(--color-primary-400);
+  padding: var(--spacing-2-5);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--bg);
 `;
 
 const Nav = styled.nav`
   flex: 1;
-  padding: 0 var(--spacing-3);
 `;
 
 const NavList = styled.ul`
