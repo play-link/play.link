@@ -53,79 +53,74 @@ export function DashboardLayout({
 
   return (
     <Root>
-      <Sidebar>
-        <Nav>
-          <NavList>
-            {navItems.map((item) => {
-              const to = `/${activeStudio.slug}${item.path ? `/${item.path}` : ''}`;
-              return (
-                <li key={item.path}>
-                  <Button
-                    variant="nav"
-                    to={to}
-                    end={item.path === ''}
-                    className="w-full"
-                  >
-                    <Icon
-                      icon={item.icon}
-                      size={16}
-                      strokeWidth={2}
-                      className="mr-3"
-                    />
-                    {item.label}
-                  </Button>
-                </li>
-              );
-            })}
+      <SidebarContainer>
+        <Sidebar>
+          <UserMenuDropdown />
 
-            {/* Collapsible Settings Section */}
-            <li>
-              <Button
-                variant="nav"
-                onClick={() => setSettingsExpanded(!settingsExpanded)}
-                className="w-full"
-              >
-                <Icon
-                  icon={SettingsIcon}
-                  size={16}
-                  strokeWidth={2}
-                  className="mr-3"
-                />
-                Settings
-                <SettingsChevron $expanded={settingsExpanded}>
-                  <Icon icon={ChevronDownIcon} size={16} />
-                </SettingsChevron>
-              </Button>
+          <Nav>
+            <NavList>
+              {navItems.map((item) => {
+                const to = `/${activeStudio.slug}${item.path ? `/${item.path}` : ''}`;
+                return (
+                  <li key={item.path}>
+                    <Button
+                      variant="nav"
+                      to={to}
+                      end={item.path === ''}
+                      className="w-full"
+                    >
+                      <Icon
+                        icon={item.icon}
+                        size={16}
+                        strokeWidth={2}
+                        className="mr-3"
+                      />
+                      {item.label}
+                    </Button>
+                  </li>
+                );
+              })}
 
-              {settingsExpanded && (
-                <SettingsSubList>
-                  {settingsItems.map((item) => {
-                    const to = `/${activeStudio.slug}/${item.path}`;
-                    return (
-                      <li key={item.path}>
-                        <Button variant="nav" to={to} className="w-full">
-                          <div className="flex items-center pl-7">
-                            <Icon
-                              icon={item.icon}
-                              size={16}
-                              strokeWidth={2}
-                              className="mr-3"
-                            />
-                            {item.label}
-                          </div>
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </SettingsSubList>
-              )}
-            </li>
-          </NavList>
-        </Nav>
+              {/* Collapsible Settings Section */}
+              <li>
+                <Button
+                  variant="nav"
+                  onClick={() => setSettingsExpanded(!settingsExpanded)}
+                  className="w-full"
+                >
+                  <Icon
+                    icon={SettingsIcon}
+                    size={16}
+                    strokeWidth={2}
+                    className="mr-3"
+                  />
+                  Settings
+                  <SettingsChevron $expanded={settingsExpanded}>
+                    <Icon icon={ChevronDownIcon} size={16} />
+                  </SettingsChevron>
+                </Button>
 
-        <UserMenuDropdown />
-      </Sidebar>
-
+                {settingsExpanded && (
+                  <SettingsSubList>
+                    {settingsItems.map((item) => {
+                      const to = `/${activeStudio.slug}/${item.path}`;
+                      return (
+                        <li key={item.path}>
+                          <Button variant="nav" to={to} className="w-full">
+                            <div className="flex items-center pl-7">
+                              {item.label}
+                            </div>
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </SettingsSubList>
+                )}
+              </li>
+            </NavList>
+          </Nav>
+        </Sidebar>
+      </SidebarContainer>
       <Main>{children}</Main>
     </Root>
   );
@@ -137,27 +132,30 @@ const Root = styled.div`
   height: 100vh;
 `;
 
-const Sidebar = styled.aside`
-  background: var(--bg-subtle);
-  display: flex;
-  flex-direction: column;
+const SidebarContainer = styled.div`
+  padding: var(--spacing-3);
+  flex: 1;
+  min-height: 0;
   min-width: 0;
-  overflow: hidden;
-  margin: 0.75rem;
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-2-5);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--bg);
 `;
 
-const Nav = styled.nav`
-  flex: 1;
+const Sidebar = styled.aside`
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2-5);
 `;
+
+const Nav = styled.nav``;
 
 const NavList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: var(--spacing-0-5);
 `;
 
 const SettingsChevron = styled.span<{$expanded: boolean}>`
@@ -171,7 +169,7 @@ const SettingsChevron = styled.span<{$expanded: boolean}>`
 const SettingsSubList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: var(--spacing-0-5);
   margin-top: var(--spacing-1);
 `;
 
