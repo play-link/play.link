@@ -173,7 +173,8 @@ const menu: VariantStyleFn = (params) => css`
   position: relative;
   width: 100%;
 
-  &:hover {
+  &:hover,
+  &.hover {
     background: var(--bg-hover);
   }
 
@@ -206,7 +207,7 @@ const menuDestructive: VariantStyleFn = (params) => css`
 const nav: VariantStyleFn = (params) => css`
   ${baseStyles(params)}
   border-radius: var(--radius-lg);
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   flex-shrink: 0;
   justify-content: flex-start;
   padding: 0 var(--spacing-3);
@@ -224,7 +225,6 @@ const nav: VariantStyleFn = (params) => css`
   &.opened {
     background: var(--bg-selected);
     color: var(--fg);
-    font-weight: var(--font-weight-medium);
   }
 `;
 

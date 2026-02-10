@@ -47,30 +47,33 @@ function getRandomGradient(value: string, colors: string[][] = defaultColors): s
   return `linear-gradient(to bottom, ${colorA}, ${colorB})`;
 }
 
-export type AvatarSize = 'lg' | 'md' | 'sm';
+export type AvatarSize = 'lg' | 'md' | 'sm' | 'xs' | 'xxs';
+
+export type AvatarShape = 'circle' | 'square';
 
 export interface AvatarProps {
   className?: string;
+  shape?: AvatarShape;
   size?: AvatarSize | number;
   src?: string;
   text?: string;
 }
 
-export function Avatar({text = '-', size = 'md', src, ...restProps}: AvatarProps) {
+export function Avatar({text = '-', size = 'md', shape = 'circle', src, ...restProps}: AvatarProps) {
   const _size = typeof size === 'string' ? sizeMap[size] : size;
 
   return (
-    <StyledAvatar $size={_size} $src={src} $text={text} {...restProps}>
+    <StyledAvatar $size={_size} $shape={shape} $src={src} $text={text} {...restProps}>
       {src ? null : text.charAt(0)}
     </StyledAvatar>
   );
 }
 
-const StyledAvatar = styled.div<{$size: number; $src?: string; $text: string}>`
+const StyledAvatar = styled.div<{$size: number; $shape: AvatarShape; $src?: string; $text: string}>`
   align-items: center;
   background-position: center;
   background-size: cover;
-  border-radius: 100%;
+  border-radius: ${(p) => (p.$shape === 'circle' ? 'var(--radius-full)' : 'var(--radius-md)')};
   box-shadow: inset 0 0 0 0.0625rem hsl(0deg 0% 100% / 20%);
   color: var(--white);
   display: flex;
@@ -93,6 +96,8 @@ const StyledAvatar = styled.div<{$size: number; $src?: string; $text: string}>`
 
 const sizeMap = {
   lg: 40,
-  md: 36,
-  sm: 32,
+  md: 32,
+  sm: 28,
+  xs: 24,
+  xxs: 20,
 };

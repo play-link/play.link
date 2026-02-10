@@ -77,7 +77,7 @@ const StyledHeaderTop = styled.div<{$hasTabNav: boolean}>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: ${({$hasTabNav}) => ($hasTabNav ? 'var(--spacing-2)' : '0')};
+  margin-bottom: ${({$hasTabNav}) => ($hasTabNav ? 'var(--spacing-2-5)' : '0')};
 `;
 
 const StyledTitle = styled.h1`
