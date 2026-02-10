@@ -2,8 +2,8 @@ import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router';
 import type {AppRouter} from '@play/api/trpc';
 import type {inferRouterOutputs} from '@trpc/server';
 import {Button, Loading, TabNav, TabNavItem} from '@play/pylon';
-import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {PageLayout} from '@/components/layout';
+import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
@@ -75,7 +75,7 @@ export function GamePage() {
       <PageLayout.Header
         title={game.title}
         tabNav={
-          <TabNav bleeding={10}>
+          <TabNav>
             <TabNavItem
               active={activeTab === 'overview'}
               onClick={() => navigate(basePath)}

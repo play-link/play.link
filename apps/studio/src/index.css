@@ -26,3 +26,12 @@ body {
 #root {
   min-height: 100dvh;
 }
+
+[data-theme='light'] {
+  --dashboard-layout-sidebar-bg: var(--color-gray-50);
+}
+
+
+[data-theme='dark'] {
+  --dashboard-layout-sidebar-bg: var(--color-gray-950);
+}

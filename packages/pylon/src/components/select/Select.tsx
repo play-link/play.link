@@ -477,7 +477,7 @@ export function Select({
                   return (
                     <div key={opt.title}>
                       {index > 0 && (
-                        <Divider bleedSpacing={1} className="mt-2 mb-0.5" variant="subtle" />
+                        <Divider bleed={1} className="mt-2 mb-0.5" variant="subtle" />
                       )}
                       <CategoryTitle>{opt.title}</CategoryTitle>
                       {opt.options.map(renderOption)}

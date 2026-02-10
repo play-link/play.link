@@ -1,7 +1,7 @@
 import {css} from 'styled-components';
 
 export const dropdownOverlayCss = css`
-  background: var(--bg-muted);
+  background: var(--bg-overlay);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-md);

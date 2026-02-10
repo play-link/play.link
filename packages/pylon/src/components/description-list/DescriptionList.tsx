@@ -40,7 +40,7 @@ type DescriptionListProps = PropsWithChildren<{
    * Bleed spacing for negative margin (to align with parent padding)
    * @default 0
    */
-  bleedSpacing?: Spacing;
+  bleed?: Spacing;
   /**
    * Whether to show borders between items
    * @default true
@@ -69,7 +69,7 @@ type DescriptionListProps = PropsWithChildren<{
 }>;
 
 function DescriptionListRoot({
-  bleedSpacing = 0,
+  bleed = 0,
   bordered = true,
   children,
   gap = 2,
@@ -80,7 +80,7 @@ function DescriptionListRoot({
 }: DescriptionListProps) {
   return (
     <DescriptionListContext value={{bordered, labelWidth, labelWidthMd, striped}}>
-      <Container $bleedSpacing={bleedSpacing} $gap={gap} $bordered={bordered} {...restProps}>
+      <Container $bleed={bleed} $gap={gap} $bordered={bordered} {...restProps}>
         {children}
       </Container>
     </DescriptionListContext>
@@ -88,14 +88,14 @@ function DescriptionListRoot({
 }
 
 const Container = styled.div<{
-  $bleedSpacing: Spacing;
+  $bleed: Spacing;
   $bordered: boolean;
   $gap: Spacing;
 }>`
   display: flex;
   flex-direction: column;
-  margin-left: calc(var(--spacing-${(p) => p.$bleedSpacing}) * -1);
-  width: calc(100% + var(--spacing-${(p) => p.$bleedSpacing}) * 2);
+  margin-left: calc(var(--spacing-${(p) => p.$bleed}) * -1);
+  width: calc(100% + var(--spacing-${(p) => p.$bleed}) * 2);
 `;
 
 // ============================================

@@ -151,6 +151,7 @@
   /* ----- COMPONENT-SPECIFIC ----- */
   --segmented-selected-bg: var(--bg);
   --segmented-selected-text: var(--fg);
+
 }
 
 /* ========================================
@@ -180,7 +181,7 @@
   /* Interactive states */
   --bg-hover: rgba(0, 0, 0, 0.05);
   --bg-press: rgba(0, 0, 0, 0.08);
-  --bg-selected: rgba(0, 0, 0, 0.1);
+  --bg-selected: rgba(0, 0, 0, 0.09);
 
   /* ----- BORDERS ----- */
   --border: var(--color-gray-300);

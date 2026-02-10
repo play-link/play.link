@@ -1,5 +1,8 @@
 import {
+  BuildingIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
   FileTextIcon,
   LogOutIcon,
   MonitorIcon,
@@ -15,9 +18,10 @@ import styled from 'styled-components';
 import {
   Avatar,
   Button,
+  Divider,
   DropdownMenu,
   Icon,
-  SegmentedControls,
+  NavigationList,
   useTheme,
 } from '@play/pylon';
 import type {Theme} from '@play/pylon';
@@ -25,10 +29,10 @@ import {CreateStudioDialog} from '@/components/layout/CreateStudioDialog';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {useAuth} from '@/lib/auth';
 
-const themeItems = [
-  {value: 'light', icon: <SunIcon size={14} />},
-  {value: 'system', icon: <MonitorIcon size={14} />},
-  {value: 'dark', icon: <MoonIcon size={14} />},
+const themeOptions: {value: Theme; label: string; icon: typeof SunIcon}[] = [
+  {value: 'light', label: 'Light', icon: SunIcon},
+  {value: 'dark', label: 'Dark', icon: MoonIcon},
+  {value: 'system', label: 'System', icon: MonitorIcon},
 ];
 
 export function UserMenuDropdown() {
@@ -39,8 +43,6 @@ export function UserMenuDropdown() {
   const {theme, setTheme} = useTheme();
   const navigate = useNavigate();
   const [createStudioOpen, setCreateStudioOpen] = useState(false);
-
-  const displayName = me.displayName || me.email.split('@')[0];
 
   const handleStudioClick = (slug: string) => {
     if (slug !== activeStudio.slug) {
@@ -56,107 +58,139 @@ export function UserMenuDropdown() {
             verticalAlign: 'top',
             horizontalAlign: 'left',
             noVerticalOverlap: true,
-            verticalOffset: 8,
+            verticalOffset: 4,
           }}
           closeOnClickSelectors={['[data-close-menu]']}
         >
           <UserCardTrigger>
             <Avatar
-              text={displayName}
-              src={me.avatarUrl ?? undefined}
-              size="sm"
+              text={activeStudio.name}
+              src={activeStudio.avatar_url ?? undefined}
+              size="xxs"
+              shape="square"
             />
             <UserInfo>
-              <UserName>{displayName}</UserName>
-              <UserEmail>{me.email}</UserEmail>
+              <UserName>{activeStudio.name}</UserName>
+              <UserPlan>Free</UserPlan>
             </UserInfo>
+            <TriggerChevron icon={ChevronDownIcon} size={14} />
           </UserCardTrigger>
 
-          <MenuContent>
-            <MenuHeader>
-              <Avatar
-                text={displayName}
-                src={me.avatarUrl ?? undefined}
-                size="lg"
-              />
-              <MenuHeaderInfo>
-                <MenuHeaderName>{displayName}</MenuHeaderName>
-                <MenuHeaderEmail>{me.email}</MenuHeaderEmail>
-              </MenuHeaderInfo>
-            </MenuHeader>
-
-            <MenuDivider />
-
-            <MenuSection>
-              <MenuSectionTitle>Switch studio</MenuSectionTitle>
-              {me.studios.map((studio) => (
-                <Button
-                  key={studio.id}
-                  variant="menu"
-                  onClick={() => handleStudioClick(studio.slug)}
-                  className="w-full"
-                  data-close-menu
-                >
-                  {studio.id === activeStudio.id && (
-                    <Icon icon={CheckIcon} size={16} className="mr-3" />
-                  )}
-                  <span>{studio.name}</span>
-                </Button>
-              ))}
+          <DropdownContent>
+            <SignedAs>Signed in as {me.email}</SignedAs>
+            <Divider className="my-1" />
+            <NavigationList noAutoFocus>
               <Button
                 variant="menu"
-                onClick={() => setCreateStudioOpen(true)}
-                className="w-full text-fg-muted"
+                className="w-full"
+                size="sm"
                 data-close-menu
               >
-                <Icon icon={PlusIcon} size={18} className="mr-3" />
-                <span>New studio</span>
+                <Icon icon={UserIcon} size={16} className="mr-2.5" />
+                <span>Account settings</span>
               </Button>
-            </MenuSection>
-
-            <MenuDivider />
-
-            <Button variant="menu" className="w-full" data-close-menu>
-              <Icon icon={UserIcon} size={16} className="mr-3" />
-              <span>Account settings</span>
-            </Button>
-
-            <MenuDivider />
-
-            <ThemeSection>
-              <ThemeLabel>Theme</ThemeLabel>
-              <SegmentedControls
-                items={themeItems}
-                value={theme}
-                onChange={(item) => setTheme(item.value as Theme)}
+              <DropdownMenu
+                mode="hover"
+                overlayPosition={{
+                  fitToScreen: true,
+                  flip: true,
+                  noHorizontalOverlap: true,
+                  verticalAlign: 'middle',
+                }}
+              >
+                <Button variant="menu" className="w-full" size="sm">
+                  <Icon icon={SunIcon} size={16} className="mr-2.5" />
+                  <span>Theme</span>
+                  <Icon icon={ChevronRightIcon} size={14} className="ml-auto" />
+                </Button>
+                {themeOptions.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="menu"
+                    onClick={() => setTheme(option.value)}
+                    className="w-full"
+                    size="sm"
+                    data-close-menu
+                  >
+                    <ThemeRadio $active={theme === option.value} />
+                    <Icon icon={option.icon} size={16} className="mr-2.5" />
+                    <span>{option.label}</span>
+                  </Button>
+                ))}
+              </DropdownMenu>
+              <DropdownMenu
+                mode="hover"
+                overlayPosition={{
+                  fitToScreen: true,
+                  flip: true,
+                  noHorizontalOverlap: true,
+                  verticalAlign: 'middle',
+                }}
+              >
+                <Button variant="menu" className="w-full" size="sm">
+                  <Icon icon={BuildingIcon} size={16} className="mr-2.5" />
+                  <span>Switch studio</span>
+                  <Icon icon={ChevronRightIcon} size={14} className="ml-auto" />
+                </Button>
+                {me.studios.map((studio) => (
+                  <Button
+                    key={studio.id}
+                    variant="menu"
+                    onClick={() => handleStudioClick(studio.slug)}
+                    className="w-full"
+                    size="sm"
+                    data-close-menu
+                  >
+                    {studio.id === activeStudio.id && (
+                      <Icon icon={CheckIcon} size={16} className="mr-2.5" />
+                    )}
+                    <span>{studio.name}</span>
+                  </Button>
+                ))}
+                <Button
+                  variant="menu"
+                  onClick={() => setCreateStudioOpen(true)}
+                  className="w-full text-fg-muted"
+                  size="sm"
+                  data-close-menu
+                >
+                  <Icon icon={PlusIcon} size={16} className="mr-2.5" />
+                  <span>New studio</span>
+                </Button>
+              </DropdownMenu>
+              <Divider className="my-1" />
+              <Button
+                variant="menu"
+                className="w-full"
                 size="sm"
-              />
-            </ThemeSection>
+                data-close-menu
+              >
+                <Icon icon={FileTextIcon} size={16} className="mr-2.5" />
+                <span>Terms</span>
+              </Button>
 
-            <MenuDivider />
-
-            <Button variant="menu" className="w-full" data-close-menu>
-              <Icon icon={FileTextIcon} size={16} className="mr-3" />
-              <span>Terms</span>
-            </Button>
-
-            <Button variant="menu" className="w-full" data-close-menu>
-              <Icon icon={ShieldCheckIcon} size={16} className="mr-3" />
-              <span>Privacy</span>
-            </Button>
-
-            <MenuDivider />
-
-            <Button
-              variant="menu"
-              onClick={signOut}
-              className="w-full"
-              data-close-menu
-            >
-              <Icon icon={LogOutIcon} size={16} className="mr-3" />
-              <span>Log out</span>
-            </Button>
-          </MenuContent>
+              <Button
+                variant="menu"
+                className="w-full"
+                size="sm"
+                data-close-menu
+              >
+                <Icon icon={ShieldCheckIcon} size={16} className="mr-2.5" />
+                <span>Privacy</span>
+              </Button>
+              <Divider className="my-1" />
+              <Button
+                variant="menu"
+                onClick={signOut}
+                className="w-full"
+                size="sm"
+                data-close-menu
+              >
+                <Icon icon={LogOutIcon} size={16} className="mr-2.5" />
+                <span>Log out</span>
+              </Button>
+            </NavigationList>
+          </DropdownContent>
         </DropdownMenu>
       </div>
 
@@ -173,14 +207,28 @@ const UserCardTrigger = styled.div`
   align-items: center;
   gap: var(--spacing-2);
   width: 100%;
-  padding: var(--spacing-2);
-  border-radius: var(--radius-lg);
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-2-5);
+  border-radius: var(--radius-xl);
   text-align: left;
   cursor: pointer;
   transition: background-color 0.15s;
 
   &:hover {
     background: var(--bg-hover);
+  }
+
+  &.opened {
+    background: var(--bg-hover);
+  }
+`;
+
+const TriggerChevron = styled(Icon)`
+  color: var(--fg-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+
+  .opened & {
+    transform: rotate(180deg);
   }
 `;
 
@@ -198,7 +246,7 @@ const UserName = styled.p`
   white-space: nowrap;
 `;
 
-const UserEmail = styled.p`
+const UserPlan = styled.p`
   font-size: var(--text-xs);
   color: var(--fg-subtle);
   overflow: hidden;
@@ -206,59 +254,27 @@ const UserEmail = styled.p`
   white-space: nowrap;
 `;
 
-const MenuContent = styled.div`
-  min-width: 14rem;
+const DropdownContent = styled.div`
+  width: 13.5rem;
 `;
 
-const MenuHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-3);
-`;
-
-const MenuHeaderInfo = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const MenuHeaderName = styled.p`
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--fg);
-`;
-
-const MenuHeaderEmail = styled.p`
-  font-size: var(--text-sm);
-  color: var(--fg-muted);
-`;
-
-const MenuSection = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const MenuSectionTitle = styled.p`
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
+const SignedAs = styled.p`
+  font-size: var(--text-xs);
   color: var(--fg-muted);
   padding: var(--spacing-2) var(--spacing-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
-const MenuDivider = styled.div`
-  height: 1px;
-  background: var(--border);
-  margin: var(--spacing-1) 0;
-`;
-
-const ThemeSection = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-2) var(--spacing-3);
-`;
-
-const ThemeLabel = styled.span`
-  font-size: var(--text-sm);
-  color: var(--fg-muted);
+const ThemeRadio = styled.span<{$active: boolean}>`
+  background: ${({$active}) => ($active ? 'var(--fg)' : 'transparent')};
+  border-color: ${({$active}) => ($active ? 'var(--fg)' : 'var(--fg)')};
+  border-radius: 50%;
+  border: 1.5px solid
+    ${({$active}) => ($active ? 'var(--fg)' : 'var(--fg-muted)')};
+  flex-shrink: 0;
+  height: 0.5rem;
+  margin-right: var(--spacing-2);
+  width: 0.5rem;
 `;

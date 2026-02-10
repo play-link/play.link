@@ -129,18 +129,18 @@ export function SegmentedControls({
 
 const SIZES = {
   sm: '1.75rem',
-  md: '1.875rem',
-  lg: '2.125rem',
+  md: '2rem',
+  lg: '2.25rem',
 };
 
 const Root = styled.div<{$size: SegmentedControlsProps['size']}>`
   align-items: center;
-  background: var(--bg-press);
+  background: var(--bg-subtle);
   border-radius: var(--radius-lg);
   cursor: pointer;
   display: inline-flex;
   height: ${(props) => SIZES[props.$size as keyof typeof SIZES]};
-  outline: 0.125rem solid var(--bg-press);
+  padding: 2px;
   position: relative;
   user-select: none;
 `;
@@ -149,7 +149,7 @@ const ControlButton = styled.button`
   all: unset;
   /*  */
   align-items: center;
-  color: var(--fg);
+  color: var(--fg-body);
   display: flex;
   flex: 1;
   height: 100%;
@@ -162,7 +162,7 @@ const ControlButton = styled.button`
   z-index: 1;
 
   &.active {
-    color: var(--segmented-selected-text, --fg);
+    color: var(--segmented-selected-text, --fg-body);
     font-weight: var(--font-weight-medium);
   }
 
@@ -183,17 +183,18 @@ const ItemContent = styled.div`
 `;
 
 const ActiveBgWrapper = styled.div<{$hasUserInteracted: boolean}>`
-  bottom: 0;
+  bottom: 2px;
   pointer-events: none;
   position: absolute;
-  top: 0;
+  top: 2px;
   transition: ${(props) =>
     props.$hasUserInteracted ? 'width, left 0.2s var(--ease-in-out)' : 'none'};
 `;
 
 const ActiveBg = styled.div`
-  background: var(--segmented-selected-bg, --bg);
+  background: var(--segmented-selected-bg, --bg-body);
   border-radius: var(--radius-lg);
   height: 100%;
   width: 100%;
+  box-shadow: 0 0 0 1px var(--border-deep);
 `;

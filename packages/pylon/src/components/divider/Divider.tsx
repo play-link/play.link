@@ -5,15 +5,16 @@ export interface DividerProps {
   direction?: 'row' | 'column';
   variant?: 'soft' | 'subtle';
   className?: string;
-  bleedSpacing?: Spacing;
+  bleed?: Spacing;
+  inset?: Spacing;
 }
 
-export function Divider({direction, bleedSpacing, variant = 'soft', ...restProps}: DividerProps) {
+export function Divider({direction, bleed, inset, variant = 'subtle', ...restProps}: DividerProps) {
   if (direction === 'row') {
     return <DividerRow $variant={variant} {...restProps} />;
   }
 
-  return <DividerCol $bleedSpacing={bleedSpacing} $variant={variant} {...restProps} />;
+  return <DividerCol $bleed={bleed} $inset={inset} $variant={variant} {...restProps} />;
 }
 
 const DividerRow = styled.div<{$variant?: 'soft' | 'subtle'}>`
@@ -24,7 +25,8 @@ const DividerRow = styled.div<{$variant?: 'soft' | 'subtle'}>`
 `;
 
 const DividerCol = styled.div<{
-  $bleedSpacing?: Spacing;
+  $bleed?: Spacing;
+  $inset?: Spacing;
   $variant?: 'soft' | 'subtle';
 }>`
   height: 0.0625rem;
@@ -32,12 +34,17 @@ const DividerCol = styled.div<{
     props.$variant === 'soft' ? 'var(--border-muted)' : 'var(--border-subtle)'};
 
   ${(props) =>
-    props.$bleedSpacing
+    props.$bleed
       ? css`
-          margin-left: calc(var(--spacing-${props.$bleedSpacing}) * -1);
-          width: calc(100% + var(--spacing-${props.$bleedSpacing}) * 2);
+          margin-left: calc(var(--spacing-${props.$bleed}) * -1);
+          width: calc(100% + var(--spacing-${props.$bleed}) * 2);
         `
-      : css`
-          width: 100%;
-        `}
+      : props.$inset
+        ? css`
+            margin-left: var(--spacing-${props.$inset});
+            width: calc(100% - var(--spacing-${props.$inset}) * 2);
+          `
+        : css`
+            width: 100%;
+          `}
 `;

@@ -68,12 +68,13 @@ export function DashboardLayout({
                       to={to}
                       end={item.path === ''}
                       className="w-full"
+                      size="sm"
                     >
                       <Icon
                         icon={item.icon}
                         size={16}
-                        strokeWidth={2}
-                        className="mr-3"
+                        strokeWidth={1.75}
+                        className="mr-2.5"
                       />
                       {item.label}
                     </Button>
@@ -87,16 +88,17 @@ export function DashboardLayout({
                   variant="nav"
                   onClick={() => setSettingsExpanded(!settingsExpanded)}
                   className="w-full"
+                  size="sm"
                 >
                   <Icon
                     icon={SettingsIcon}
                     size={16}
-                    strokeWidth={2}
-                    className="mr-3"
+                    strokeWidth={1.75}
+                    className="mr-2.5"
                   />
                   Settings
                   <SettingsChevron $expanded={settingsExpanded}>
-                    <Icon icon={ChevronDownIcon} size={16} />
+                    <Icon icon={ChevronDownIcon} size={14} />
                   </SettingsChevron>
                 </Button>
 
@@ -106,10 +108,13 @@ export function DashboardLayout({
                       const to = `/${activeStudio.slug}/${item.path}`;
                       return (
                         <li key={item.path}>
-                          <Button variant="nav" to={to} className="w-full">
-                            <div className="flex items-center pl-7">
-                              {item.label}
-                            </div>
+                          <Button
+                            variant="nav"
+                            to={to}
+                            className="w-full"
+                            size="sm"
+                          >
+                            <div className="pl-6.5">{item.label}</div>
                           </Button>
                         </li>
                       );
@@ -128,7 +133,7 @@ export function DashboardLayout({
 
 const Root = styled.div`
   display: grid;
-  grid-template-columns: 16rem 1fr;
+  grid-template-columns: 15rem 1fr;
   height: 100vh;
 `;
 
@@ -141,13 +146,14 @@ const SidebarContainer = styled.div`
 
 const Sidebar = styled.aside`
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 1px 2px 0 0 var(--border-subtle);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   gap: var(--spacing-2);
   padding: var(--spacing-2-5);
+  background: var(--dashboard-layout-sidebar-bg);
 `;
 
 const Nav = styled.nav``;
