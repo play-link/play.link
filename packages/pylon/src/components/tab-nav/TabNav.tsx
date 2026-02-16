@@ -1,94 +1,237 @@
-import type {PropsWithChildren} from 'react';
-import styled from 'styled-components';
-import {toClassName} from '../../style';
+import type {LucideIcon} from 'lucide-react';
+import {useEffect, useRef} from 'react';
+import {NavLink} from 'react-router';
+import {css, styled} from 'styled-components';
+import {mediaQuery, toClassName} from '../../style';
+import {renderIcon} from '../icon';
 
-export type TabNavProps = PropsWithChildren<{
-  bleeding?: number;
+export interface TabNavItem {
+  /** Route path (use for routing tabs) */
+  to?: string;
+  /** Click handler (use for clickable tabs) */
+  onClick?: () => void;
+  /** Whether this tab is active (required when using onClick) */
+  isActive?: boolean;
+  /** Tab label */
+  label: string;
+  /** Optional icon component */
+  icon?: LucideIcon;
+  /** Optional count badge */
+  count?: number;
+  /** Whether to use exact match for active state (only for routing tabs) */
+  end?: boolean;
+}
+
+interface TabNavProps {
+  items: TabNavItem[];
   className?: string;
-}> &
-  React.HTMLAttributes<HTMLDivElement>;
+  /** Bleed amount to ignore parent padding (uses spacing scale) */
+  bleed?: number;
+}
 
-export type TabNavItemProps = PropsWithChildren<{
-  active?: boolean;
-  className?: string;
-}> &
-  React.ButtonHTMLAttributes<HTMLButtonElement>;
+/**
+ * Horizontal tab navigation with underline style.
+ * Active tab has a darker border-bottom.
+ *
+ * Supports two modes:
+ * 1. Routing: Use `to` prop for NavLink navigation
+ * 2. Clickable: Use `onClick` and `isActive` for local state
+ *
+ * @example
+ * // Routing mode
+ * <TabNav
+ *   items={[
+ *     {to: '/drafts', label: 'Drafts', icon: 'plane', count: 5},
+ *     {to: '/pending', label: 'For approval', count: 2},
+ *   ]}
+ * />
+ *
+ * // Clickable mode
+ * <TabNav
+ *   scrollable
+ *   items={specs.map((spec, idx) => ({
+ *     onClick: () => setActiveIndex(idx),
+ *     isActive: idx === activeIndex,
+ *     label: spec.shortCode,
+ *     icon: 'plane',
+ *     count: spec.trips.length,
+ *   }))}
+ * />
+ */
+export function TabNav({items, className, bleed}: TabNavProps) {
+  const navRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
 
-export function TabNav({children, bleeding, className, ...restProps}: TabNavProps) {
-  const style = bleeding
-    ? ({
-        '--tab-nav-bleeding': `var(--spacing-${bleeding})`,
-        ...restProps.style,
-      } as React.CSSProperties)
-    : restProps.style;
+  useEffect(() => {
+    const nav = navRef.current;
+    const el = indicatorRef.current;
+    if (!nav || !el) return;
+
+    const active = nav.querySelector('.active') as HTMLElement | null;
+    if (!active) {
+      el.style.opacity = '0';
+      return;
+    }
+
+    const left = active.offsetLeft;
+    const width = active.offsetWidth;
+
+    if (isFirstRender.current) {
+      el.style.transition = 'none';
+      isFirstRender.current = false;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (indicatorRef.current) {
+            indicatorRef.current.style.transition = '';
+          }
+        });
+      });
+    }
+
+    el.style.left = `${left}px`;
+    el.style.width = `${width}px`;
+    el.style.opacity = '1';
+  });
 
   return (
-    <StyledTabNav
-      className={toClassName({bleeding: !!bleeding}, className)}
-      {...restProps}
-      style={style}
-    >
-      {children}
-    </StyledTabNav>
+    <Nav className={className} $bleed={bleed} ref={navRef}>
+      {items.map((item) => {
+        const content = (
+          <TabContent>
+            {item.icon && renderIcon(item.icon, 16)}
+            {item.label}
+            {item.count !== undefined && <Count>{item.count}</Count>}
+          </TabContent>
+        );
+
+        // Clickable mode (button)
+        if (item.onClick) {
+          return (
+            <TabButton
+              key={item.label}
+              onClick={item.onClick}
+              className={toClassName({active: item.isActive ?? false})}
+            >
+              {content}
+            </TabButton>
+          );
+        }
+
+        // Routing mode (NavLink)
+        return (
+          <TabLink key={item.to} to={item.to!} end={item.end}>
+            {content}
+          </TabLink>
+        );
+      })}
+      {/* <Indicator ref={indicatorRef} /> */}
+    </Nav>
   );
 }
 
-export function TabNavItem({children, active = false, className, ...restProps}: TabNavItemProps) {
-  return (
-    <StyledTabNavItem className={toClassName({active}, className)} {...restProps}>
-      <span className="tab-label">{children}</span>
-    </StyledTabNavItem>
-  );
-}
-
-const StyledTabNav = styled.div`
+const Nav = styled.nav<{$bleed?: number}>`
   display: flex;
-  gap: var(--spacing-1);
-  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--spacing-6);
+  position: relative;
+  padding: 0 var(--spacing-3);
 
-  &.bleeding {
-    margin-left: calc(-1 * var(--tab-nav-bleeding));
-    margin-right: calc(-1 * var(--tab-nav-bleeding));
-    padding-left: var(--tab-nav-bleeding);
-    padding-right: var(--tab-nav-bleeding);
+  border-radius: var(--radius-2xl);
+  background: var(--dashboard-layout-sidebar-bg);
+
+  /* Hide scrollbar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
+
+  /* Bleed: expand nav to ignore parent's horizontal padding */
+  ${({$bleed}) =>
+    typeof $bleed === 'number' &&
+    css`
+      margin-left: calc(var(--spacing-${$bleed}) * -1);
+      margin-right: calc(var(--spacing-${$bleed}) * -1);
+      padding-left: var(--spacing-${$bleed});
+      padding-right: var(--spacing-${$bleed});
+    `}
 `;
 
-const StyledTabNavItem = styled.button`
-  all: unset;
-  position: relative;
-  cursor: pointer;
-  padding: var(--spacing-2) var(--spacing-3) var(--spacing-3);
-  margin-bottom: -1px;
-  color: var(--fg-subtle);
+const tabStyles = css`
+  align-items: center;
   border-bottom: 2px solid transparent;
-  transition: color 0.15s ease;
+  color: var(--fg-subtle);
+  display: flex;
+  flex-shrink: 0;
+  padding: var(--spacing-3) 0 var(--spacing-3);
+  position: relative;
+  white-space: nowrap;
 
   &:hover {
     color: var(--fg);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: -2px;
-    border-radius: var(--radius-md);
-  }
+  ${mediaQuery(
+    'md>',
+    css`
+      &:hover:before {
+        content: '';
+        background-color: var(--bg-hover);
+        border-radius: var(--radius-xl);
+        position: absolute;
+        top: 5px;
+        left: -0.5rem;
+        right: -0.5rem;
+        z-index: 0;
+        bottom: 5px;
+      }
+    `,
+  )}
 
-  .tab-label {
-    position: relative;
-  }
+  ${mediaQuery(
+    '<md',
+    css`
+      font-weight: var(--font-weight-medium);
+    `,
+  )}
 
   &.active {
     color: var(--fg);
-    border-bottom-color: var(--fg);
-
-    .tab-label::after {
-      content: '';
-      position: absolute;
-      inset: calc(-1 * var(--spacing-1)) calc(-1 * var(--spacing-2));
-      background: var(--bg-muted);
-      border-radius: var(--radius-lg);
-      z-index: -1;
-    }
   }
+
+  &.active:before {
+    content: '';
+    background-color: var(--bg-hover);
+    border-radius: var(--radius-lg);
+    position: absolute;
+    top: 5px;
+    left: -0.5rem;
+    right: -0.5rem;
+    z-index: 0;
+    bottom: 5px;
+  }
+`;
+
+const TabContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  position: relative;
+  z-index: 1;
+`;
+
+const TabLink = styled(NavLink)`
+  ${tabStyles}
+  text-decoration: none;
+`;
+
+const TabButton = styled.button`
+  all: unset;
+  cursor: pointer;
+  ${tabStyles}
+`;
+
+const Count = styled.span`
+  color: var(--fg-muted);
+  font-size: var(--text-xs);
 `;

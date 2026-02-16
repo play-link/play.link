@@ -127,20 +127,14 @@ export function SegmentedControls({
   );
 }
 
-const SIZES = {
-  sm: '1.75rem',
-  md: '2rem',
-  lg: '2.25rem',
-};
-
 const Root = styled.div<{$size: SegmentedControlsProps['size']}>`
   align-items: center;
   background: var(--bg-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-full);
   cursor: pointer;
   display: inline-flex;
-  height: ${(props) => SIZES[props.$size as keyof typeof SIZES]};
-  padding: 2px;
+  height: ${(props) => `var(--control-height-${props.$size})`};
+  padding: 0.125rem;
   position: relative;
   user-select: none;
 `;
@@ -193,8 +187,10 @@ const ActiveBgWrapper = styled.div<{$hasUserInteracted: boolean}>`
 
 const ActiveBg = styled.div`
   background: var(--segmented-selected-bg, --bg-body);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-full);
   height: 100%;
   width: 100%;
-  box-shadow: 0 0 0 1px var(--border-deep);
+  border: 1px solid var(--border-subtle);
+  /* box-shadow: 0 2px 0 0 var(--border-subtle); */
+  /* margin-top: -1px; */
 `;

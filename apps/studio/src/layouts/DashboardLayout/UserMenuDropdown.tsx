@@ -78,7 +78,6 @@ export function UserMenuDropdown() {
 
           <DropdownContent>
             <SignedAs>Signed in as {me.email}</SignedAs>
-            <Divider className="my-1" />
             <NavigationList noAutoFocus>
               <Button
                 variant="menu"
@@ -158,7 +157,7 @@ export function UserMenuDropdown() {
                   <span>New studio</span>
                 </Button>
               </DropdownMenu>
-              <Divider className="my-1" />
+              <Divider className="my-1" inset={3} />
               <Button
                 variant="menu"
                 className="w-full"
@@ -178,7 +177,7 @@ export function UserMenuDropdown() {
                 <Icon icon={ShieldCheckIcon} size={16} className="mr-2.5" />
                 <span>Privacy</span>
               </Button>
-              <Divider className="my-1" />
+              <Divider className="my-1" inset={3} />
               <Button
                 variant="menu"
                 onClick={signOut}

@@ -7,13 +7,14 @@ interface PageLayoutProps {
 
 interface PageLayoutHeaderProps {
   title: string;
-  subtitle?: string;
   tabNav?: ReactNode;
   children?: ReactNode;
+  className?: string;
 }
 
 interface PageLayoutContentProps {
   children: ReactNode;
+  className?: string;
 }
 
 /**
@@ -37,14 +38,11 @@ export function PageLayout({children}: PageLayoutProps) {
 /**
  * Page header with title, optional subtitle, and action slot.
  */
-function Header({title, subtitle, tabNav, children}: PageLayoutHeaderProps) {
+function Header({title, tabNav, children, className}: PageLayoutHeaderProps) {
   return (
-    <StyledHeader>
+    <StyledHeader className={className}>
       <StyledHeaderTop $hasTabNav={!!tabNav}>
-        <div>
-          <StyledTitle>{title}</StyledTitle>
-          {subtitle && <StyledSubtitle>{subtitle}</StyledSubtitle>}
-        </div>
+        <StyledTitle>{title}</StyledTitle>
         {children && <StyledActions>{children}</StyledActions>}
       </StyledHeaderTop>
       {tabNav}
@@ -55,8 +53,8 @@ function Header({title, subtitle, tabNav, children}: PageLayoutHeaderProps) {
 /**
  * Main content area of the page.
  */
-function Content({children}: PageLayoutContentProps) {
-  return <StyledContent>{children}</StyledContent>;
+function Content({children, className}: PageLayoutContentProps) {
+  return <StyledContent className={className}>{children}</StyledContent>;
 }
 
 PageLayout.Header = Header;
@@ -66,35 +64,32 @@ const StyledPageLayout = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: var(--spacing-8);
+  padding: 0 var(--spacing-14) 0 var(--spacing-10);
 `;
 
 const StyledHeader = styled.div`
-  margin-bottom: var(--spacing-8);
+  padding-top: var(--spacing-10);
 `;
 
 const StyledHeaderTop = styled.div<{$hasTabNav: boolean}>`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: ${({$hasTabNav}) => ($hasTabNav ? 'var(--spacing-2-5)' : '0')};
+  margin-bottom: ${({$hasTabNav}) => ($hasTabNav ? 'var(--spacing-3)' : '0')};
 `;
 
 const StyledTitle = styled.h1`
-  font-size: var(--text-4xl);
-  font-weight: var(--font-weight-bold);
+  display: inline-flex;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-semibold);
   margin: 0;
-`;
-
-const StyledSubtitle = styled.p`
-  color: var(--fg-subtle);
-  margin: var(--spacing-1) 0 0;
+  padding-right: var(--spacing-6);
+  letter-spacing: -0.5px;
 `;
 
 const StyledActions = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
 `;
 
 const StyledContent = styled.div`

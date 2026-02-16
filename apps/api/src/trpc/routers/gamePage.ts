@@ -4,6 +4,7 @@ import type {StudioRoleType} from '@play/supabase-client'
 import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
+import {isSlugProtected} from '../lib/protected-slugs'
 
 const EDIT_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
 
@@ -19,7 +20,7 @@ const slugSchema = z
 async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
   const {data: page} = await supabase
     .from('game_pages')
-    .select('id, game_id, slug, visibility, page_config')
+    .select('id, game_id, slug, requested_slug, visibility, page_config')
     .eq('id', pageId)
     .single()
 
@@ -37,12 +38,6 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
     throw new TRPCError({code: 'NOT_FOUND', message: 'Game not found'})
   }
 
-  const {data: studio} = await supabase
-    .from('studios')
-    .select('is_verified')
-    .eq('id', game.owner_studio_id)
-    .single()
-
   const {data: member} = await supabase
     .from('studio_members')
     .select('role')
@@ -56,10 +51,7 @@ async function verifyPageAccess(supabase: any, userId: string, pageId: string) {
 
   return {
     page,
-    game: {
-      ...game,
-      studioIsVerified: studio?.is_verified ?? false,
-    },
+    game,
   }
 }
 
@@ -67,13 +59,15 @@ export const gamePageRouter = router({
   checkSlug: protectedProcedure
     .input(z.object({slug: slugSchema}))
     .query(async ({ctx, input}) => {
+      const slugProtected = await isSlugProtected(ctx.supabase, 'game_page', input.slug)
+
       const {data} = await ctx.supabase
         .from('game_pages')
         .select('id')
         .eq('slug', input.slug)
         .maybeSingle()
 
-      return {available: data === null}
+      return {available: data === null, requiresVerification: slugProtected}
     }),
 
   publish: protectedProcedure
@@ -81,19 +75,13 @@ export const gamePageRouter = router({
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
       const {page, game} = await verifyPageAccess(supabase, user.id, input.pageId)
+      const effectiveSlug = page.requested_slug || page.slug
+      const slugProtected = await isSlugProtected(supabase, 'game_page', effectiveSlug)
 
-      // Check verification status before publishing
-      if (!game.studioIsVerified) {
+      if (slugProtected && !game.is_verified) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Your studio must be verified before publishing. Please contact support.',
-        })
-      }
-
-      if (!game.is_verified) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'This game must be verified before publishing. Please contact support.',
+          message: 'This protected slug requires admin verification before publishing.',
         })
       }
 
@@ -119,7 +107,7 @@ export const gamePageRouter = router({
         studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
-        metadata: {action: 'publish', slug: page.slug},
+        metadata: {action: 'publish', slug: page.slug, requestedSlug: page.requested_slug || null},
       })
 
       return updated
@@ -167,6 +155,8 @@ export const gamePageRouter = router({
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
       const {page, game} = await verifyPageAccess(supabase, user.id, input.pageId)
+      const slugProtected = await isSlugProtected(supabase, 'game_page', input.slug)
+      const now = new Date().toISOString()
 
       // Check availability
       const {data: existing} = await supabase
@@ -180,19 +170,56 @@ export const gamePageRouter = router({
         throw new TRPCError({code: 'CONFLICT', message: 'Slug already taken'})
       }
 
+      const updates: Record<string, unknown> = {
+        last_slug_change: now,
+        updated_at: now,
+      }
+
+      if (slugProtected) {
+        updates.slug = `pending-game-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+        updates.requested_slug = input.slug
+      } else {
+        updates.slug = input.slug
+        updates.requested_slug = null
+      }
+
       const {data: updated, error} = await supabase
         .from('game_pages')
-        .update({
-          slug: input.slug,
-          last_slug_change: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', input.pageId)
         .select()
         .single()
 
       if (error) {
         throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: error.message})
+      }
+
+      if (slugProtected) {
+        const {error: gameUpdateError} = await supabase
+          .from('games')
+          .update({
+            is_verified: false,
+            updated_at: now,
+          })
+          .eq('id', page.game_id)
+
+        if (gameUpdateError) {
+          throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: gameUpdateError.message})
+        }
+
+        const {error: unpublishError} = await supabase
+          .from('game_pages')
+          .update({
+            visibility: 'DRAFT',
+            unpublished_at: now,
+            updated_at: now,
+          })
+          .eq('game_id', page.game_id)
+          .eq('visibility', 'PUBLISHED')
+
+        if (unpublishError) {
+          throw new TRPCError({code: 'INTERNAL_SERVER_ERROR', message: unpublishError.message})
+        }
       }
 
       await logAuditEvent(supabase, {
@@ -202,7 +229,13 @@ export const gamePageRouter = router({
         studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
-        metadata: {oldSlug: page.slug, newSlug: input.slug},
+        metadata: {
+          oldSlug: page.slug,
+          newSlug: input.slug,
+          oldRequestedSlug: page.requested_slug || null,
+          newRequestedSlug: slugProtected ? input.slug : null,
+          requiresVerification: slugProtected,
+        },
       })
 
       return updated
@@ -257,7 +290,7 @@ export const gamePageRouter = router({
         studioId: game.owner_studio_id,
         targetType: 'game_page',
         targetId: input.pageId,
-        metadata: {action: 'update_page_config', slug: page.slug},
+        metadata: {action: 'update_page_config', slug: page.slug, requestedSlug: page.requested_slug || null},
       })
 
       return updated

@@ -2,18 +2,18 @@ import type {LucideIcon, LucideProps} from 'lucide-react';
 
 /** Default icon size in pixels. */
 // eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_ICON_SIZE = 20;
+export const DEFAULT_ICON_SIZE = 16;
 
 /** Default stroke width for icons. */
 // eslint-disable-next-line react-refresh/only-export-components
-export const DEFAULT_STROKE_WIDTH = 2;
+export const DEFAULT_STROKE_WIDTH = 1.75;
 
 /**
  * Get default stroke width based on icon size.
  * Smaller icons get slightly thicker strokes for better visibility.
  */
 function getDefaultStrokeWidth(size: number): number {
-  if (size <= 16) return 2.5;
+  if (size <= 16) return 2;
   return DEFAULT_STROKE_WIDTH;
 }
 

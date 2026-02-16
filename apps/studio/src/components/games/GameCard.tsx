@@ -1,88 +1,98 @@
 import {GamepadIcon} from 'lucide-react';
 import styled from 'styled-components';
+import {Badge} from '@play/pylon';
 
 export interface GameCardProps {
   id: string;
   title: string;
   slug: string;
   coverUrl?: string | null;
-  status: string;
+  published?: boolean;
   onClick?: () => void;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  IN_DEVELOPMENT: 'In Development',
-  UPCOMING: 'Upcoming',
-  EARLY_ACCESS: 'Early Access',
-  RELEASED: 'Released',
-  CANCELLED: 'Cancelled',
-};
 
 export function GameCard({
   title,
   slug,
   coverUrl,
-  status,
+  published,
   onClick,
 }: GameCardProps) {
   return (
-    <Card onClick={onClick}>
-      <Cover>
+    <Root onClick={onClick}>
+      <Thumbnail>
         {coverUrl ? (
-          <CoverImage src={coverUrl} alt={title} />
+          <ThumbnailImage src={coverUrl} alt={title} />
         ) : (
-          <CoverPlaceholder>
+          <ThumbnailPlaceholder>
             <GamepadIcon size={48} />
-          </CoverPlaceholder>
+          </ThumbnailPlaceholder>
         )}
-        <StatusBadge $status={status}>
-          {STATUS_LABELS[status] || status}
-        </StatusBadge>
-      </Cover>
-      <Info>
-        <Title>{title}</Title>
-        <Slug>play.link/{slug}</Slug>
-      </Info>
-    </Card>
+      </Thumbnail>
+      <InfoPanel>
+        <div className="flex items-center justify-between gap-3">
+          <div className="overflow-hidden">
+            <GameTitle>{title}</GameTitle>
+            <GameSlug>play.link/{slug}</GameSlug>
+          </div>
+          <Badge>{published ? 'Published' : 'Draft'}</Badge>
+        </div>
+      </InfoPanel>
+    </Root>
   );
 }
 
-const Card = styled.button`
+const InfoPanel = styled.div`
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  left: var(--spacing-2-5);
+  right: var(--spacing-2-5);
+  padding: var(--spacing-4) var(--spacing-4) var(--spacing-4);
   background: var(--bg-surface);
-  border: 1px solid var(--border-muted);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  text-align: left;
-  transition:
-    border-color 0.15s,
-    transform 0.15s;
-  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+  transform: translateY(50%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+`;
 
-  &:hover {
-    border-color: var(--border);
-    transform: translateY(-2px);
+const Root = styled.button`
+  position: relative;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  padding-bottom: var(--spacing-8);
+  transition: transform 0.15s;
+
+  &:hover ${InfoPanel} {
+    transform: translateY(56%);
   }
 
   &:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+    border-radius: var(--radius-2xl);
   }
 `;
 
-const Cover = styled.div`
-  aspect-ratio: 16 / 9;
+const Thumbnail = styled.div`
   position: relative;
+  z-index: 1;
+  aspect-ratio: 15 / 7;
+  border-radius: var(--radius-2xl);
   overflow: hidden;
   background: var(--bg-muted);
 `;
 
-const CoverImage = styled.img`
+const ThumbnailImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
 `;
 
-const CoverPlaceholder = styled.div`
+const ThumbnailPlaceholder = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
@@ -91,46 +101,20 @@ const CoverPlaceholder = styled.div`
   color: var(--fg-subtle);
 `;
 
-const StatusBadge = styled.span<{$status: string}>`
-  position: absolute;
-  top: var(--spacing-2);
-  right: var(--spacing-2);
-  padding: var(--spacing-1) var(--spacing-2);
-  border-radius: var(--radius-md);
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-medium);
-  background: ${(p) => {
-    switch (p.$status) {
-      case 'RELEASED':
-        return 'var(--color-green-600)';
-      case 'EARLY_ACCESS':
-        return 'var(--color-blue-600)';
-      case 'UPCOMING':
-        return 'var(--color-purple-600)';
-      case 'IN_DEVELOPMENT':
-        return 'var(--color-yellow-600)';
-      case 'CANCELLED':
-        return 'var(--color-red-600)';
-      default:
-        return 'var(--bg-muted)';
-    }
-  }};
-  color: var(--white);
-`;
-
-const Info = styled.div`
-  padding: var(--spacing-4);
-`;
-
-const Title = styled.h3`
+const GameTitle = styled.h3`
   font-size: var(--text-base);
   font-weight: var(--font-weight-semibold);
   color: var(--fg);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const Slug = styled.p`
+const GameSlug = styled.p`
   font-size: var(--text-sm);
   color: var(--fg-muted);
-  margin: var(--spacing-1) 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;

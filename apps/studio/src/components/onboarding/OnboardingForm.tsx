@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router';
 import {Button} from '@play/pylon';
 import {trpc} from '@/lib/trpc';
@@ -8,6 +8,7 @@ export function OnboardingForm() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
+  const [debouncedSlug, setDebouncedSlug] = useState('');
 
   const utils = trpc.useUtils();
 
@@ -17,6 +18,22 @@ export function OnboardingForm() {
       navigate(`/${data.slug}`);
     },
   });
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSlug(slug);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [slug]);
+
+  const {data: slugCheck, isFetching: isCheckingSlug} = trpc.studio.checkSlug.useQuery(
+    {slug: debouncedSlug},
+    {
+      enabled: debouncedSlug.length >= 3,
+      staleTime: 5000,
+    },
+  );
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -32,10 +49,19 @@ export function OnboardingForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && slug) {
+    if (canSubmit) {
       createStudio.mutate({name, slug});
     }
   };
+
+  const isSlugValid
+    = slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  const isSlugCheckInProgress
+    = isSlugValid && (slug !== debouncedSlug || isCheckingSlug);
+  const isSlugAvailable = !isSlugCheckInProgress && slugCheck?.available === true;
+  const requiresSlugVerification
+    = isSlugAvailable && slugCheck?.requiresVerification === true;
+  const canSubmit = !!name && isSlugValid && isSlugAvailable && !createStudio.isPending;
 
   return (
     <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
@@ -90,7 +116,19 @@ export function OnboardingForm() {
             />
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            Only lowercase letters, numbers, and hyphens.
+            {slug.length < 3 ? (
+              'At least 3 characters. Lowercase letters, numbers, and hyphens.'
+            ) : isSlugCheckInProgress ? (
+              'Checking availability...'
+            ) : requiresSlugVerification ? (
+              <span className="text-amber-400">
+                This slug is available but protected. You can create it, but admin verification is required before publishing.
+              </span>
+            ) : isSlugAvailable ? (
+              <span className="text-green-400">This slug is available.</span>
+            ) : (
+              <span className="text-red-400">This slug is already taken.</span>
+            )}
           </p>
         </div>
 
@@ -102,7 +140,7 @@ export function OnboardingForm() {
 
         <Button
           type="submit"
-          disabled={createStudio.isPending || !name || !slug}
+          disabled={!canSubmit}
           style={{width: '100%'}}
         >
           {createStudio.isPending ? 'Creating...' : 'Create Studio'}

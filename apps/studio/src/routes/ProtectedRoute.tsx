@@ -1,4 +1,4 @@
-import {Navigate, Outlet} from 'react-router';
+import {Navigate, Outlet, useLocation} from 'react-router';
 import {useAppContext} from '@/lib/app-context';
 
 interface ProtectedRouteProps {
@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({children}: ProtectedRouteProps) {
   const {me, isLoading} = useAppContext();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -17,7 +18,13 @@ export function ProtectedRoute({children}: ProtectedRouteProps) {
   }
 
   if (!me) {
-    return <Navigate to="/login" replace />;
+    const returnTo = `${location.pathname}${location.search}`;
+    return (
+      <Navigate
+        to={`/login?returnTo=${encodeURIComponent(returnTo)}`}
+        replace
+      />
+    );
   }
 
   return children ?? <Outlet />;

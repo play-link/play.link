@@ -3,7 +3,7 @@ import type {GameStatusType} from '@play/supabase-client';
 export interface GameSettingsFormValues {
   title: string;
   summary: string;
-  description: string;
+  aboutTheGame: string;
   status: GameStatusType;
   releaseDate: string;
   genres: string[];

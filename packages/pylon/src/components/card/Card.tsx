@@ -28,7 +28,7 @@ export type CardProps = PropsWithChildren<{
 export function Card({
   children,
   className,
-  padding = 5,
+  padding = 4,
   scrollable = false,
   variant = 'default',
   ...restProps
@@ -59,8 +59,8 @@ const StyledRoot = styled.div<{
   $scrollable: boolean;
 }>`
   background: var(--bg-surface);
-  border-radius: var(--radius-2xl);
-  border: 0.0625rem solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  border: 0.0625rem solid var(--border-muted);
   overflow: hidden;
   padding: ${({$padding}) => $padding};
 

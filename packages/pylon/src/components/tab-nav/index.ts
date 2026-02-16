@@ -1,1 +1,1 @@
-export {TabNav, TabNavItem, type TabNavItemProps, type TabNavProps} from './TabNav';
+export * from './TabNav';

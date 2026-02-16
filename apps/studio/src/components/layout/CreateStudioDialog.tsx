@@ -1,4 +1,4 @@
-import {CheckIcon, Loader2Icon, XIcon} from 'lucide-react';
+import {AlertTriangleIcon, CheckIcon, Loader2Icon, XIcon} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router';
 import styled, {css, keyframes} from 'styled-components';
@@ -86,6 +86,8 @@ export function CreateStudioDialog({opened, setOpened}: CreateStudioDialogProps)
   const isSlugValid =
     slug.length >= 3 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
   const isSlugAvailable = slugCheck?.available === true;
+  const requiresSlugVerification
+    = isSlugAvailable && slugCheck?.requiresVerification === true;
   const canSubmit =
     name.length > 0 && isSlugValid && isSlugAvailable && !createStudio.isPending;
 
@@ -139,6 +141,10 @@ export function CreateStudioDialog({opened, setOpened}: CreateStudioDialogProps)
                       <StatusIcon $status="loading">
                         <Loader2Icon size={18} />
                       </StatusIcon>
+                    ) : requiresSlugVerification ? (
+                      <StatusIcon $status="warning">
+                        <AlertTriangleIcon size={18} />
+                      </StatusIcon>
                     ) : isSlugAvailable ? (
                       <StatusIcon $status="available">
                         <CheckIcon size={18} />
@@ -156,6 +162,11 @@ export function CreateStudioDialog({opened, setOpened}: CreateStudioDialogProps)
                   'At least 3 characters. Lowercase letters, numbers, and hyphens only.'
                 ) : isCheckingSlug ? (
                   'Checking availability...'
+                ) : requiresSlugVerification ? (
+                  <VerificationRequiredText>
+                    This slug is available but protected. You can create it, but
+                    admin verification is required before publishing.
+                  </VerificationRequiredText>
                 ) : isSlugAvailable ? (
                   <AvailableText>This slug is available!</AvailableText>
                 ) : (
@@ -327,7 +338,7 @@ const spin = keyframes`
 `;
 
 const StatusIcon = styled.span<{
-  $status: 'loading' | 'available' | 'unavailable';
+  $status: 'loading' | 'available' | 'unavailable' | 'warning';
 }>`
   display: flex;
   align-items: center;
@@ -347,6 +358,12 @@ const StatusIcon = styled.span<{
     `}
 
   ${(p) =>
+    p.$status === 'warning' &&
+    css`
+      color: var(--fg-warning);
+    `}
+
+  ${(p) =>
     p.$status === 'unavailable' &&
     css`
       color: var(--fg-error);
@@ -359,6 +376,10 @@ const AvailableText = styled.span`
 
 const UnavailableText = styled.span`
   color: var(--fg-error);
+`;
+
+const VerificationRequiredText = styled.span`
+  color: var(--fg-warning);
 `;
 
 const ErrorMessage = styled.p`

@@ -71,11 +71,11 @@ function getButtonStyles(textColor: string, style: ButtonStyle = 'glass', second
     case 'glass':
     default:
       return {
-        background: `color-mix(in srgb, ${bg} 8%, transparent)`,
-        borderColor: `color-mix(in srgb, ${bg} 15%, transparent)`,
+        background: `color-mix(in srgb, ${bg} 18%, transparent)`,
+        borderColor: `color-mix(in srgb, ${bg} 30%, transparent)`,
         color: textColor,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
       };
   }
 }
@@ -83,7 +83,7 @@ function getButtonStyles(textColor: string, style: ButtonStyle = 'glass', second
 export interface GamePageGame {
   title: string;
   summary: string | null;
-  description: string | unknown;
+  about_the_game: string | unknown;
   header_url: string | null;
   trailer_url: string | null;
 }
@@ -122,7 +122,7 @@ export function GamePageContent({
     ? {fontFamily: `'${fontFamily}', sans-serif`, ...(fontFamily === 'Bebas Neue' ? {letterSpacing: '2px'} : {})}
     : {};
 
-  const description = descriptionOverride ?? (game.description as string | null);
+  const description = descriptionOverride ?? (game.about_the_game as string | null);
   const platformLinks = links.filter((l) => l.category === 'platform');
   const storeBadges = links.filter((l) => l.category === 'store');
   const otherLinks = links.filter((l) => l.category !== 'platform');
@@ -181,15 +181,14 @@ export function GamePageContent({
 
   return (
     <Page $fullScreen={!!fullScreen} style={{background: bgColor, color: textColor, ...fontStyle}}>
-      <HeroSection
-        style={{
-          '--fade-color': bgColor,
-          ...(game.header_url ? {backgroundImage: `url(${game.header_url})`} : {}),
-        } as React.CSSProperties}
-        $hasImage={!!game.header_url}
-      >
-        <HeroFade $hasImage={!!game.header_url} />
-      </HeroSection>
+      <HeroWrapper style={{'--fade-color': bgColor} as React.CSSProperties}>
+        <HeroSection
+          style={game.header_url ? {backgroundImage: `url(${game.header_url})`} : undefined}
+          $hasImage={!!game.header_url}
+        >
+          <HeroFade $hasImage={!!game.header_url} />
+        </HeroSection>
+      </HeroWrapper>
 
       <Content $hasHeader={!!game.header_url}>
         {headerActions ? (
@@ -199,12 +198,6 @@ export function GamePageContent({
           </TitleRow>
         ) : (
           <Title>{game.title}</Title>
-        )}
-
-        {game.summary && (
-          <Summary style={{color: textColor, opacity: 0.75}}>
-            {game.summary}
-          </Summary>
         )}
 
         {(storeBadges.length > 0 || platformLinks.length > 0) && (
@@ -221,7 +214,7 @@ export function GamePageContent({
                   onClick={() => onLinkClick?.(link.id)}
                   style={{...badgeStyles, borderRadius: badgeRadius}}
                 >
-                  <Icon size={14} />
+                  <Icon size={18} />
                   {link.label}
                 </PlatformBadge>
               );
@@ -239,7 +232,7 @@ export function GamePageContent({
                   onClick={() => link.url && onLinkClick?.(link.id)}
                   style={{...badgeStyles, borderRadius: badgeRadius}}
                 >
-                  <Gamepad2Icon size={14} />
+                  <Gamepad2Icon size={18} />
                   {label}
                 </PlatformBadge>
               );
@@ -280,47 +273,43 @@ export function GamePageContent({
           </MediaStripContainer>
         )}
 
-        {(hasLinks || hasDescription) && (
-          <TwoColumns>
-            {hasLinks && (
-              <LeftColumn>
-                {otherLinks.map((link) => {
-                  const Icon = LINK_ICON_MAP[link.type] || LinkIcon;
-                  return (
-                    <LinkRow
-                      key={link.id}
-                      as="a"
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => onLinkClick?.(link.id)}
-                    >
-                      <LinkIconWrap style={{color: textColor, opacity: 0.6}}>
-                        <Icon size={18} />
-                      </LinkIconWrap>
-                      <LinkInfo>
-                        <LinkLabel style={{color: textColor}}>{link.label}</LinkLabel>
-                        {link.url && (
-                          <LinkUrl style={{color: textColor, opacity: 0.4}}>
-                            {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-                          </LinkUrl>
-                        )}
-                      </LinkInfo>
-                    </LinkRow>
-                  );
-                })}
-              </LeftColumn>
-            )}
+        {hasDescription && (
+          <SingleColumn>
+            <SectionHeading>About this game</SectionHeading>
+            <Description style={{color: textColor, opacity: 0.8}}>
+              {description}
+            </Description>
+          </SingleColumn>
+        )}
 
-            {hasDescription && (
-              <RightColumn>
-                <SectionHeading>About this game</SectionHeading>
-                <Description style={{color: textColor, opacity: 0.8}}>
-                  {description}
-                </Description>
-              </RightColumn>
-            )}
-          </TwoColumns>
+        {hasLinks && (
+          <SingleColumn>
+            {otherLinks.map((link) => {
+              const Icon = LINK_ICON_MAP[link.type] || LinkIcon;
+              return (
+                <LinkRow
+                  key={link.id}
+                  as="a"
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => onLinkClick?.(link.id)}
+                >
+                  <LinkIconWrap style={{color: textColor, opacity: 0.6}}>
+                    <Icon size={28} />
+                  </LinkIconWrap>
+                  <LinkInfo>
+                    <LinkLabel style={{color: textColor}}>{link.label}</LinkLabel>
+                    {link.url && (
+                      <LinkUrl style={{color: secondaryColor || textColor, opacity: secondaryColor ? 0.8 : 0.4}}>
+                        {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </LinkUrl>
+                    )}
+                  </LinkInfo>
+                </LinkRow>
+              );
+            })}
+          </SingleColumn>
         )}
 
         {game.trailer_url && (
@@ -383,9 +372,15 @@ const Page = styled.div<{$fullScreen?: boolean}>`
   min-height: ${(p) => (p.$fullScreen ? '100vh' : '100%')};
 `;
 
+const HeroWrapper = styled.div`
+  max-width: var(--breakpoint-xl);
+  margin: 0 auto;
+`;
+
 const HeroSection = styled.div<{$hasImage: boolean}>`
   position: relative;
-  width: 100%;
+  width: 70%;
+  margin-left: auto;
   height: ${(p) => (p.$hasImage ? '24rem' : '6rem')};
   background-size: cover;
   background-position: center;
@@ -397,20 +392,17 @@ const HeroSection = styled.div<{$hasImage: boolean}>`
 
 const HeroFade = styled.div<{$hasImage: boolean}>`
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: ${(p) => (p.$hasImage ? '50%' : '100%')};
+  inset: 0;
   background: ${(p) =>
     p.$hasImage
-      ? 'linear-gradient(to bottom, transparent, var(--fade-color))'
+      ? 'linear-gradient(to right, var(--fade-color) 0, transparent 56%), linear-gradient(to top, var(--fade-color) 0, transparent 56%), linear-gradient(to left, var(--fade-color) 0, transparent 56%)'
       : 'var(--fade-color)'};
   pointer-events: none;
 `;
 
 const Content = styled.div<{$hasHeader: boolean}>`
   position: relative;
-  max-width: 56rem;
+  max-width: var(--breakpoint-xl);
   margin: 0 auto;
   padding: 2rem 1rem;
   margin-top: ${(p) => (p.$hasHeader ? '-12rem' : '-4rem')};
@@ -429,12 +421,9 @@ const Title = styled.h1`
   font-weight: 700;
   margin: 0;
   line-height: 1.1;
+  max-width: 50%;
 `;
 
-const Summary = styled.p`
-  margin: 0.5rem 0 0;
-  font-size: 1.125rem;
-`;
 
 const PlatformBadges = styled.div`
   display: flex;
@@ -446,11 +435,11 @@ const PlatformBadges = styled.div`
 const PlatformBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   border: 1px solid;
   border-radius: 9999px;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
   transition: opacity 0.15s;
@@ -618,30 +607,15 @@ const LightboxNav = styled.button<{$side: 'left' | 'right'}>`
 
 /* ── Two Column Layout ── */
 
-const TwoColumns = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
+const SingleColumn = styled.div`
   margin-top: 2rem;
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-  }
 `;
-
-const LeftColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-`;
-
-const RightColumn = styled.div``;
 
 const LinkRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0;
+  gap: 1.25rem;
+  padding: 1rem 0;
   text-decoration: none;
   transition: opacity 0.15s;
 
@@ -655,22 +629,23 @@ const LinkIconWrap = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
+  width: 3rem;
 `;
 
 const LinkInfo = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 0.125rem;
   min-width: 0;
 `;
 
 const LinkLabel = styled.span`
-  font-weight: 600;
-  font-size: 0.9375rem;
+  font-weight: 700;
+  font-size: 1.375rem;
 `;
 
 const LinkUrl = styled.span`
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

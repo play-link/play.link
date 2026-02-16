@@ -15,11 +15,13 @@ export function DangerZoneSection({gameId, gameTitle}: DangerZoneSectionProps) {
   const {activeStudio} = useAppContext(ContextLevel.AuthenticatedWithStudio);
   const {showSnackbar} = useSnackbar();
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
   const [confirmText, setConfirmText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const deleteGame = trpc.game.delete.useMutation({
     onSuccess: () => {
+      utils.game.list.invalidate();
       showSnackbar({message: 'Game deleted', severity: 'success'});
       navigate(`/${activeStudio.slug}/games`);
     },

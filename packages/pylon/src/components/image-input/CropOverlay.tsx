@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import {afterNextRender} from '../../lib';
 import {DialogOverlay} from '../dialog-overlay';
 import {FormSubmit} from '../form';
-import {IconButton} from '../icon-button';
 import {NativeInputRange} from '../input-range';
 import {cropImage} from './crop-image';
 import type {ImageAspectRatio, ImageInputProps} from './ImageInput';
@@ -57,18 +56,13 @@ export function CropOverlay({
   }, [opened]);
 
   return (
-    <StyledDialogOverlay opened={opened} setOpened={setOpened} padding="var(--spacing-3)">
-      <StyledCloseIconButton
-        name="close"
-        size="sm"
-        onClick={() => setOpened(false)}
-        variant="muted"
-      />
-      <div className="flex flex-col gap-4 height-100 overflow-hidden">
-        <div className="p-4 height-100 flex-1">
+    <StyledDialogOverlay opened={opened} setOpened={setOpened}>
+      <DialogOverlay.Header showCloseButton>Crop image</DialogOverlay.Header>
+      <DialogOverlay.Content>
+        <ContentBody>
           <StyledCropperContainer $roundedCropArea={roundedCropArea}>
             <Cropper
-              image={ready ? imageSrc : ''} // NOTE: Quick fix for the image not being loaded on first render
+              image={ready ? imageSrc : ''} // NOTE: Workaround for first-render media sizing.
               crop={crop}
               zoom={zoom}
               maxZoom={3}
@@ -84,28 +78,32 @@ export function CropOverlay({
               }}
             />
           </StyledCropperContainer>
-        </div>
-        <div className="flex flex-col gap-4 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="fg-muted text-md font-medium">-</div>
+          <ZoomRow>
+            <ZoomMark>-</ZoomMark>
             <NativeInputRange
               value={zoom}
               min={1}
               max={3}
               step={0.01}
-              aria-labelledby="Zoom"
-              onChange={(evt: any) => {
+              aria-label="Zoom"
+              onChange={(evt) => {
                 setZoom(Number(evt.currentTarget.value));
               }}
-              className="width-full"
             />
-            <div className="fg-muted text-md font-medium">+</div>
-          </div>
-          <FormSubmit submitting={loading} variant="primary" onClick={handleSubmit}>
-            Save
-          </FormSubmit>
-        </div>
-      </div>
+            <ZoomMark>+</ZoomMark>
+          </ZoomRow>
+        </ContentBody>
+      </DialogOverlay.Content>
+      <DialogOverlay.Footer>
+        <FormSubmit
+          submitting={loading}
+          variant="primary"
+          onClick={handleSubmit}
+          style={{width: '100%'}}
+        >
+          Save
+        </FormSubmit>
+      </DialogOverlay.Footer>
     </StyledDialogOverlay>
   );
 }
@@ -114,17 +112,33 @@ const StyledDialogOverlay = styled(DialogOverlay)`
   overflow: hidden;
 `;
 
+const ContentBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+`;
+
 const StyledCropperContainer = styled.div<{$roundedCropArea: boolean}>`
-  height: 350px;
+  height: clamp(15rem, 45vh, 24rem);
   position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-muted);
+
   .reactEasyCrop_CropArea {
     color: var(--bg) !important;
     ${({$roundedCropArea}) => $roundedCropArea && 'border-radius: 50%;'}
   }
 `;
 
-const StyledCloseIconButton = styled(IconButton)`
-  position: absolute;
-  top: var(--spacing-2);
-  right: var(--spacing-2);
+const ZoomRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+`;
+
+const ZoomMark = styled.span`
+  color: var(--fg-muted);
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-medium);
 `;

@@ -17,6 +17,16 @@ export const GameStatus = {
   CANCELLED: 'CANCELLED',
 } as const
 
+export const GameType = {
+  GAME: 'game',
+  DLC: 'dlc',
+  DEMO: 'demo',
+  VIDEO: 'video',
+  MOD: 'mod',
+  MUSIC: 'music',
+  UNKNOWN: 'unknown',
+} as const
+
 export const PageVisibility = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
@@ -46,6 +56,7 @@ export const DomainStatus = {
 // Type helpers derived from constants
 export type StudioRoleType = (typeof StudioRole)[keyof typeof StudioRole]
 export type GameStatusType = (typeof GameStatus)[keyof typeof GameStatus]
+export type GameTypeType = (typeof GameType)[keyof typeof GameType]
 export type PageVisibilityType = (typeof PageVisibility)[keyof typeof PageVisibility]
 export type CreditRoleType = (typeof CreditRole)[keyof typeof CreditRole]
 export type DomainTargetTypeType = (typeof DomainTargetType)[keyof typeof DomainTargetType]

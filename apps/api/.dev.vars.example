@@ -6,8 +6,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 DATABASE_URL=postgres://postgres:postgres@127.0.0.1:54322/postgres
 
 # Super Admin
-SUPER_ADMIN_EMAIL=your-super-admin-email
+SUPER_ADMIN_USER_ID=your-super-admin-user-id
 
 # R2 Storage
 R2_PUBLIC_URL=http://localhost:8787/r2
 RESEND_API_KEY=your-resend-api-key
+OUTREACH_EMAIL_FROM=Play.link <outreach@play.link>
+OUTREACH_DISPATCH_BATCH_SIZE=20
+X_API_KEY=your-x-api-key-or-bearer-token
+X_API_BASE_URL=https://api.x.com

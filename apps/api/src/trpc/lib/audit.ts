@@ -32,10 +32,20 @@ export const AuditAction = {
   CHANGE_REQUEST_APPROVE: 'change_request.approve',
   CHANGE_REQUEST_REJECT: 'change_request.reject',
   CHANGE_REQUEST_CANCEL: 'change_request.cancel',
+  // Ownership Claim
+  OWNERSHIP_CLAIM_CREATE: 'ownership_claim.create',
+  OWNERSHIP_CLAIM_APPROVE: 'ownership_claim.approve',
+  OWNERSHIP_CLAIM_REJECT: 'ownership_claim.reject',
   // Custom Domain
   CUSTOM_DOMAIN_ADD: 'custom_domain.add',
   CUSTOM_DOMAIN_VERIFY: 'custom_domain.verify',
   CUSTOM_DOMAIN_REMOVE: 'custom_domain.remove',
+  // Admin Outreach
+  ADMIN_OUTREACH_MESSAGE_CREATE: 'admin_outreach.message_create',
+  ADMIN_OUTREACH_LEAD_UPDATE: 'admin_outreach.lead_update',
+  ADMIN_OUTREACH_THREAD_UPDATE: 'admin_outreach.thread_update',
+  ADMIN_OUTREACH_MESSAGE_RETRY: 'admin_outreach.message_retry',
+  ADMIN_OUTREACH_MESSAGE_DELETE: 'admin_outreach.message_delete',
 } as const
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction]

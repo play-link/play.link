@@ -15,6 +15,7 @@ import {gameSubscriberRouter} from './gameSubscriber'
 import {inviteRouter} from './invite'
 import {meRouter} from './me'
 import {memberRouter} from './member'
+import {ownershipClaimRouter} from './ownershipClaim'
 import {studioAnalyticsRouter} from './studio-analytics'
 import {studioRouter} from './studio'
 import {profileRouter} from './profile'
@@ -36,6 +37,7 @@ export const appRouter = router({
   invite: inviteRouter,
   me: meRouter,
   member: memberRouter,
+  ownershipClaim: ownershipClaimRouter,
   studioAnalytics: studioAnalyticsRouter,
   studio: studioRouter,
   profile: profileRouter,

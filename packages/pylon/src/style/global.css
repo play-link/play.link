@@ -25,10 +25,10 @@
   .fg-primary {
     color: var(--fg);
   }
-  .fg-secondary {
+  .fg-muted {
     color: var(--fg-muted);
   }
-  .fg-tertiary {
+  .fg-subtle {
     color: var(--fg-subtle);
   }
   .fg-disabled {

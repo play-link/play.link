@@ -26,7 +26,7 @@ interface GameUpdate {
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
-  SUPER_ADMIN_EMAIL?: string;
+  SUPER_ADMIN_USER_ID?: string;
 }
 
 interface CloudflareLoadContext {
@@ -42,6 +42,7 @@ type LoaderData =
       type: 'game';
       game: Tables<'games'>;
       page: Tables<'game_pages'>;
+      canClaimOwnership: boolean;
       links: GameLink[];
       media: GameMedia[];
       updates: GameUpdate[];
@@ -93,6 +94,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
   }
 
   const {page, game} = result;
+  const {canClaimOwnership} = result;
 
   // Check for page-level redirect (temporary redirect to external URL)
   const pageConfig = (page.page_config && typeof page.page_config === 'object' && !Array.isArray(page.page_config))
@@ -159,6 +161,7 @@ export async function loader({params, context, request}: Route.LoaderArgs) {
       type: 'game' as const,
       game,
       page,
+      canClaimOwnership,
       links: (links || []) as GameLink[],
       media: (media || []) as GameMedia[],
       updates: (updates || []) as GameUpdate[],
@@ -239,6 +242,7 @@ export default function SlugPage({loaderData}: Route.ComponentProps) {
       <GamePageView
         game={d.game}
         page={d.page}
+        canClaimOwnership={d.canClaimOwnership}
         links={d.links}
         media={d.media}
         updates={d.updates}

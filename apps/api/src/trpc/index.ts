@@ -40,7 +40,7 @@ export const protectedProcedure = t.procedure.use(({ctx, next}) => {
  * Admin procedure - requires super admin user
  */
 export const adminProcedure = protectedProcedure.use(({ctx, next}) => {
-  if (ctx.user.email !== ctx.env.SUPER_ADMIN_EMAIL) {
+  if (ctx.user.id !== ctx.env.SUPER_ADMIN_USER_ID) {
     throw new TRPCError({code: 'FORBIDDEN'})
   }
   return next({

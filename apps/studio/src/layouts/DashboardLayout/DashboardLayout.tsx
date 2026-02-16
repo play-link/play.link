@@ -52,9 +52,9 @@ export function DashboardLayout({
   const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   return (
-    <Root>
-      <SidebarContainer>
-        <Sidebar>
+    <Shell>
+      <NavRail>
+        <NavPanel>
           <UserMenuDropdown />
 
           <Nav>
@@ -70,12 +70,7 @@ export function DashboardLayout({
                       className="w-full"
                       size="sm"
                     >
-                      <Icon
-                        icon={item.icon}
-                        size={16}
-                        strokeWidth={1.75}
-                        className="mr-2.5"
-                      />
+                      <Icon icon={item.icon} size={16} className="mr-2.5" />
                       {item.label}
                     </Button>
                   </li>
@@ -90,12 +85,7 @@ export function DashboardLayout({
                   className="w-full"
                   size="sm"
                 >
-                  <Icon
-                    icon={SettingsIcon}
-                    size={16}
-                    strokeWidth={1.75}
-                    className="mr-2.5"
-                  />
+                  <Icon icon={SettingsIcon} size={16} className="mr-2.5" />
                   Settings
                   <SettingsChevron $expanded={settingsExpanded}>
                     <Icon icon={ChevronDownIcon} size={14} />
@@ -124,36 +114,36 @@ export function DashboardLayout({
               </li>
             </NavList>
           </Nav>
-        </Sidebar>
-      </SidebarContainer>
-      <Main>{children}</Main>
-    </Root>
+        </NavPanel>
+      </NavRail>
+      <Content>{children}</Content>
+    </Shell>
   );
 }
 
-const Root = styled.div`
+const Shell = styled.div`
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 17rem 1fr;
   height: 100vh;
 `;
 
-const SidebarContainer = styled.div`
-  padding: var(--spacing-3);
+const NavRail = styled.div`
+  padding: var(--spacing-4);
   flex: 1;
   min-height: 0;
   min-width: 0;
 `;
 
-const Sidebar = styled.aside`
+const NavPanel = styled.aside`
   border-radius: var(--radius-2xl);
   border: 1px solid var(--border-subtle);
-  box-shadow: 1px 2px 0 0 var(--border-subtle);
+  box-shadow: 0 2px 0 0 var(--border-subtle);
+  background: var(--dashboard-layout-sidebar-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   gap: var(--spacing-2);
-  padding: var(--spacing-2-5);
-  background: var(--dashboard-layout-sidebar-bg);
+  padding: var(--spacing-4);
 `;
 
 const Nav = styled.nav``;
@@ -179,6 +169,6 @@ const SettingsSubList = styled.ul`
   margin-top: var(--spacing-1);
 `;
 
-const Main = styled.main`
+const Content = styled.main`
   overflow: auto;
 `;

@@ -10,6 +10,9 @@ local_protocol = "http"
 [vars]
 ENVIRONMENT = "development"
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "play-link-assets"
@@ -18,6 +21,10 @@ bucket_name = "play-link-assets"
 # SUPABASE_URL
 # SUPABASE_SERVICE_ROLE_KEY
 # DATABASE_URL
-# SUPER_ADMIN_EMAIL
+# SUPER_ADMIN_USER_ID
 # R2_PUBLIC_URL
 # RESEND_API_KEY
+# OUTREACH_EMAIL_FROM
+# OUTREACH_DISPATCH_BATCH_SIZE
+# X_API_KEY
+# X_API_BASE_URL

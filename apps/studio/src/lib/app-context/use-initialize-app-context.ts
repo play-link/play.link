@@ -15,14 +15,15 @@ export function useInitializeAppContext(): AppContextType {
     useState<Studio | null>(null);
 
   const {data, isLoading: meLoading} = trpc.me.get.useQuery(undefined, {
-    enabled: !!user,
+    enabled: !!user && !authLoading,
     retry: (failureCount, error) => {
-      // Don't retry auth errors
+      // Allow one retry on UNAUTHORIZED to recover from auth/session races.
       if (error.data?.code === 'UNAUTHORIZED') {
-        return false;
+        return failureCount < 1;
       }
       return failureCount < 3;
     },
+    retryDelay: 300,
   });
 
   // Auto-select first studio if none is active
