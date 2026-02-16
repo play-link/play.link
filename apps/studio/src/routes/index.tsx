@@ -1,6 +1,6 @@
 import {createBrowserRouter, Navigate} from 'react-router-dom';
 import {AdminGuard} from '@/components';
-import {GameEditor, GameInfo, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
+import {GameContent, GameEditor, GameOverview, GamePreview, GameSettings, GameUpdateDetail, GameUpdates} from '@/components/games';
 import {
   AdminPage,
   AnalyticsPage,
@@ -83,8 +83,8 @@ export const router = createBrowserRouter([
                 element: <GameUpdateDetail />,
               },
               {
-                path: 'info',
-                element: <GameInfo />,
+                path: 'content',
+                element: <GameContent />,
               },
               {
                 path: 'settings',

@@ -1,5 +1,8 @@
+import {XIcon} from 'lucide-react';
+import {createContext, use} from 'react';
 import type {ComponentPropsWithoutRef, ElementType, ReactNode} from 'react';
 import styled, {css} from 'styled-components';
+import {IconButton} from '../icon-button';
 import type {OverlaySize} from '../overlay/Overlay';
 import {Overlay} from '../overlay/Overlay';
 
@@ -25,6 +28,8 @@ type DialogOverlayProps<T extends ElementType = 'div'> = {
 interface HeaderProps {
   children: ReactNode;
   className?: string;
+  showCloseButton?: boolean;
+  closeButtonAriaLabel?: string;
 }
 
 interface ContentProps {
@@ -50,6 +55,12 @@ const dialogOverlayCss = css`
   max-height: 90vh;
   width: 100%;
 `;
+
+interface DialogOverlayContextValue {
+  setOpened: (opened: boolean) => void;
+}
+
+const DialogOverlayContext = createContext<DialogOverlayContextValue | null>(null);
 
 /* ------------------------------------------------------------------
  * Main Component
@@ -105,9 +116,11 @@ export function DialogOverlay<T extends ElementType = 'div'>({
       size={size}
       modalCss={dialogOverlayCss}
     >
-      <LayoutRoot as={as} className={className} {...props}>
-        {children}
-      </LayoutRoot>
+      <DialogOverlayContext value={{setOpened}}>
+        <LayoutRoot as={as} className={className} {...props}>
+          {children}
+        </LayoutRoot>
+      </DialogOverlayContext>
     </Overlay>
   );
 }
@@ -116,8 +129,29 @@ export function DialogOverlay<T extends ElementType = 'div'>({
  * Sub-components
  * ------------------------------------------------------------------ */
 
-function Header({children, className}: HeaderProps) {
-  return <HeaderRoot className={className}>{children}</HeaderRoot>;
+function Header({
+  children,
+  className,
+  showCloseButton = false,
+  closeButtonAriaLabel = 'Close dialog',
+}: HeaderProps) {
+  const context = use(DialogOverlayContext);
+
+  return (
+    <HeaderRoot className={className}>
+      <HeaderTitle>{children}</HeaderTitle>
+      {showCloseButton && (
+        <IconButton
+          type="button"
+          variant="muted"
+          icon={XIcon}
+          size="sm"
+          aria-label={closeButtonAriaLabel}
+          onClick={() => context?.setOpened(false)}
+        />
+      )}
+    </HeaderRoot>
+  );
 }
 
 function Content({children, className}: ContentProps) {
@@ -145,13 +179,22 @@ const LayoutRoot = styled.div`
   overflow: hidden;
 `;
 
-const HeaderRoot = styled.h2`
+const HeaderRoot = styled.div`
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: space-between;
   flex-shrink: 0;
+  margin: 0;
+  padding: var(--spacing-6) var(--spacing-6) var(--spacing-3);
+`;
+
+const HeaderTitle = styled.h2`
   font-size: var(--text-2xl);
   font-weight: var(--font-weight-extrabold);
   line-height: var(--text-2xl--line-height);
   margin: 0;
-  padding: var(--spacing-6) var(--spacing-6) var(--spacing-3);
+  min-width: 0;
 `;
 
 const ContentRoot = styled.div`

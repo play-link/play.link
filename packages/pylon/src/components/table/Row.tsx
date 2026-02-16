@@ -67,9 +67,9 @@ const Row = styled.tr<{
     css`
       cursor: pointer;
       &:hover {
-        background: var(--bg-muted);
+        background: var(--bg-subtle);
         td:first-child {
-          background: var(--bg-muted);
+          background: var(--bg-subtle);
         }
       }
     `}
@@ -77,9 +77,9 @@ const Row = styled.tr<{
   ${(p) =>
     p.$isContextMenuActive &&
     css`
-      background: var(--bg-muted);
+      background: var(--bg-subtle);
       td {
-        background: var(--bg-muted);
+        background: var(--bg-subtle);
       }
     `}
 

@@ -19,13 +19,14 @@ export function createAdminClient(url: string, serviceRoleKey: string) {
 }
 
 // Enum constants
-export {CreditRole, DomainStatus, DomainTargetType, GameStatus, StudioRole} from './enums'
+export {CreditRole, DomainStatus, DomainTargetType, GameStatus, GameType, StudioRole} from './enums'
 
 export type {
   CreditRoleType,
   DomainStatusType,
   DomainTargetTypeType,
   GameStatusType,
+  GameTypeType,
   StudioRoleType,
 } from './enums'
 

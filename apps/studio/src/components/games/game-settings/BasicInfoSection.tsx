@@ -27,12 +27,12 @@ export function BasicInfoSection({disabled}: SectionProps) {
 
       <FieldsetController
         control={control}
-        name="description"
-        fieldsetProps={{label: 'Description'}}
+        name="aboutTheGame"
+        fieldsetProps={{label: 'About the game'}}
         render={({controlledProps}) => (
           <Textarea
             {...controlledProps}
-            placeholder="Full game description..."
+            placeholder="Full about-the-game text..."
             rows={6}
             disabled={disabled}
             className="w-full"

@@ -9,7 +9,7 @@ import type {
 } from 'react';
 import {NavLink} from 'react-router';
 import styled, {css} from 'styled-components';
-import {variantsStyles} from './variants';
+import {variants} from './variants';
 import type {ButtonSize, ButtonVariant} from './variants';
 
 const ARROW_ICON_SIZE = 14;
@@ -76,6 +76,9 @@ export function Button({
     </>
   );
 
+  const config = variants[variant] || variants.default;
+  const wrappedContent = config.wrapped ? <span>{content}</span> : content;
+
   const styledProps: StyledButtonProps = {
     $autoHeight: autoHeight,
     $elevated: elevated,
@@ -96,7 +99,7 @@ export function Button({
         {...styledProps}
         {...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
-        {content}
+        {wrappedContent}
       </StyledLink>
     );
   }
@@ -109,7 +112,7 @@ export function Button({
       {...styledProps}
       {...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
     >
-      {content}
+      {wrappedContent}
     </StyledButton>
   );
 }
@@ -138,8 +141,8 @@ const sharedButtonStyles = css<StyledButtonProps>`
   }
 
   ${({$size, $variant, $autoHeight, $elevated, $emphasis, $fullRounded}) => {
-    const styleFn = variantsStyles[$variant] || variantsStyles.default;
-    return styleFn({
+    const config = variants[$variant] || variants.default;
+    return config.styles({
       size: $size,
       autoHeight: $autoHeight,
       elevated: $elevated,

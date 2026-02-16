@@ -8,7 +8,7 @@ export const AdminGuard = ({children}: {children: React.ReactNode}) => {
     return null;
   }
 
-  if (!me || me.email !== import.meta.env.VITE_SUPER_ADMIN_EMAIL) {
+  if (!me || me.id !== import.meta.env.VITE_SUPER_ADMIN_USER_ID) {
     return <Navigate to="/" replace />;
   }
 

@@ -4,6 +4,7 @@ import type {StudioRoleType} from '@play/supabase-client'
 import {StudioRole} from '@play/supabase-client'
 import {adminProcedure, protectedProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
+import {isSlugProtected} from '../lib/protected-slugs'
 
 // Roles that can create change requests
 const REQUEST_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
@@ -68,7 +69,182 @@ export const changeRequestRouter = router({
         })
       }
 
-      return data || []
+      const requests = (data || []).map((request: any) => ({
+        ...request,
+        requester: Array.isArray(request.requester) ? request.requester[0] || null : request.requester,
+        reviewer: Array.isArray(request.reviewer) ? request.reviewer[0] || null : request.reviewer,
+      }))
+
+      if (requests.length === 0) {
+        return []
+      }
+
+      const missingRequesterRequests = requests.filter((request: any) => !request.requester?.email)
+
+      if (missingRequesterRequests.length === 0) {
+        return requests.map((request: any) => ({
+          ...request,
+          requested_by_email: request.requester?.email || null,
+        }))
+      }
+
+      const studioEntityIds = new Set<string>()
+      const gameEntityIds = new Set<string>()
+      const pageEntityIds = new Set<string>()
+
+      for (const request of missingRequesterRequests) {
+        if (request.entity_type === 'studio') {
+          studioEntityIds.add(request.entity_id)
+        } else if (request.entity_type === 'game') {
+          gameEntityIds.add(request.entity_id)
+        } else if (request.entity_type === 'game_page') {
+          pageEntityIds.add(request.entity_id)
+        }
+      }
+
+      const ownerStudioByGameId = new Map<string, string>()
+      if (gameEntityIds.size > 0) {
+        const {data: gameRows, error: gamesError} = await supabase
+          .from('games')
+          .select('id, owner_studio_id')
+          .in('id', Array.from(gameEntityIds))
+
+        if (gamesError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: gamesError.message,
+          })
+        }
+
+        for (const row of gameRows || []) {
+          ownerStudioByGameId.set(row.id, row.owner_studio_id)
+        }
+      }
+
+      const gameIdByPageId = new Map<string, string>()
+      if (pageEntityIds.size > 0) {
+        const {data: pageRows, error: pagesError} = await supabase
+          .from('game_pages')
+          .select('id, game_id')
+          .in('id', Array.from(pageEntityIds))
+
+        if (pagesError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: pagesError.message,
+          })
+        }
+
+        const gameIdsFromPages = new Set<string>()
+        for (const row of pageRows || []) {
+          gameIdByPageId.set(row.id, row.game_id)
+          gameIdsFromPages.add(row.game_id)
+        }
+
+        const missingGameIds = Array.from(gameIdsFromPages).filter((gameId) => !ownerStudioByGameId.has(gameId))
+
+        if (missingGameIds.length > 0) {
+          const {data: gamesFromPages, error: gamesFromPagesError} = await supabase
+            .from('games')
+            .select('id, owner_studio_id')
+            .in('id', missingGameIds)
+
+          if (gamesFromPagesError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: gamesFromPagesError.message,
+            })
+          }
+
+          for (const row of gamesFromPages || []) {
+            ownerStudioByGameId.set(row.id, row.owner_studio_id)
+          }
+        }
+      }
+
+      for (const request of missingRequesterRequests) {
+        if (request.entity_type === 'game') {
+          const studioId = ownerStudioByGameId.get(request.entity_id)
+          if (studioId) studioEntityIds.add(studioId)
+        } else if (request.entity_type === 'game_page') {
+          const gameId = gameIdByPageId.get(request.entity_id)
+          const studioId = gameId ? ownerStudioByGameId.get(gameId) : undefined
+          if (studioId) studioEntityIds.add(studioId)
+        }
+      }
+
+      const ownerUserByStudioId = new Map<string, string>()
+      if (studioEntityIds.size > 0) {
+        const {data: ownersRows, error: ownersError} = await supabase
+          .from('studio_members')
+          .select('studio_id, user_id, created_at')
+          .in('studio_id', Array.from(studioEntityIds))
+          .eq('role', StudioRole.OWNER)
+          .order('created_at', {ascending: true})
+
+        if (ownersError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: ownersError.message,
+          })
+        }
+
+        for (const row of ownersRows || []) {
+          if (!ownerUserByStudioId.has(row.studio_id)) {
+            ownerUserByStudioId.set(row.studio_id, row.user_id)
+          }
+        }
+      }
+
+      const ownerEmailByStudioId = new Map<string, string>()
+      const ownerUserIds = Array.from(new Set(ownerUserByStudioId.values()))
+      if (ownerUserIds.length > 0) {
+        const {data: profileRows, error: profilesError} = await supabase
+          .from('profiles')
+          .select('user_id, email')
+          .in('user_id', ownerUserIds)
+
+        if (profilesError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: profilesError.message,
+          })
+        }
+
+        const ownerEmailByUserId = new Map<string, string>()
+        for (const row of profileRows || []) {
+          if (row.email) ownerEmailByUserId.set(row.user_id, row.email)
+        }
+
+        for (const [studioId, ownerUserId] of ownerUserByStudioId.entries()) {
+          const email = ownerEmailByUserId.get(ownerUserId)
+          if (email) ownerEmailByStudioId.set(studioId, email)
+        }
+      }
+
+      return requests.map((request: any) => {
+        if (request.requester?.email) {
+          return {
+            ...request,
+            requested_by_email: request.requester.email,
+          }
+        }
+
+        let fallbackStudioId: string | undefined
+        if (request.entity_type === 'studio') {
+          fallbackStudioId = request.entity_id
+        } else if (request.entity_type === 'game') {
+          fallbackStudioId = ownerStudioByGameId.get(request.entity_id)
+        } else if (request.entity_type === 'game_page') {
+          const gameId = gameIdByPageId.get(request.entity_id)
+          fallbackStudioId = gameId ? ownerStudioByGameId.get(gameId) : undefined
+        }
+
+        return {
+          ...request,
+          requested_by_email: fallbackStudioId ? ownerEmailByStudioId.get(fallbackStudioId) || null : null,
+        }
+      })
     }),
 
   /**
@@ -387,14 +563,55 @@ export const changeRequestRouter = router({
       const table = approveTableMap[request.entity_type] || 'games'
       const updateField = request.field_name
       const cooldownField = `last_${request.field_name}_change`
+      const now = new Date().toISOString()
+      let slugBecameProtected = false
+
+      if (request.field_name === 'slug') {
+        const protectedEntityType
+          = request.entity_type === 'studio'
+            ? 'studio'
+            : request.entity_type === 'game_page'
+              ? 'game_page'
+              : null
+
+        if (protectedEntityType) {
+          slugBecameProtected = await isSlugProtected(
+            supabase,
+            protectedEntityType,
+            request.requested_value,
+          )
+        }
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        [cooldownField]: now,
+        updated_at: now,
+      }
+
+      if (request.field_name === 'slug' && request.entity_type === 'studio') {
+        if (slugBecameProtected) {
+          updatePayload.slug = `pending-studio-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+          updatePayload.requested_slug = request.requested_value
+          updatePayload.is_verified = false
+        } else {
+          updatePayload.slug = request.requested_value
+          updatePayload.requested_slug = null
+        }
+      } else if (request.field_name === 'slug' && request.entity_type === 'game_page') {
+        if (slugBecameProtected) {
+          updatePayload.slug = `pending-game-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+          updatePayload.requested_slug = request.requested_value
+        } else {
+          updatePayload.slug = request.requested_value
+          updatePayload.requested_slug = null
+        }
+      } else {
+        updatePayload[updateField] = request.requested_value
+      }
 
       const {error: updateError} = await supabase
         .from(table)
-        .update({
-          [updateField]: request.requested_value,
-          [cooldownField]: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', request.entity_id)
 
       if (updateError) {
@@ -404,13 +621,109 @@ export const changeRequestRouter = router({
         })
       }
 
+      if (slugBecameProtected && request.entity_type === 'game_page') {
+        const {data: page} = await supabase
+          .from('game_pages')
+          .select('game_id')
+          .eq('id', request.entity_id)
+          .single()
+
+        if (!page) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Game page not found',
+          })
+        }
+
+        const {error: gameError} = await supabase
+          .from('games')
+          .update({
+            is_verified: false,
+            updated_at: now,
+          })
+          .eq('id', page.game_id)
+
+        if (gameError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: gameError.message,
+          })
+        }
+      }
+
+      if (slugBecameProtected && (request.entity_type === 'studio' || request.entity_type === 'game_page')) {
+        if (request.entity_type === 'studio') {
+          const {data: games, error: gamesError} = await supabase
+            .from('games')
+            .select('id')
+            .eq('owner_studio_id', request.entity_id)
+
+          if (gamesError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: gamesError.message,
+            })
+          }
+
+          const gameIds = (games || []).map((game: {id: string}) => game.id)
+          if (gameIds.length > 0) {
+            const {error: unpublishError} = await supabase
+              .from('game_pages')
+              .update({
+                visibility: 'DRAFT',
+                unpublished_at: now,
+                updated_at: now,
+              })
+              .in('game_id', gameIds)
+              .eq('visibility', 'PUBLISHED')
+
+            if (unpublishError) {
+              throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: unpublishError.message,
+              })
+            }
+          }
+        } else {
+          const {data: page} = await supabase
+            .from('game_pages')
+            .select('game_id')
+            .eq('id', request.entity_id)
+            .single()
+
+          if (!page) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Game page not found',
+            })
+          }
+
+          const {error: unpublishError} = await supabase
+            .from('game_pages')
+            .update({
+              visibility: 'DRAFT',
+              unpublished_at: now,
+              updated_at: now,
+            })
+            .eq('game_id', page.game_id)
+            .eq('visibility', 'PUBLISHED')
+
+          if (unpublishError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: unpublishError.message,
+            })
+          }
+        }
+      }
+
       // Mark request as approved
       await supabase
         .from('change_requests')
         .update({
           status: 'approved',
           reviewed_by: user.id,
-          reviewed_at: new Date().toISOString(),
+          reviewed_at: now,
           reviewer_notes: input.notes || null,
         })
         .eq('id', input.id)
@@ -431,6 +744,7 @@ export const changeRequestRouter = router({
           field: request.field_name,
           oldValue: request.current_value,
           newValue: request.requested_value,
+          requiresVerification: slugBecameProtected,
         },
       })
 

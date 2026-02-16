@@ -425,6 +425,7 @@ export type Database = {
           created_at: string
           game_id: string
           id: string
+          is_claimable: boolean
           is_primary: boolean
           last_slug_change: string | null
           page_config: Json
@@ -438,6 +439,7 @@ export type Database = {
           created_at?: string
           game_id: string
           id?: string
+          is_claimable?: boolean
           is_primary?: boolean
           last_slug_change?: string | null
           page_config?: Json
@@ -451,6 +453,7 @@ export type Database = {
           created_at?: string
           game_id?: string
           id?: string
+          is_claimable?: boolean
           is_primary?: boolean
           last_slug_change?: string | null
           page_config?: Json
@@ -566,57 +569,78 @@ export type Database = {
       }
       games: {
         Row: {
+          about_the_game: Json | null
+          controller_support: string | null
           cover_url: string | null
           created_at: string
-          description: Json | null
           genres: string[] | null
           header_url: string | null
           id: string
+          is_free: boolean
           last_name_change: string | null
+          linux_requirements: Json | null
+          mac_requirements: Json | null
           owner_studio_id: string
+          pc_requirements: Json | null
           platforms: Json | null
           release_date: string | null
           status: Database["public"]["Enums"]["game_status"]
+          supported_languages: Json
           summary: string | null
           theme_color: string | null
           title: string
           trailer_url: string | null
+          type: Database["public"]["Enums"]["game_type"]
           updated_at: string | null
         }
         Insert: {
+          about_the_game?: Json | null
+          controller_support?: string | null
           cover_url?: string | null
           created_at?: string
-          description?: Json | null
           genres?: string[] | null
           header_url?: string | null
           id?: string
+          is_free?: boolean
           last_name_change?: string | null
+          linux_requirements?: Json | null
+          mac_requirements?: Json | null
           owner_studio_id: string
+          pc_requirements?: Json | null
           platforms?: Json | null
           release_date?: string | null
           status?: Database["public"]["Enums"]["game_status"]
+          supported_languages?: Json
           summary?: string | null
           theme_color?: string | null
           title: string
           trailer_url?: string | null
+          type?: Database["public"]["Enums"]["game_type"]
           updated_at?: string | null
         }
         Update: {
+          about_the_game?: Json | null
+          controller_support?: string | null
           cover_url?: string | null
           created_at?: string
-          description?: Json | null
           genres?: string[] | null
           header_url?: string | null
           id?: string
+          is_free?: boolean
           last_name_change?: string | null
+          linux_requirements?: Json | null
+          mac_requirements?: Json | null
           owner_studio_id?: string
+          pc_requirements?: Json | null
           platforms?: Json | null
           release_date?: string | null
           status?: Database["public"]["Enums"]["game_status"]
+          supported_languages?: Json
           summary?: string | null
           theme_color?: string | null
           title?: string
           trailer_url?: string | null
+          type?: Database["public"]["Enums"]["game_type"]
           updated_at?: string | null
         }
         Relationships: [
@@ -745,6 +769,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           id: string
+          is_claimable: boolean
           is_verified: boolean
           last_name_change: string | null
           last_slug_change: string | null
@@ -763,6 +788,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          is_claimable?: boolean
           is_verified?: boolean
           last_name_change?: string | null
           last_slug_change?: string | null
@@ -781,6 +807,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          is_claimable?: boolean
           is_verified?: boolean
           last_name_change?: string | null
           last_slug_change?: string | null
@@ -1032,6 +1059,7 @@ export type Database = {
         | "EARLY_ACCESS"
         | "RELEASED"
         | "CANCELLED"
+      game_type: "game" | "dlc" | "demo" | "video" | "mod" | "music" | "unknown"
       page_visibility: "DRAFT" | "PUBLISHED" | "ARCHIVED"
       studio_role: "OWNER" | "ADMIN" | "MEMBER"
     }
@@ -1178,9 +1206,9 @@ export const Constants = {
         "RELEASED",
         "CANCELLED",
       ],
+      game_type: ["game", "dlc", "demo", "video", "mod", "music", "unknown"],
       page_visibility: ["DRAFT", "PUBLISHED", "ARCHIVED"],
       studio_role: ["OWNER", "ADMIN", "MEMBER"],
     },
   },
 } as const
-

@@ -58,7 +58,7 @@ export function GameEditor() {
     () => (primaryPage?.page_config as PageConfig) ?? {},
     [primaryPage],
   );
-  const initialDescription = (game.description as string) ?? '';
+  const initialDescription = (game.about_the_game as string) ?? '';
   const initialMetadata = useMemo<GameMetadata>(
     () => ({
       title: game.title,
@@ -197,7 +197,7 @@ export function GameEditor() {
         tasks.push(
           updateGame.mutateAsync({
             id: game.id,
-            description,
+            aboutTheGame: description,
             title: gameMetadata.title,
             coverUrl: gameMetadata.coverUrl || null,
             headerUrl: gameMetadata.headerUrl || null,
@@ -264,6 +264,7 @@ export function GameEditor() {
 
       await Promise.all([
         utils.game.get.invalidate({id: game.id}),
+        utils.game.list.invalidate(),
         utils.gameLink.list.invalidate({gameId: game.id}),
         utils.gameMedia.list.invalidate({gameId: game.id}),
       ]);
@@ -309,6 +310,7 @@ export function GameEditor() {
     updateMedia,
     updatePageConfig,
     utils.game.get,
+    utils.game.list,
     utils.gameLink.list,
     utils.gameMedia.list,
   ]);

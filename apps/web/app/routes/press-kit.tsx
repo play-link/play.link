@@ -101,7 +101,7 @@ export default function PressKitPage({loaderData}: Route.ComponentProps) {
   const socialLinks = links.filter((l) => l.category === 'social');
   const images = media.filter((m) => m.type === 'image');
   const videos = media.filter((m) => m.type === 'video');
-  const description = game.description as string | null;
+  const description = game.about_the_game as string | null;
   const genres = Array.isArray(game.genres) ? (game.genres as string[]) : [];
   const platforms = Array.isArray(game.platforms) ? (game.platforms as string[]) : [];
   const platformLinks = links.filter((l) => l.category === 'platform');

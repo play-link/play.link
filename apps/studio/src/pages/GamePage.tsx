@@ -1,14 +1,18 @@
 import {Link, Outlet, useLocation, useNavigate, useParams} from 'react-router';
 import type {AppRouter} from '@play/api/trpc';
 import type {inferRouterOutputs} from '@trpc/server';
-import {Button, Loading, TabNav, TabNavItem} from '@play/pylon';
+import {
+  Button,
+  Loading,
+  SegmentedControls,
+} from '@play/pylon';
 import {PageLayout} from '@/components/layout';
 import {ContextLevel, useAppContext} from '@/lib/app-context';
 import {trpc} from '@/lib/trpc';
 
 export type GameOutletContext = inferRouterOutputs<AppRouter>['game']['get'];
 
-type Tab = 'overview' | 'updates' | 'info' | 'settings';
+type Tab = 'overview' | 'updates' | 'content' | 'settings';
 
 function useActiveTab(): Tab {
   const location = useLocation();
@@ -16,7 +20,7 @@ function useActiveTab(): Tab {
   const segment = parts[parts.length - 1];
   const parentSegment = parts[parts.length - 2];
   if (segment === 'settings') return 'settings';
-  if (segment === 'info') return 'info';
+  if (segment === 'content') return 'content';
   if (segment === 'updates' || parentSegment === 'updates') return 'updates';
   return 'overview';
 }
@@ -72,38 +76,33 @@ export function GamePage() {
 
   return (
     <PageLayout>
-      <PageLayout.Header
-        title={game.title}
-        tabNav={
-          <TabNav>
-            <TabNavItem
-              active={activeTab === 'overview'}
-              onClick={() => navigate(basePath)}
-            >
-              Overview
-            </TabNavItem>
-            <TabNavItem
-              active={activeTab === 'updates'}
-              onClick={() => navigate(`${basePath}/updates`)}
-            >
-              Updates
-            </TabNavItem>
-            <TabNavItem
-              active={activeTab === 'info'}
-              onClick={() => navigate(`${basePath}/info`)}
-            >
-              Info
-            </TabNavItem>
-            <TabNavItem
-              active={activeTab === 'settings'}
-              onClick={() => navigate(`${basePath}/settings`)}
-            >
-              Settings
-            </TabNavItem>
-          </TabNav>
-        }
-      />
-      <PageLayout.Content>
+      <PageLayout.Header title={game.title}>
+        {/*  <IconButton
+          icon={ArrowLeftIcon}
+          onClick={() => navigate(`/${activeStudio.slug}/games`)}
+          variant="filled"
+          className="mr-3"
+        /> */}
+        <SegmentedControls
+          value={activeTab}
+          items={[
+            {label: 'Overview', value: 'overview'},
+            {label: 'Content', value: 'content'},
+            {label: 'Updates', value: 'updates'},
+            {label: 'Settings', value: 'settings'},
+          ]}
+          onChange={(item) => {
+            const paths: Record<Tab, string> = {
+              overview: basePath,
+              content: `${basePath}/content`,
+              updates: `${basePath}/updates`,
+              settings: `${basePath}/settings`,
+            };
+            navigate(paths[item.value as Tab]);
+          }}
+        />
+      </PageLayout.Header>
+      <PageLayout.Content className="mt-6">
         <Outlet context={game} />
       </PageLayout.Content>
     </PageLayout>

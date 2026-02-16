@@ -12,11 +12,11 @@ const ARROW_ICON_SIZE = 14;
 
 // Auto-size icon based on button size
 const ICON_SIZES: Record<IconButtonSize, number> = {
-  xxs: 14,
-  xs: 16,
-  sm: 18,
-  md: 20,
-  lg: 20,
+  xxs: 10,
+  xs: 12,
+  sm: 16,
+  md: 16,
+  lg: 18,
 };
 
 interface IconButtonOwnProps {

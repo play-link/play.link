@@ -22,6 +22,14 @@ const SOCIAL_ICON_MAP: Record<string, LucideIcon> = {
   github: GithubIcon,
 };
 
+function getStudioBaseUrl() {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:3010';
+  }
+
+  return 'https://studio.play.link';
+}
+
 export function StudioProfileView({profile}: {profile: StudioProfile}) {
   const {backgroundColor, textColor, accentColor} = profile.theme;
 
@@ -70,6 +78,15 @@ export function StudioProfileView({profile}: {profile: StudioProfile}) {
               </div>
               <p className="opacity-60">@{profile.handle}</p>
               {profile.bio && <p className="mt-2 max-w-lg">{profile.bio}</p>}
+              {profile.canClaimOwnership && (
+                <a
+                  href={`${getStudioBaseUrl()}/?claim=1`}
+                  className="mt-2 inline-flex text-xs underline opacity-80 hover:opacity-100"
+                  style={{color: textColor}}
+                >
+                  Claim ownership
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -103,33 +120,43 @@ export function StudioProfileView({profile}: {profile: StudioProfile}) {
             <h2 className="text-xl font-semibold mb-6">Games</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {profile.games.map((game) => (
-                <a
-                  key={game.id}
-                  href={`/${game.pageSlug}`}
-                  className="group block rounded-xl overflow-hidden transition-transform hover:scale-[1.02]"
-                  style={{backgroundColor: `${textColor}10`}}
-                >
-                  {game.coverUrl ? (
-                    <img
-                      src={game.coverUrl}
-                      alt={game.title}
-                      className="w-full aspect-video object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="w-full aspect-video flex items-center justify-center"
-                      style={{backgroundColor: `${accentColor}30`}}
-                    >
-                      <Gamepad2Icon className="w-12 h-12 opacity-40" />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="font-semibold group-hover:underline">{game.title}</h3>
-                    {game.summary && (
-                      <p className="text-sm mt-1 opacity-70 line-clamp-2">{game.summary}</p>
+                <div key={game.id} className="flex flex-col gap-2">
+                  <a
+                    href={`/${game.pageSlug}`}
+                    className="group block rounded-xl overflow-hidden transition-transform hover:scale-[1.02]"
+                    style={{backgroundColor: `${textColor}10`}}
+                  >
+                    {game.coverUrl ? (
+                      <img
+                        src={game.coverUrl}
+                        alt={game.title}
+                        className="w-full aspect-video object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full aspect-video flex items-center justify-center"
+                        style={{backgroundColor: `${accentColor}30`}}
+                      >
+                        <Gamepad2Icon className="w-12 h-12 opacity-40" />
+                      </div>
                     )}
-                  </div>
-                </a>
+                    <div className="p-4">
+                      <h3 className="font-semibold group-hover:underline">{game.title}</h3>
+                      {game.summary && (
+                        <p className="text-sm mt-1 opacity-70 line-clamp-2">{game.summary}</p>
+                      )}
+                    </div>
+                  </a>
+                  {game.canClaimOwnership && (
+                    <a
+                      href={`${getStudioBaseUrl()}/?claim=1&claimSlug=${encodeURIComponent(game.pageSlug)}`}
+                      className="text-xs underline opacity-70 hover:opacity-100"
+                      style={{color: textColor}}
+                    >
+                      Claim ownership
+                    </a>
+                  )}
+                </div>
               ))}
             </div>
           </div>

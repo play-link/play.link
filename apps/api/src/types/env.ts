@@ -3,7 +3,7 @@ import type {drizzle} from 'drizzle-orm/postgres-js'
 
 // Cloudflare Workers bindings
 export interface Env {
-  SUPER_ADMIN_EMAIL: string
+  SUPER_ADMIN_USER_ID: string
   SUPABASE_URL: string
   SUPABASE_SERVICE_ROLE_KEY: string
   DATABASE_URL: string
@@ -11,6 +11,10 @@ export interface Env {
   R2_BUCKET: R2Bucket
   R2_PUBLIC_URL: string
   RESEND_API_KEY?: string
+  OUTREACH_EMAIL_FROM?: string
+  OUTREACH_DISPATCH_BATCH_SIZE?: string
+  X_API_KEY?: string
+  X_API_BASE_URL?: string
   STUDIO_URL?: string
 }
 

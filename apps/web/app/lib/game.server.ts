@@ -12,7 +12,7 @@ interface Env {
 export async function getGamePageBySlug(
   env: Env,
   slug: string,
-): Promise<{page: GamePage; game: Game} | null> {
+): Promise<{page: GamePage; game: Game; canClaimOwnership: boolean} | null> {
   const supabase = createAdminClient(
     env.SUPABASE_URL,
     env.SUPABASE_SERVICE_ROLE_KEY,
@@ -34,5 +34,5 @@ export async function getGamePageBySlug(
     return null;
   }
 
-  return {page: data, game: data.game};
+  return {page: data, game: data.game, canClaimOwnership: Boolean(data.is_claimable)};
 }

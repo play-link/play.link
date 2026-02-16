@@ -20,15 +20,21 @@ export type FieldsetProps = HTMLAttributes<HTMLFieldSetElement> & {
   invalidAsTooltip?: boolean;
   // If false, the Fieldset will take up the full width of its container
   noFullWidth?: boolean;
+  // Optional id for the help text node so inputs can reference it via aria-describedby
+  helpTextId?: string;
+  // Optional id for the inline invalid text node so inputs can reference it via aria-describedby
+  invalidTextId?: string;
 };
 
 export function Fieldset({
   children,
   fieldsetCss,
   helpText,
+  helpTextId,
   invalid = false,
   invalidAsTooltip = false,
   invalidText,
+  invalidTextId,
   label,
   labelFor,
   noFullWidth = false,
@@ -53,8 +59,12 @@ export function Fieldset({
       ) : (
         children
       )}
-      {invalid && !invalidAsTooltip && !!invalidText && <InvalidText>{invalidText}</InvalidText>}
-      {!!helpText && <HelpText>{helpText}</HelpText>}
+      {invalid && !invalidAsTooltip && !!invalidText && (
+        <InvalidText id={invalidTextId}>
+          {invalidText}
+        </InvalidText>
+      )}
+      {!!helpText && <HelpText id={helpTextId}>{helpText}</HelpText>}
     </StyledFieldset>
   );
 }

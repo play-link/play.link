@@ -8,6 +8,9 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- LIMPIEZA PREVIA
 DROP TABLE IF EXISTS change_requests CASCADE;
+DROP TABLE IF EXISTS ownership_claims CASCADE;
+DROP TABLE IF EXISTS verification_claims CASCADE;
+DROP TABLE IF EXISTS protected_slugs CASCADE;
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS analytics_events CASCADE;
 DROP TABLE IF EXISTS game_links CASCADE;
@@ -19,17 +22,23 @@ DROP TABLE IF EXISTS invites CASCADE;
 DROP TABLE IF EXISTS game_credits CASCADE;
 DROP TABLE IF EXISTS campaigns CASCADE;
 DROP TABLE IF EXISTS campaign_events CASCADE;
+DROP TABLE IF EXISTS admin_outreach_events CASCADE;
+DROP TABLE IF EXISTS admin_outreach_messages CASCADE;
+DROP TABLE IF EXISTS admin_outreach_threads CASCADE;
+DROP TABLE IF EXISTS admin_outreach_leads CASCADE;
 DROP TABLE IF EXISTS games CASCADE;
 DROP TABLE IF EXISTS studio_members CASCADE;
 DROP TABLE IF EXISTS studios CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
 DROP TYPE IF EXISTS page_visibility CASCADE;
 DROP TYPE IF EXISTS game_status CASCADE;
+DROP TYPE IF EXISTS game_type CASCADE;
 DROP TYPE IF EXISTS studio_role CASCADE;
 DROP TYPE IF EXISTS credit_role CASCADE;
 
 -- 2. ENUMS
 CREATE TYPE game_status AS ENUM ('IN_DEVELOPMENT', 'UPCOMING', 'EARLY_ACCESS', 'RELEASED', 'CANCELLED');
+CREATE TYPE game_type AS ENUM ('game', 'dlc', 'demo', 'video', 'mod', 'music', 'unknown');
 CREATE TYPE page_visibility AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
 CREATE TYPE studio_role AS ENUM ('OWNER', 'MEMBER', 'VIEWER');
 CREATE TYPE credit_role AS ENUM ('DEVELOPER', 'PUBLISHER', 'PORTING', 'MARKETING', 'SUPPORT');
@@ -58,9 +67,11 @@ CREATE TABLE public.profiles (
 CREATE TABLE public.studios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug VARCHAR(50) NOT NULL,
+    requested_slug VARCHAR(50),
     name VARCHAR(100) NOT NULL,
     stripe_customer_id VARCHAR(255),
-    is_verified BOOLEAN DEFAULT false NOT NULL,
+    is_verified BOOLEAN DEFAULT true NOT NULL,
+    is_claimable BOOLEAN DEFAULT false NOT NULL,
     avatar_url TEXT,
     cover_url TEXT,
     background_color VARCHAR(20) DEFAULT '#030712',
@@ -93,7 +104,14 @@ CREATE TABLE public.games (
 
     title VARCHAR(200) NOT NULL,
     summary TEXT,
-    description JSONB,
+    about_the_game JSONB,
+    type game_type DEFAULT 'game'::game_type NOT NULL,
+    is_free BOOLEAN DEFAULT false NOT NULL,
+    controller_support TEXT,
+    supported_languages JSONB DEFAULT '[]'::JSONB NOT NULL,
+    pc_requirements JSONB,
+    mac_requirements JSONB,
+    linux_requirements JSONB,
 
     -- Lifecycle
     status game_status DEFAULT 'IN_DEVELOPMENT'::game_status NOT NULL,
@@ -113,7 +131,7 @@ CREATE TABLE public.games (
     last_name_change TIMESTAMPTZ,
 
     -- Verification
-    is_verified BOOLEAN DEFAULT false NOT NULL,
+    is_verified BOOLEAN DEFAULT true NOT NULL,
 
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ
@@ -125,7 +143,9 @@ CREATE TABLE public.game_pages (
     game_id UUID NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
 
     slug VARCHAR(150) NOT NULL,
+    requested_slug VARCHAR(150),
     visibility page_visibility DEFAULT 'DRAFT'::page_visibility NOT NULL,
+    is_claimable BOOLEAN DEFAULT false NOT NULL,
 
     published_at TIMESTAMPTZ,
     unpublished_at TIMESTAMPTZ,
@@ -211,6 +231,76 @@ CREATE TABLE public.change_requests (
     reviewed_at TIMESTAMPTZ,
 
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+);
+
+-- H2. PROTECTED SLUGS (dynamic high-risk slug list)
+CREATE TABLE public.protected_slugs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('studio', 'game_page')),
+    slug TEXT NOT NULL,
+    reason TEXT,
+    created_by UUID REFERENCES public.profiles(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ,
+
+    CONSTRAINT protected_slugs_unique UNIQUE (entity_type, slug)
+);
+
+-- H3. REPORTS (abuse/moderation queue)
+CREATE TABLE public.verification_claims (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    target_type TEXT NOT NULL CHECK (target_type IN ('game_page', 'game', 'studio')),
+    target_id UUID NOT NULL,
+
+    page_id UUID REFERENCES public.game_pages(id) ON DELETE SET NULL,
+    game_id UUID REFERENCES public.games(id) ON DELETE SET NULL,
+    studio_id UUID REFERENCES public.studios(id) ON DELETE SET NULL,
+    slug_snapshot TEXT,
+
+    report_type TEXT NOT NULL CHECK (
+      report_type IN ('impersonation', 'trademark', 'fraud', 'abuse', 'other')
+    ),
+    details TEXT,
+    reporter_email TEXT,
+
+    source_ip INET,
+    user_agent TEXT,
+
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'reviewing', 'resolved', 'rejected')),
+    resolution_action TEXT NOT NULL DEFAULT 'none' CHECK (
+      resolution_action IN ('none', 'unverified_game', 'unverified_studio', 'unverified_both')
+    ),
+    resolution_notes TEXT,
+
+    handled_by UUID REFERENCES public.profiles(user_id) ON DELETE SET NULL,
+    handled_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ
+);
+
+-- H4. OWNERSHIP CLAIMS (\"this game/slug belongs to me\")
+CREATE TABLE public.ownership_claims (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    page_id UUID NOT NULL REFERENCES public.game_pages(id) ON DELETE CASCADE,
+    game_id UUID NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
+    current_studio_id UUID NOT NULL REFERENCES public.studios(id) ON DELETE CASCADE,
+    requested_studio_id UUID NOT NULL REFERENCES public.studios(id) ON DELETE CASCADE,
+
+    claimed_slug TEXT NOT NULL,
+    claimant_user_id UUID NOT NULL REFERENCES public.profiles(user_id) ON DELETE CASCADE,
+    claimant_email TEXT,
+    details TEXT,
+
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'approved', 'rejected')),
+    admin_notes TEXT,
+    handled_by UUID REFERENCES public.profiles(user_id) ON DELETE SET NULL,
+    handled_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ
 );
 
 -- I. GAME LINKS
@@ -336,16 +426,112 @@ CREATE TABLE public.custom_domains (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Q. ADMIN OUTREACH LEADS
+CREATE TABLE public.admin_outreach_leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    target_type TEXT NOT NULL CHECK (target_type IN ('game', 'studio')),
+    target_game_id UUID REFERENCES public.games(id) ON DELETE SET NULL,
+    target_studio_id UUID REFERENCES public.studios(id) ON DELETE SET NULL,
+    target_slug TEXT,
+    target_name TEXT NOT NULL,
+
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'discord', 'twitter')),
+    contact_identifier TEXT NOT NULL,
+    contact_display_name TEXT,
+
+    source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('steam_scan', 'manual', 'import')),
+    confidence_score SMALLINT NOT NULL DEFAULT 50 CHECK (confidence_score >= 0 AND confidence_score <= 100),
+
+    status TEXT NOT NULL DEFAULT 'new' CHECK (
+      status IN (
+        'new',
+        'queued',
+        'contacted',
+        'replied',
+        'interested',
+        'not_interested',
+        'bounced',
+        'blocked',
+        'claimed'
+      )
+    ),
+    is_blocked BOOLEAN NOT NULL DEFAULT false,
+    owner_admin_user_id UUID REFERENCES public.profiles(user_id) ON DELETE SET NULL,
+    notes TEXT,
+    last_contacted_at TIMESTAMPTZ,
+    next_action_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ
+);
+
+-- R. ADMIN OUTREACH THREADS
+CREATE TABLE public.admin_outreach_threads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lead_id UUID NOT NULL REFERENCES public.admin_outreach_leads(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'discord', 'twitter')),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'awaiting_reply', 'replied', 'closed')),
+    external_thread_id TEXT,
+    last_outbound_at TIMESTAMPTZ,
+    last_inbound_at TIMESTAMPTZ,
+    assigned_admin_user_id UUID REFERENCES public.profiles(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ,
+    closed_at TIMESTAMPTZ,
+
+    CONSTRAINT admin_outreach_threads_lead_channel_unique UNIQUE (lead_id, channel)
+);
+
+-- S. ADMIN OUTREACH MESSAGES
+CREATE TABLE public.admin_outreach_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    thread_id UUID NOT NULL REFERENCES public.admin_outreach_threads(id) ON DELETE CASCADE,
+    lead_id UUID NOT NULL REFERENCES public.admin_outreach_leads(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'discord', 'twitter')),
+    direction TEXT NOT NULL CHECK (direction IN ('outbound', 'inbound')),
+    provider TEXT NOT NULL,
+    provider_message_id TEXT,
+    template_id TEXT,
+    subject TEXT,
+    body TEXT,
+    status TEXT CHECK (status IN ('queued', 'sent', 'delivered', 'failed')),
+    CONSTRAINT admin_outreach_messages_direction_status_check CHECK (
+      (direction = 'outbound' AND status IS NOT NULL)
+      OR (direction = 'inbound' AND status IS NULL)
+    ),
+    error_code TEXT,
+    error_message TEXT,
+    scheduled_at TIMESTAMPTZ,
+    sent_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ
+);
+
+-- T. ADMIN OUTREACH EVENTS
+CREATE TABLE public.admin_outreach_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id UUID REFERENCES public.admin_outreach_messages(id) ON DELETE SET NULL,
+    thread_id UUID REFERENCES public.admin_outreach_threads(id) ON DELETE SET NULL,
+    lead_id UUID REFERENCES public.admin_outreach_leads(id) ON DELETE SET NULL,
+    provider TEXT NOT NULL,
+    provider_event_id TEXT,
+    event_type TEXT NOT NULL,
+    occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    payload_json JSONB NOT NULL DEFAULT '{}'::JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- ============================================================
 -- 4. INDEXES
 -- ============================================================
 
 CREATE INDEX idx_profiles_username ON public.profiles(username);
 CREATE INDEX idx_studio_members_user ON public.studio_members(user_id);
+CREATE INDEX idx_studios_requested_slug ON public.studios(requested_slug);
 CREATE INDEX idx_games_owner ON public.games(owner_studio_id);
 CREATE INDEX idx_games_status ON public.games(status);
 CREATE INDEX idx_games_genres ON public.games USING GIN (genres);
 CREATE INDEX idx_game_pages_game ON public.game_pages(game_id);
+CREATE INDEX idx_game_pages_requested_slug ON public.game_pages(requested_slug);
 CREATE INDEX idx_game_pages_visibility ON public.game_pages(visibility);
 CREATE INDEX idx_game_pages_primary ON public.game_pages(game_id, is_primary) WHERE is_primary = true;
 CREATE INDEX idx_game_credits_game ON public.game_credits(game_id);
@@ -358,6 +544,16 @@ CREATE INDEX idx_change_requests_entity ON public.change_requests(entity_type, e
 CREATE INDEX idx_change_requests_status ON public.change_requests(status);
 CREATE INDEX idx_change_requests_status_created ON public.change_requests(status, created_at DESC);
 CREATE INDEX idx_change_requests_requested_by ON public.change_requests(requested_by);
+CREATE INDEX idx_protected_slugs_entity_slug ON public.protected_slugs(entity_type, slug);
+CREATE INDEX idx_protected_slugs_created_at ON public.protected_slugs(created_at DESC);
+CREATE INDEX idx_verification_claims_status_created ON public.verification_claims(status, created_at DESC);
+CREATE INDEX idx_verification_claims_game_id ON public.verification_claims(game_id);
+CREATE INDEX idx_verification_claims_studio_id ON public.verification_claims(studio_id);
+CREATE INDEX idx_verification_claims_page_id ON public.verification_claims(page_id);
+CREATE INDEX idx_ownership_claims_status_created ON public.ownership_claims(status, created_at DESC);
+CREATE INDEX idx_ownership_claims_claimant_user_id ON public.ownership_claims(claimant_user_id);
+CREATE INDEX idx_ownership_claims_game_id ON public.ownership_claims(game_id);
+CREATE INDEX idx_ownership_claims_requested_studio_id ON public.ownership_claims(requested_studio_id);
 CREATE INDEX idx_game_links_game ON public.game_links(game_id);
 CREATE INDEX idx_analytics_events_game ON public.analytics_events(game_id);
 CREATE INDEX idx_analytics_events_type ON public.analytics_events(event_type);
@@ -394,6 +590,27 @@ CREATE INDEX idx_custom_domains_studio_id ON public.custom_domains(studio_id);
 CREATE INDEX idx_custom_domains_hostname ON public.custom_domains(hostname);
 CREATE INDEX idx_custom_domains_target ON public.custom_domains(target_type, target_id);
 CREATE INDEX idx_custom_domains_status ON public.custom_domains(status);
+CREATE INDEX idx_admin_outreach_leads_status_next_action ON public.admin_outreach_leads(status, next_action_at);
+CREATE INDEX idx_admin_outreach_leads_channel_created ON public.admin_outreach_leads(channel, created_at DESC);
+CREATE INDEX idx_admin_outreach_leads_blocked ON public.admin_outreach_leads(is_blocked);
+CREATE INDEX idx_admin_outreach_leads_target_game ON public.admin_outreach_leads(target_game_id);
+CREATE INDEX idx_admin_outreach_leads_target_studio ON public.admin_outreach_leads(target_studio_id);
+CREATE INDEX idx_admin_outreach_threads_status_created ON public.admin_outreach_threads(status, created_at DESC);
+CREATE INDEX idx_admin_outreach_threads_lead ON public.admin_outreach_threads(lead_id);
+CREATE INDEX idx_admin_outreach_threads_channel ON public.admin_outreach_threads(channel);
+CREATE INDEX idx_admin_outreach_messages_status_created ON public.admin_outreach_messages(status, created_at DESC);
+CREATE INDEX idx_admin_outreach_messages_lead ON public.admin_outreach_messages(lead_id);
+CREATE INDEX idx_admin_outreach_messages_thread ON public.admin_outreach_messages(thread_id);
+CREATE INDEX idx_admin_outreach_messages_channel ON public.admin_outreach_messages(channel);
+CREATE UNIQUE INDEX idx_admin_outreach_messages_provider_message
+    ON public.admin_outreach_messages(provider, provider_message_id)
+    WHERE provider_message_id IS NOT NULL;
+CREATE INDEX idx_admin_outreach_events_occurred ON public.admin_outreach_events(occurred_at DESC);
+CREATE INDEX idx_admin_outreach_events_provider_type ON public.admin_outreach_events(provider, event_type);
+CREATE INDEX idx_admin_outreach_events_lead ON public.admin_outreach_events(lead_id);
+CREATE UNIQUE INDEX idx_admin_outreach_events_provider_event
+    ON public.admin_outreach_events(provider, provider_event_id)
+    WHERE provider_event_id IS NOT NULL;
 
 -- ============================================================
 -- 5. ROW LEVEL SECURITY (Zero Trust)
@@ -408,6 +625,9 @@ ALTER TABLE game_credits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE change_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE protected_slugs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE verification_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ownership_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_subscribers ENABLE ROW LEVEL SECURITY;
@@ -416,6 +636,10 @@ ALTER TABLE campaign_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_updates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE custom_domains ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_outreach_leads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_outreach_threads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_outreach_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_outreach_events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "No public access" ON profiles FOR ALL USING (false);
 CREATE POLICY "No public access" ON studios FOR ALL USING (false);
@@ -426,6 +650,9 @@ CREATE POLICY "No public access" ON game_credits FOR ALL USING (false);
 CREATE POLICY "No public access" ON invites FOR ALL USING (false);
 CREATE POLICY "No public access" ON audit_logs FOR ALL USING (false);
 CREATE POLICY "No public access" ON change_requests FOR ALL USING (false);
+CREATE POLICY "No public access" ON protected_slugs FOR ALL USING (false);
+CREATE POLICY "No public access" ON verification_claims FOR ALL USING (false);
+CREATE POLICY "No public access" ON ownership_claims FOR ALL USING (false);
 CREATE POLICY "No public access" ON game_links FOR ALL USING (false);
 CREATE POLICY "No public access" ON analytics_events FOR ALL USING (false);
 CREATE POLICY "No public access" ON game_subscribers FOR ALL USING (false);
@@ -434,6 +661,10 @@ CREATE POLICY "No public access" ON campaign_events FOR ALL USING (false);
 CREATE POLICY "Service role full access on game_updates" ON public.game_updates FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "No public access" ON game_media FOR ALL USING (false);
 CREATE POLICY "No public access" ON custom_domains FOR ALL USING (false);
+CREATE POLICY "No public access" ON admin_outreach_leads FOR ALL USING (false);
+CREATE POLICY "No public access" ON admin_outreach_threads FOR ALL USING (false);
+CREATE POLICY "No public access" ON admin_outreach_messages FOR ALL USING (false);
+CREATE POLICY "No public access" ON admin_outreach_events FOR ALL USING (false);
 
 -- ============================================================
 -- 6. FUNCTIONS

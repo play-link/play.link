@@ -2,13 +2,14 @@
 export {getSupabaseClient} from './client'
 
 // Enum constants for runtime use
-export {CreditRole, DomainStatus, DomainTargetType, GameStatus, PageVisibility, StudioRole} from './enums'
+export {CreditRole, DomainStatus, DomainTargetType, GameStatus, GameType, PageVisibility, StudioRole} from './enums'
 
 export type {
   CreditRoleType,
   DomainStatusType,
   DomainTargetTypeType,
   GameStatusType,
+  GameTypeType,
   PageVisibilityType,
   StudioRoleType,
 } from './enums'

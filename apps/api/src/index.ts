@@ -4,11 +4,12 @@ import type {Context} from 'hono'
 import {cors} from 'hono/cors'
 import {logger} from 'hono/logger'
 import {secureHeaders} from 'hono/secure-headers'
+import {runOutreachDispatcher} from './cron/outreach-dispatcher'
 import {authMiddleware, dbMiddleware, supabaseMiddleware} from './middleware'
 import {upload} from './routes/upload'
 import type {TRPCContext} from './trpc'
 import {appRouter} from './trpc/routers'
-import type {AppContext} from './types'
+import type {AppContext, Env} from './types'
 
 // =============================================================================
 // App Setup
@@ -20,6 +21,7 @@ const CORS_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3005',
+  'http://localhost:5173',
 ]
 
 const R2_CACHE_CONTROL = 'public, max-age=31536000, immutable'
@@ -117,4 +119,24 @@ app.notFound((c) => c.json({error: 'Not Found'}, 404))
 // Export
 // =============================================================================
 
-export default app
+const scheduledHandler = (
+  controller: ScheduledController,
+  env: Env,
+  executionCtx: ExecutionContext,
+) => {
+  executionCtx.waitUntil((async () => {
+    try {
+      const summary = await runOutreachDispatcher(env)
+      console.log(
+        `[outreach-dispatcher] cron=${controller.cron} summary=${JSON.stringify(summary)}`,
+      )
+    } catch (error) {
+      console.error('[outreach-dispatcher] job failed', error)
+    }
+  })())
+}
+
+export default {
+  fetch: app.fetch,
+  scheduled: scheduledHandler,
+}

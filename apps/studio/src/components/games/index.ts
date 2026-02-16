@@ -1,10 +1,11 @@
-export {CreateGameDialog} from './CreateGameDialog';
+export {CreateGameDialog} from './create-game-dialog';
 export {CreateGameUpdate} from './CreateGameUpdate';
 export {GameEditor} from './game-editor';
 export {GameSettings} from './game-settings';
 export {GameCard, type GameCardProps} from './GameCard';
-export {GameInfo} from './GameInfo';
+export {GameContent} from './GameContent';
 export {GameOverview} from './GameOverview';
 export {GamePreview} from './GamePreview';
+export * from './games-page';
 export {GameUpdateDetail} from './GameUpdateDetail';
 export {GameUpdates} from './GameUpdates';

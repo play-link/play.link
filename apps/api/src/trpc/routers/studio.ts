@@ -4,6 +4,7 @@ import type {StudioRoleType} from '@play/supabase-client'
 import {StudioRole} from '@play/supabase-client'
 import {protectedProcedure, publicProcedure, router} from '../index'
 import {AuditAction, logAuditEvent} from '../lib/audit'
+import {isSlugProtected} from '../lib/protected-slugs'
 
 // Roles that can update a studio
 const UPDATE_ROLES: StudioRoleType[] = [StudioRole.OWNER, StudioRole.MEMBER]
@@ -26,6 +27,7 @@ export const studioRouter = router({
     .input(z.object({slug: slugSchema}))
     .query(async ({ctx, input}) => {
       const {supabase} = ctx
+      const slugProtected = await isSlugProtected(supabase, 'studio', input.slug)
 
       const {data, error} = await supabase
         .from('studios')
@@ -37,7 +39,7 @@ export const studioRouter = router({
         return {available: false, error: error.message}
       }
 
-      return {available: data === null}
+      return {available: data === null, requiresVerification: slugProtected}
     }),
 
   /**
@@ -93,11 +95,37 @@ export const studioRouter = router({
     .input(z.object({slug: slugSchema, name: z.string().min(1).max(100)}))
     .mutation(async ({ctx, input}) => {
       const {user, supabase} = ctx
+      const slugProtected = await isSlugProtected(supabase, 'studio', input.slug)
+      const nowIso = new Date().toISOString()
+
+      const {data: existingSlug} = await supabase
+        .from('studios')
+        .select('id')
+        .eq('slug', input.slug)
+        .maybeSingle()
+
+      if (existingSlug) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Studio slug already exists',
+        })
+      }
+
+      const insertSlug = slugProtected
+        ? `pending-studio-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+        : input.slug
 
       // Create studio
       const {data: studio, error: studioError} = await supabase
         .from('studios')
-        .insert({slug: input.slug, name: input.name})
+        .insert({
+          slug: insertSlug,
+          requested_slug: slugProtected ? input.slug : null,
+          name: input.name,
+          // Protected slugs are allowed, but require manual admin verification.
+          is_verified: !slugProtected,
+          updated_at: nowIso,
+        })
         .select()
         .single()
 
@@ -139,7 +167,12 @@ export const studioRouter = router({
         studioId: studio.id,
         targetType: 'studio',
         targetId: studio.id,
-        metadata: {slug: studio.slug, name: studio.name},
+        metadata: {
+          slug: studio.slug,
+          requestedSlug: studio.requested_slug || null,
+          name: studio.name,
+          requiresVerification: slugProtected,
+        },
       })
 
       return studio
@@ -147,8 +180,7 @@ export const studioRouter = router({
 
   /**
    * Update a studio
-   * - For verified studios: slug/name changes require change request
-   * - For non-verified studios: slug/name changes have 24h cooldown
+   * - Slug changes have 24h cooldown
    * - Other fields can be updated freely
    */
   update: protectedProcedure
@@ -184,7 +216,7 @@ export const studioRouter = router({
       // Get current studio state
       const {data: studio} = await supabase
         .from('studios')
-        .select('is_verified, slug, name, last_slug_change')
+        .select('slug, requested_slug, name, last_slug_change, is_verified')
         .eq('id', input.id)
         .single()
 
@@ -201,17 +233,8 @@ export const studioRouter = router({
       // Handle protected fields (only slug is protected)
       const isSlugChanging = input.slug && input.slug !== studio.slug
 
-      // If verified, slug changes require change request
-      if (studio.is_verified && isSlugChanging) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message:
-            'This studio is verified. Slug changes require approval. Use changeRequest.create instead.',
-        })
-      }
-
-      // If not verified, check cooldown for slug changes
-      if (!studio.is_verified && isSlugChanging) {
+      // Check cooldown for slug changes
+      if (isSlugChanging) {
         if (
           studio.last_slug_change &&
           now - new Date(studio.last_slug_change).getTime() < COOLDOWN_MS
@@ -229,9 +252,19 @@ export const studioRouter = router({
 
       // Build update object - only update provided fields
       const updates: Record<string, unknown> = {}
+      let changedToProtectedSlug = false
+      const nowIso = new Date().toISOString()
       if (input.slug && input.slug !== studio.slug) {
-        updates.slug = input.slug
-        updates.last_slug_change = new Date().toISOString()
+        changedToProtectedSlug = await isSlugProtected(supabase, 'studio', input.slug)
+        updates.last_slug_change = nowIso
+        if (changedToProtectedSlug) {
+          updates.is_verified = false
+          updates.requested_slug = input.slug
+          updates.slug = `pending-studio-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`
+        } else {
+          updates.slug = input.slug
+          updates.requested_slug = null
+        }
       }
       if (input.name !== undefined && input.name !== studio.name) {
         updates.name = input.name
@@ -251,7 +284,7 @@ export const studioRouter = router({
         })
       }
 
-      updates.updated_at = new Date().toISOString()
+      updates.updated_at = nowIso
 
       const {data: updatedStudio, error} = await supabase
         .from('studios')
@@ -271,6 +304,40 @@ export const studioRouter = router({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message,
         })
+      }
+
+      if (changedToProtectedSlug && studio.is_verified) {
+        const {data: games, error: gamesError} = await supabase
+          .from('games')
+          .select('id')
+          .eq('owner_studio_id', input.id)
+
+        if (gamesError) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: gamesError.message,
+          })
+        }
+
+        const gameIds = (games || []).map((game: {id: string}) => game.id)
+        if (gameIds.length > 0) {
+          const {error: unpublishError} = await supabase
+            .from('game_pages')
+            .update({
+              visibility: 'DRAFT',
+              unpublished_at: nowIso,
+              updated_at: nowIso,
+            })
+            .in('game_id', gameIds)
+            .eq('visibility', 'PUBLISHED')
+
+          if (unpublishError) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: unpublishError.message,
+            })
+          }
+        }
       }
 
       await logAuditEvent(supabase, {
