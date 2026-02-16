@@ -37,3 +37,6 @@ test-results/
 
 .wrangler/
 .react-router/
+
+# Claude Code
+.claude/
